@@ -1,0 +1,62 @@
+---
+title: "Reporting Guidelines"
+output: 
+  github_document:
+    toc: true
+    fig_width: 10.08
+    fig_height: 6
+  rmarkdown::html_vignette:
+    toc: true
+    fig_width: 10.08
+    fig_height: 6
+tags: [r, bayesian, posterior, test]
+vignette: >
+  %\VignetteIndexEntry{Reporting Guidelines}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+These guidelines can be referred to by citing the package:
+
+- Makowski, D. \& Lüdecke, D. (2019). *Understand and Describe Bayesian Models and Posterior Distributions using BayestestR*. Available from https://github.com/easystats/bayestestR. DOI: [10.5281/zenodo.2556486](https://zenodo.org/record/2556486).
+
+# Reporting Guidelines
+
+Based on the previous [**comparison of point-estimates**](https://easystats.github.io/bayestestR/articles/indicesEstimationComparison.html) and [**indices of effect existence**](https://easystats.github.io/bayestestR/articles/indicesExistenceComparison.html), we can conclude that:
+
+- For simple models and normally distributed posteriors, the **MAP estimate** seems to be more biased than the mean and the median of the posterior distribution.
+- Aside from being more robust, the **median** makes more sense than the **mean** in a probabilistic framework (*e.g.*, there is 50\% chance that the true effect is either higher or lower than the median).
+- The **traditional ROPE** (using a 90\% HDI) is not sensitive to delineate highly "significant" effects. The full ROPE (100\% HDI) does not present the same flaw.
+- The **Probability of Direction (*p*d)** is the closest index to the frequentist *p* value.
+
+Thus, to minimally **describe the posterior distribution** of a parameter, we suggest reporting the **median** and the **90\% CI** (using HDI rather than quantiles) for parameter characterisation and, in the context of null-hypothesis testing, the **Probability of Direction (*p*d)** for effect existence and, especially in the context of confirmatory analyses, the **ROPE percentage (full)** with an explicitly specified range for effect significance.
+
+## Interpretation Rules of Thumb
+
+**The following thresholds are presented as landmarks only, and any use of such "labels" should be explicitly justified. Please consider with caution.**
+
+- **Probability of Direction (*p*d)**: In most cases, it seems that the *pd* corresponds to the frequentist one-sided *p* value through the formula `p value = (1-pd/100)` and to the two-sided *p* value (the most commonly reported) through the formula `p value = 2*(1-pd/100)`. Thus, a `pd` of `95%`, `97.5%` `99.5%` and `99.95%` corresponds approximately to a two-sided *p* value of respectively `.1`, `.05`, `.01` and `.001`. Thus, for convience, we recommend using the following reference values:
+
+    - *p*d **\<= 95\%** ~ *p* \> .1: uncertain
+    - *p*d **\> 95\%** ~ *p* \< .1: possibly existing
+    - *p*d **\> 97\%**: likely existing
+    - *p*d **\> 99\%**: probably existing
+    - *p*d **\> 99.9\%**: certainly existing
+
+- **ROPE (full)**: Extra caution is required as its interpretation highly depends on other parameters such as sample size and ROPE range.
+
+    - **\> 99\%** in ROPE: negligible (we can accept the null hypothesis)
+    - **\> 97.5\%** in ROPE: probably negligible
+    - **\<= 97.5\%** \& **\>= 2.5\%** in ROPE: not significant
+    - **\< 2.5\%** in ROPE: probably significant
+    - **\< 1\%** in ROPE: significant (we can reject the null hypothesis)
+
+*Note: If you have any advice, opinion or such, we encourage you to let us know by opening an [discussion thread](https://github.com/easystats/bayestestR/issues) or making a pull request.*
+
+## Template Sentence
+
+Based on these suggestions, a template sentence for minimal reporting of a parameter based on its posterior distribution could be:
+
+- "the effect of *X* has a probability of ***p*d** of being *negative* (Median = ***median***, 90\% CI [***...***, ***...***]) and can be considered as *significant* (***ROPE***\% in ROPE)."
