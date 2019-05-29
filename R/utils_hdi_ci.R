@@ -87,7 +87,7 @@
     dat <- .remove_column(dat, "Group")
   }
 
-  class(dat) <- c(fun, class(dat))
+  class(dat) <- unique(c(fun, class(dat)))
   dat
 }
 
@@ -151,6 +151,30 @@
     dat <- .remove_column(dat, "Component")
   }
 
-  class(dat) <- c(fun, class(dat))
+  class(dat) <- unique(c(fun, class(dat)))
+  dat
+}
+
+
+
+#' @keywords internal
+.compute_interval_dataframe <- function(x, ci, verbose, fun) {
+  numeric_variables <- sapply(x, is.numeric, simplify = TRUE)
+
+  out <- .compact_list(lapply(
+    x[, numeric_variables, drop = FALSE],
+    get(fun, asNamespace("bayestestR")),
+    ci = ci,
+    verbose = verbose
+  ))
+
+  dat <- data.frame(
+    Parameter = rep(names(out), each = length(ci)),
+    do.call(rbind, out),
+    stringsAsFactors = FALSE,
+    row.names = NULL
+  )
+
+  class(dat) <- unique(c(fun, class(dat)))
   dat
 }

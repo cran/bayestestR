@@ -1,12 +1,20 @@
 #' @export
 print.hdi <- function(x, digits = 2, ...) {
-  .print_hdi(x, digits, title = "Highest Density Interval", ci_string = "HDI", ...)
+  if ("data_plot" %in% class(x)) {
+    print(as.data.frame(x))
+  } else {
+    .print_hdi(x, digits, title = "Highest Density Interval", ci_string = "HDI", ...)
+  }
 }
 
 
 #' @export
 print.ci <- function(x, digits = 2, ...) {
-  .print_hdi(x, digits, title = "Credible Interval", ci_string = "CI", ...)
+  if ("data_plot" %in% class(x)) {
+    print(as.data.frame(x))
+  } else {
+    .print_hdi(x, digits, title = "Credible Interval", ci_string = "CI", ...)
+  }
 }
 
 
@@ -26,17 +34,17 @@ print.ci <- function(x, digits = 2, ...) {
   maxlen_low <- max(nchar(x$CI_low))
   maxlen_high <- max(nchar(x$CI_high))
 
-  x$HDI <- sprintf("[%*s %*s]", maxlen_low, x$CI_low, maxlen_high, x$CI_high)
+  x$HDI <- sprintf("[%*s, %*s]", maxlen_low, x$CI_low, maxlen_high, x$CI_high)
 
   if (length(ci) == 1) {
     xsub <- .remove_column(x, c("CI", "CI_low", "CI_high"))
-    colnames(xsub)[ncol(xsub)] <- sprintf("%i%% %s", ci, ci_string)
+    colnames(xsub)[ncol(xsub)] <- sprintf("%.5g%% %s", ci, ci_string)
     print_data_frame(xsub, digits = digits)
   } else {
     for (i in ci) {
       xsub <- x[x$CI == i, -which(colnames(x) == "CI"), drop = FALSE]
       xsub <- .remove_column(xsub, c("CI", "CI_low", "CI_high"))
-      colnames(xsub)[ncol(xsub)] <- sprintf("%i%% %s", i, ci_string)
+      colnames(xsub)[ncol(xsub)] <- sprintf("%.5g%% %s", i, ci_string)
       print_data_frame(xsub, digits = digits)
       cat("\n")
     }

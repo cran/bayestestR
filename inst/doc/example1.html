@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style type="text/css">
+@font-face {
+font-family: octicons-link;
+src: url(data:font/woff;charset=utf-8;base64,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) format('woff');
+}
+body {
+-webkit-text-size-adjust: 100%;
+text-size-adjust: 100%;
+color: #333;
+font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+font-size: 16px;
+line-height: 1.6;
+word-wrap: break-word;
+}
+a {
+background-color: transparent;
+}
+a:active,
+a:hover {
+outline: 0;
+}
+strong {
+font-weight: bold;
+}
+h1 {
+font-size: 2em;
+margin: 0.67em 0;
+}
+img {
+border: 0;
+}
+hr {
+box-sizing: content-box;
+height: 0;
+}
+pre {
+overflow: auto;
+}
+code,
+kbd,
+pre {
+font-family: monospace, monospace;
+font-size: 1em;
+}
+input {
+color: inherit;
+font: inherit;
+margin: 0;
+}
+html input[disabled] {
+cursor: default;
+}
+input {
+line-height: normal;
+}
+input[type="checkbox"] {
+box-sizing: border-box;
+padding: 0;
+}
+table {
+border-collapse: collapse;
+border-spacing: 0;
+}
+td,
+th {
+padding: 0;
+}
+* {
+box-sizing: border-box;
+}
+input {
+font: 13px / 1.4 Helvetica, arial, nimbussansl, liberationsans, freesans, clean, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+a {
+color: #4078c0;
+text-decoration: none;
+}
+a:hover,
+a:active {
+text-decoration: underline;
+}
+hr {
+height: 0;
+margin: 15px 0;
+overflow: hidden;
+background: transparent;
+border: 0;
+border-bottom: 1px solid #ddd;
+}
+hr:before {
+display: table;
+content: "";
+}
+hr:after {
+display: table;
+clear: both;
+content: "";
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+margin-top: 15px;
+margin-bottom: 15px;
+line-height: 1.1;
+}
+h1 {
+font-size: 30px;
+}
+h2 {
+font-size: 21px;
+}
+h3 {
+font-size: 16px;
+}
+h4 {
+font-size: 14px;
+}
+h5 {
+font-size: 12px;
+}
+h6 {
+font-size: 11px;
+}
+blockquote {
+margin: 0;
+}
+ul,
+ol {
+padding: 0;
+margin-top: 0;
+margin-bottom: 0;
+}
+ol ol,
+ul ol {
+list-style-type: lower-roman;
+}
+ul ul ol,
+ul ol ol,
+ol ul ol,
+ol ol ol {
+list-style-type: lower-alpha;
+}
+dd {
+margin-left: 0;
+}
+code {
+font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+font-size: 12px;
+}
+pre {
+margin-top: 0;
+margin-bottom: 0;
+font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+.select::-ms-expand {
+opacity: 0;
+}
+.octicon {
+font: normal normal normal 16px/1 octicons-link;
+display: inline-block;
+text-decoration: none;
+text-rendering: auto;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+}
+.octicon-link:before {
+content: '\f05c';
+}
+.markdown-body:before {
+display: table;
+content: "";
+}
+.markdown-body:after {
+display: table;
+clear: both;
+content: "";
+}
+.markdown-body>*:first-child {
+margin-top: 0 !important;
+}
+.markdown-body>*:last-child {
+margin-bottom: 0 !important;
+}
+a:not([href]) {
+color: inherit;
+text-decoration: none;
+}
+.anchor {
+display: inline-block;
+padding-right: 2px;
+margin-left: -18px;
+}
+.anchor:focus {
+outline: none;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+margin-top: 1em;
+margin-bottom: 16px;
+font-weight: bold;
+line-height: 1.4;
+}
+h1 .octicon-link,
+h2 .octicon-link,
+h3 .octicon-link,
+h4 .octicon-link,
+h5 .octicon-link,
+h6 .octicon-link {
+color: #000;
+vertical-align: middle;
+visibility: hidden;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor,
+h5:hover .anchor,
+h6:hover .anchor {
+text-decoration: none;
+}
+h1:hover .anchor .octicon-link,
+h2:hover .anchor .octicon-link,
+h3:hover .anchor .octicon-link,
+h4:hover .anchor .octicon-link,
+h5:hover .anchor .octicon-link,
+h6:hover .anchor .octicon-link {
+visibility: visible;
+}
+h1 {
+padding-bottom: 0.3em;
+font-size: 2.25em;
+line-height: 1.2;
+border-bottom: 1px solid #eee;
+}
+h1 .anchor {
+line-height: 1;
+}
+h2 {
+padding-bottom: 0.3em;
+font-size: 1.75em;
+line-height: 1.225;
+border-bottom: 1px solid #eee;
+}
+h2 .anchor {
+line-height: 1;
+}
+h3 {
+font-size: 1.5em;
+line-height: 1.43;
+}
+h3 .anchor {
+line-height: 1.2;
+}
+h4 {
+font-size: 1.25em;
+}
+h4 .anchor {
+line-height: 1.2;
+}
+h5 {
+font-size: 1em;
+}
+h5 .anchor {
+line-height: 1.1;
+}
+h6 {
+font-size: 1em;
+color: #777;
+}
+h6 .anchor {
+line-height: 1.1;
+}
+p,
+blockquote,
+ul,
+ol,
+dl,
+table,
+pre {
+margin-top: 0;
+margin-bottom: 16px;
+}
+hr {
+height: 4px;
+padding: 0;
+margin: 16px 0;
+background-color: #e7e7e7;
+border: 0 none;
+}
+ul,
+ol {
+padding-left: 2em;
+}
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+margin-top: 0;
+margin-bottom: 0;
+}
+li>p {
+margin-top: 16px;
+}
+dl {
+padding: 0;
+}
+dl dt {
+padding: 0;
+margin-top: 16px;
+font-size: 1em;
+font-style: italic;
+font-weight: bold;
+}
+dl dd {
+padding: 0 16px;
+margin-bottom: 16px;
+}
+blockquote {
+padding: 0 15px;
+color: #777;
+border-left: 4px solid #ddd;
+}
+blockquote>:first-child {
+margin-top: 0;
+}
+blockquote>:last-child {
+margin-bottom: 0;
+}
+table {
+display: block;
+width: 100%;
+overflow: auto;
+word-break: normal;
+word-break: keep-all;
+}
+table th {
+font-weight: bold;
+}
+table th,
+table td {
+padding: 6px 13px;
+border: 1px solid #ddd;
+}
+table tr {
+background-color: #fff;
+border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+background-color: #f8f8f8;
+}
+img {
+max-width: 100%;
+box-sizing: content-box;
+background-color: #fff;
+}
+code {
+padding: 0;
+padding-top: 0.2em;
+padding-bottom: 0.2em;
+margin: 0;
+font-size: 85%;
+background-color: rgba(0,0,0,0.04);
+border-radius: 3px;
+}
+code:before,
+code:after {
+letter-spacing: -0.2em;
+content: "\00a0";
+}
+pre>code {
+padding: 0;
+margin: 0;
+font-size: 100%;
+word-break: normal;
+white-space: pre;
+background: transparent;
+border: 0;
+}
+.highlight {
+margin-bottom: 16px;
+}
+.highlight pre,
+pre {
+padding: 16px;
+overflow: auto;
+font-size: 85%;
+line-height: 1.45;
+background-color: #f7f7f7;
+border-radius: 3px;
+}
+.highlight pre {
+margin-bottom: 0;
+word-break: normal;
+}
+pre {
+word-wrap: normal;
+}
+pre code {
+display: inline;
+max-width: initial;
+padding: 0;
+margin: 0;
+overflow: initial;
+line-height: inherit;
+word-wrap: normal;
+background-color: transparent;
+border: 0;
+}
+pre code:before,
+pre code:after {
+content: normal;
+}
+kbd {
+display: inline-block;
+padding: 3px 5px;
+font-size: 11px;
+line-height: 10px;
+color: #555;
+vertical-align: middle;
+background-color: #fcfcfc;
+border: solid 1px #ccc;
+border-bottom-color: #bbb;
+border-radius: 3px;
+box-shadow: inset 0 -1px 0 #bbb;
+}
+.pl-c {
+color: #969896;
+}
+.pl-c1,
+.pl-s .pl-v {
+color: #0086b3;
+}
+.pl-e,
+.pl-en {
+color: #795da3;
+}
+.pl-s .pl-s1,
+.pl-smi {
+color: #333;
+}
+.pl-ent {
+color: #63a35c;
+}
+.pl-k {
+color: #a71d5d;
+}
+.pl-pds,
+.pl-s,
+.pl-s .pl-pse .pl-s1,
+.pl-sr,
+.pl-sr .pl-cce,
+.pl-sr .pl-sra,
+.pl-sr .pl-sre {
+color: #183691;
+}
+.pl-v {
+color: #ed6a43;
+}
+.pl-id {
+color: #b52a1d;
+}
+.pl-ii {
+background-color: #b52a1d;
+color: #f8f8f8;
+}
+.pl-sr .pl-cce {
+color: #63a35c;
+font-weight: bold;
+}
+.pl-ml {
+color: #693a17;
+}
+.pl-mh,
+.pl-mh .pl-en,
+.pl-ms {
+color: #1d3e81;
+font-weight: bold;
+}
+.pl-mq {
+color: #008080;
+}
+.pl-mi {
+color: #333;
+font-style: italic;
+}
+.pl-mb {
+color: #333;
+font-weight: bold;
+}
+.pl-md {
+background-color: #ffecec;
+color: #bd2c00;
+}
+.pl-mi1 {
+background-color: #eaffea;
+color: #55a532;
+}
+.pl-mdr {
+color: #795da3;
+font-weight: bold;
+}
+.pl-mo {
+color: #1d3e81;
+}
+kbd {
+display: inline-block;
+padding: 3px 5px;
+font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+line-height: 10px;
+color: #555;
+vertical-align: middle;
+background-color: #fcfcfc;
+border: solid 1px #ccc;
+border-bottom-color: #bbb;
+border-radius: 3px;
+box-shadow: inset 0 -1px 0 #bbb;
+}
+.task-list-item {
+list-style-type: none;
+}
+.task-list-item+.task-list-item {
+margin-top: 3px;
+}
+.task-list-item input {
+margin: 0 0.35em 0.25em -1.6em;
+vertical-align: middle;
+}
+:checked+.radio-label {
+z-index: 1;
+position: relative;
+border-color: #4078c0;
+}
+.sourceLine {
+display: inline-block;
+}
+code .kw { color: #000000; }
+code .dt { color: #ed6a43; }
+code .dv { color: #009999; }
+code .bn { color: #009999; }
+code .fl { color: #009999; }
+code .ch { color: #009999; }
+code .st { color: #183691; }
+code .co { color: #969896; }
+code .ot { color: #0086b3; }
+code .al { color: #a61717; }
+code .fu { color: #63a35c; }
+code .er { color: #a61717; background-color: #e3d2d2; }
+code .wa { color: #000000; }
+code .cn { color: #008080; }
+code .sc { color: #008080; }
+code .vs { color: #183691; }
+code .ss { color: #183691; }
+code .im { color: #000000; }
+code .va {color: #008080; }
+code .cf { color: #000000; }
+code .op { color: #000000; }
+code .bu { color: #000000; }
+code .ex { color: #000000; }
+code .pp { color: #999999; }
+code .at { color: #008080; }
+code .do { color: #969896; }
+code .an { color: #008080; }
+code .cv { color: #008080; }
+code .in { color: #008080; }
+</style>
+<style>
+body {
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 45px;
+  padding-top: 0px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1 id="example-1-initiation-to-bayesian-models">Example 1: Initiation to Bayesian models</h1>
+<ul>
+<li><a href="#loading-the-packages">Loading the packages</a></li>
+<li><a href="#simple-linear-model-aka-a-regression">Simple linear model (<em>aka</em> a regression)</a>
+<ul>
+<li><a href="#fitting-the-model">Fitting the model</a></li>
+<li><a href="#extracting-the-posterior">Extracting the posterior</a></li>
+<li><a href="#describing-the-posterior">Describing the Posterior</a></li>
+</ul></li>
+<li><a href="#a-linear-model-with-a-categorical-predictor">A linear model with a categorical predictor</a>
+<ul>
+<li><a href="#data-preparation-and-model-fitting">Data preparation and model fitting</a></li>
+<li><a href="#posterior-description">Posterior description</a></li>
+<li><a href="#rope-percentage">ROPE Percentage</a></li>
+<li><a href="#probability-of-direction-pd">Probability of Direction (pd)</a></li>
+<li><a href="#comparison-to-frequentist">Comparison to frequentist</a></li>
+</ul></li>
+<li><a href="#all-with-one-function">All with one function</a></li>
+</ul>
+<p>This vignette can be referred to by citing the package:</p>
+<ul>
+<li>Makowski, D., Ben-Shachar M. S. &amp; Lüdecke, D. (2019). <em>Understand and Describe Bayesian Models and Posterior Distributions using bayestestR</em>. Available from <a href="https://github.com/easystats/bayestestR">https://github.com/easystats/bayestestR</a>. DOI: <a href="https://zenodo.org/record/2556486">10.5281/zenodo.2556486</a>.</li>
+</ul>
+<hr />
+<p>Now that you’ve read the <a href="https://easystats.github.io/bayestestR/articles/bayestestR.html"><strong>Get started</strong></a> section, let’s dive in the <strong>subtleties of Bayesian modelling using R</strong>.</p>
+<h2 id="loading-the-packages">Loading the packages</h2>
+<p>Once you’ve <a href="https://easystats.github.io/bayestestR/articles/bayestestR.html#bayestestr-installation">installed</a> the necessary packages, we can load <code>rstanarm</code> (to fit the models), <code>bayestestR</code> (to compute useful indices) and <code>insight</code> (to access the parameters).</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">library</span>(rstanarm)</a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">library</span>(bayestestR)</a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="kw">library</span>(insight)</a></code></pre></div>
+<h2 id="simple-linear-model-aka-a-regression">Simple linear model (<em>aka</em> a regression)</h2>
+<p>We will begin by a simple regression to test the relationship between <strong>Petal.Length</strong> (our predictor, - or <em>independent</em>, variable) and <strong>Sepal.Length</strong> (our response, - or <em>dependent</em>, variable) from the <a href="https://en.wikipedia.org/wiki/Iris_flower_data_set"><code>iris</code></a> dataset, included by default in R.</p>
+<h3 id="fitting-the-model">Fitting the model</h3>
+<p>Let’s start by fitting the <strong>frequentist</strong> version of the model, just to have some <strong>reference</strong>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">model &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris)</a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="kw">summary</span>(model)</a></code></pre></div>
+<pre><code>&gt; 
+&gt; Call:
+&gt; lm(formula = Sepal.Length ~ Petal.Length, data = iris)
+&gt; 
+&gt; Residuals:
+&gt;     Min      1Q  Median      3Q     Max 
+&gt; -1.2468 -0.2966 -0.0152  0.2768  1.0027 
+&gt; 
+&gt; Coefficients:
+&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept)    4.3066     0.0784    54.9   &lt;2e-16 ***
+&gt; Petal.Length   0.4089     0.0189    21.6   &lt;2e-16 ***
+&gt; ---
+&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+&gt; 
+&gt; Residual standard error: 0.41 on 148 degrees of freedom
+&gt; Multiple R-squared:  0.76,    Adjusted R-squared:  0.758 
+&gt; F-statistic:  469 on 1 and 148 DF,  p-value: &lt;2e-16
+</code></pre>
+<p>In this model, the linear relationship between <strong>Petal.Length</strong> and <strong>Sepal.Length</strong> is <strong>positive and significant</strong> (beta = 0.41, t(148) = 21.6, p &lt; .001). This means that for every increase of 1 in <strong>Petal.Length</strong> (the predictor), <strong>Sepal.Length</strong> (the response) increases by <strong>0.41</strong>. This can be visualized by plotting, using the <code>ggplot2</code> package, the predictor values on the <code>x</code> axis and the response values as <code>y</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">library</span>(ggplot2)  <span class="co"># Load the package</span></a>
+<a class="sourceLine" id="cb4-2" title="2"></a>
+<a class="sourceLine" id="cb4-3" title="3"><span class="co"># The ggplot function takes the data as argument, and then the variables </span></a>
+<a class="sourceLine" id="cb4-4" title="4"><span class="co"># related to aesthetic features such as the x and y axes.</span></a>
+<a class="sourceLine" id="cb4-5" title="5"><span class="kw">ggplot</span>(iris, <span class="kw">aes</span>(<span class="dt">x=</span>Petal.Length, <span class="dt">y=</span>Sepal.Length)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb4-6" title="6"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st">  </span><span class="co"># This adds the points</span></a>
+<a class="sourceLine" id="cb4-7" title="7"><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="dt">method=</span><span class="st">&quot;lm&quot;</span>) <span class="co"># This adds a regression line</span></a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Let’s fit a <strong>Bayesian version</strong> of the model:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">model &lt;-<span class="st"> </span><span class="kw">stan_glm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris)</a></code></pre></div>
+<p>You can see the sampling algorithm being run.</p>
+<h3 id="extracting-the-posterior">Extracting the posterior</h3>
+<p>Once it is done, let us extract the parameters (<em>i.e.</em>, the coefficients) of the model.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">posteriors &lt;-<span class="st"> </span>insight<span class="op">::</span><span class="kw">get_parameters</span>(model)</a>
+<a class="sourceLine" id="cb6-2" title="2"></a>
+<a class="sourceLine" id="cb6-3" title="3"><span class="kw">head</span>(posteriors)  <span class="co"># Show the first 6 rows</span></a></code></pre></div>
+<pre><code>&gt;   (Intercept) Petal.Length
+&gt; 1         4.4         0.40
+&gt; 2         4.5         0.37
+&gt; 3         4.3         0.41
+&gt; 4         4.4         0.40
+&gt; 5         4.3         0.41
+&gt; 6         4.3         0.42
+</code></pre>
+<p>As we can see, the parameters take the form of a long dataframe with two columns, corresponding to the <strong>intercept</strong> and the effect of <strong>Petal.Length</strong>. These columns contain the <strong>posterior distributions</strong> of these two parameters, <em>i.e.</em>, a set of different plausible values.</p>
+<h4 id="about-posterior-draws">About posterior draws</h4>
+<p>Let’s look at the length of the posteriors.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">nrow</span>(posteriors)  <span class="co"># Size (number of rows)</span></a></code></pre></div>
+<pre><code>&gt; [1] 4000
+</code></pre>
+<blockquote>
+<p><strong>Why is the size 4000, and not more or less?</strong></p>
+</blockquote>
+<p>First of all, these observations (the rows) are usually referred to as <strong>posterior draws</strong>. The underlying idea is that the Bayesian sampling algorithm (such as <strong>Monte Carlo Markov Chains - MCMC</strong>) will <em>draw</em> from the hidden true posterior distribution. Thus, it is through these posterior draws that we can estimate the underlying true posterior distribution. <strong>The more draws you have, the better is your estimation of the posterior distribution</strong>. But it also takes longer to compute.</p>
+<p>If we look at the documentation (<code>?sampling</code>) for the rstanarm <code>&quot;sampling&quot;</code> algorithm used by default in the model above, we can see several parameters that influence the number of posterior draws. By default, there are <strong>4</strong> <code>chains</code> (you can see it as distinct sampling runs), that each create <strong>2000</strong> <code>iter</code> (draws). However, only half of these iterations is kept, as half is used for <code>warm-up</code> (the convergence of the algorithm). The total is <strong><code>4 chains * (2000 iterations - 1000 warm-up) = 4000</code></strong> posterior draws. We can change that, for instance:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1">model &lt;-<span class="st"> </span><span class="kw">stan_glm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris, <span class="dt">chains =</span> <span class="dv">2</span>, <span class="dt">iter =</span> <span class="dv">1000</span>, <span class="dt">warmup =</span> <span class="dv">250</span>)</a>
+<a class="sourceLine" id="cb10-2" title="2"> </a>
+<a class="sourceLine" id="cb10-3" title="3"><span class="kw">nrow</span>(insight<span class="op">::</span><span class="kw">get_parameters</span>(model))  <span class="co"># Size (number of rows)</span></a></code></pre></div>
+<pre><code>[1] 1500
+</code></pre>
+<p>In this case, we indeed have <strong><code>2 chains * (1000 iterations - 250 warm-up) = 1500</code></strong> posterior draws. Let’s keep our first model with the default setup.</p>
+<h4 id="visualizing-the-posterior-distribution">Visualizing the posterior distribution</h4>
+<p>Now that we’ve understood where do these values come from, let’s look at them. We will start by visualizing the distribution of our parameter of interest, the effect of <code>Petal.Length</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">ggplot</span>(posteriors, <span class="kw">aes</span>(<span class="dt">x =</span> Petal.Length)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb12-2" title="2"><span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">fill =</span> <span class="st">&quot;orange&quot;</span>)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>This distribution represents the probability (the y axis) of different effects (the x axis). The central values are more probable than the extreme values. As you can see, this distribution ranges from about <strong>0.35 to 0.50</strong>, with the bulk of it being at around <strong>0.41</strong>.</p>
+<blockquote>
+<p><strong>Congrats! You’ve just described your posterior distribution.</strong></p>
+</blockquote>
+<p>And this is at the heart of Bayesian analysis. We don’t need <em>p</em>-values, <em>t</em>-values or degrees of freedom: <strong>everything is there, under our nose</strong>, within this <strong>posterior distribution</strong>.</p>
+<p>As you can see, our description is consistent with the values of the frequentist regression (which had a beta of <strong>0.41</strong>). This is reassuring! And indeed, in most cases, a <strong>Bayesian analysis does not drastically change the results</strong> or their interpretation. Rather, it makes the results more interpretable, intuitive and easy to understand and describe.</p>
+<p>We can now go ahead and <strong>precisely characterize</strong> this posterior distribution.</p>
+<h3 id="describing-the-posterior">Describing the Posterior</h3>
+<p>Unfortunately, it is often not practical to report the whole posterior distributions as graphs. We need to find a <strong>concise way to summarize it</strong>. We recommend to describe the posterior distribution with <strong>3 elements</strong>. A <strong>point-estimate</strong>, a one-value summary (similar to the <em>beta</em> in frequentist regressions); a <strong>credible interval</strong>, representing the associated uncertainty and some <strong>indices of significance</strong>, giving information about the importance of this effect.</p>
+<h4 id="point-estimate">Point-estimate</h4>
+<p><strong>What single value can best represent my posterior distribution?</strong></p>
+<p>Centrality indices, such as the <em>mean</em>, the <em>median</em> or the <em>mode</em> are usually used as point-estimates. What’s the difference? Let’s check the <strong>mean</strong>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">mean</span>(posteriors<span class="op">$</span>Petal.Length)</a></code></pre></div>
+<pre><code>&gt; [1] 0.41
+</code></pre>
+<p>This is close to the frequentist beta. But as we know, the mean is quite sensitive to outliers or extremes values. Maybe the <strong>median</strong> could be more robust?</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">median</span>(posteriors<span class="op">$</span>Petal.Length)</a></code></pre></div>
+<pre><code>&gt; [1] 0.41
+</code></pre>
+<p>Well, this is <strong>close to the mean</strong>. Maybe we could take the <strong>mode</strong>, the <em>peak</em> of the posterior distribution? In the Bayesian framework, this value is called the <strong>Maximum A Posteriori (MAP)</strong>. Let’s see:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">map_estimate</span>(posteriors<span class="op">$</span>Petal.Length)</a></code></pre></div>
+<pre><code>&gt; MAP = 0.41
+</code></pre>
+<p><strong>They are all very close!</strong> Let’s visualize these values on the posterior distribution:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">ggplot</span>(posteriors, <span class="kw">aes</span>(<span class="dt">x =</span> Petal.Length)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb19-2" title="2"><span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">fill =</span> <span class="st">&quot;orange&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb19-3" title="3"><span class="st">  </span><span class="co"># The mean in blue</span></a>
+<a class="sourceLine" id="cb19-4" title="4"><span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">xintercept=</span><span class="kw">mean</span>(posteriors<span class="op">$</span>Petal.Length), <span class="dt">color=</span><span class="st">&quot;blue&quot;</span>, <span class="dt">size=</span><span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb19-5" title="5"><span class="st">  </span><span class="co"># The median in red</span></a>
+<a class="sourceLine" id="cb19-6" title="6"><span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">xintercept=</span><span class="kw">median</span>(posteriors<span class="op">$</span>Petal.Length), <span class="dt">color=</span><span class="st">&quot;red&quot;</span>, <span class="dt">size=</span><span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb19-7" title="7"><span class="st">  </span><span class="co"># The MAP in purple</span></a>
+<a class="sourceLine" id="cb19-8" title="8"><span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">xintercept=</span><span class="kw">map_estimate</span>(posteriors<span class="op">$</span>Petal.Length), <span class="dt">color=</span><span class="st">&quot;purple&quot;</span>, <span class="dt">size=</span><span class="dv">1</span>)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Well, all these values give very similar results. Thus, <strong>we will chose the median</strong>, as this value has a direct meaning from a probabilistic perspective: <strong>there is 50% chance that the true effect is higher and 50% chance that the effect is lower</strong> (as it <em>cuts</em> the distribution in two equal parts).</p>
+<h4 id="uncertainty">Uncertainty</h4>
+<p>Now that the have a point-estimate, we have to <strong>describe the uncertainty</strong>. We could compute the range:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" title="1"><span class="kw">range</span>(posteriors<span class="op">$</span>Petal.Length)</a></code></pre></div>
+<pre><code>&gt; [1] 0.35 0.48
+</code></pre>
+<p>But does it make sense to include all these extreme values? Probably not. Thus, we will compute a <a href="https://easystats.github.io/bayestestR/articles/credible_interval.html"><strong>credible interval</strong></a>. Long story short, it’s kind of similar to a frequentist <strong>confidence interval</strong>, but it is easier to interpret and easier to compute. <em>And it makes more sense</em>.</p>
+<p>We will compute this <strong>credible interval</strong> based on the <a href="https://easystats.github.io/bayestestR/articles/credible_interval.html#different-types-of-cis">Highest Density Interval (HDI)</a>. It will give us the range containing the 89% more probable effect values. <strong>Note that we will use 89% CIs instead of 95%</strong> CIs (as in the frequentist framework), as the 89% level gives more <a href="https://easystats.github.io/bayestestR/articles/credible_interval.html#why-is-the-default-89">stable results</a> (Kruschke 2014) and reminds us about the arbitrarity of such conventions (McElreath 2018).</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" title="1"><span class="kw">hdi</span>(posteriors<span class="op">$</span>Petal.Length, <span class="dt">ci=</span><span class="fl">0.89</span>)</a></code></pre></div>
+<pre><code>&gt; # Highest Density Interval
+&gt; 
+&gt;       89% HDI
+&gt;  [0.38, 0.44]
+</code></pre>
+<p>Nice, so we can conclude that <strong>the effect has 89% chance of falling within the <code>[0.38, 0.44]</code> range</strong>. We have just computed the two most important information to describe our effects.</p>
+<h4 id="effect-significance">Effect significance</h4>
+<p>However, in many scientific fields, simply describing the effect is not enough. The readers also want to know if this effect <em><strong>means</strong></em> something. Is it important? Is it different from 0? In other words, <strong>assessing the <em>significance</em> of the effect</strong>. How can we do this?</p>
+<p>Well, in this particular case, it is very eloquent: <strong>all possible effect values (<em>i.e.</em>, the whole posterior distribution) are positive and superior to 0.35, which is already a lot</strong>.</p>
+<p>But still, we want some objective decision criterion, to say if <strong>yes or no the effect is significant</strong>. We could do similarly to the frequentist framework, and see if the <strong>Credible Interval</strong> contains 0. Here, it is not the case, which means that our <strong>effect is significant</strong>.</p>
+<p>But this index is not very fine-grained, isn’t it? <strong>Can we do better? Yes.</strong></p>
+<h2 id="a-linear-model-with-a-categorical-predictor">A linear model with a categorical predictor</h2>
+<p>Let’s take interest in the <strong>weight of chickens</strong>, depending on 2 <strong>feed types</strong>. We will start by selecting, from the <code>chickwts</code> dataset (also available in base R), the 2 feed types that are of interest for us (<em>because reasons</em>): <strong>Meat meals</strong> and <strong>Sunflowers</strong>.</p>
+<h3 id="data-preparation-and-model-fitting">Data preparation and model fitting</h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" title="1"><span class="kw">library</span>(dplyr)</a>
+<a class="sourceLine" id="cb24-2" title="2"></a>
+<a class="sourceLine" id="cb24-3" title="3"><span class="co"># We keep only rows for which feed is meatmeal or sunflower</span></a>
+<a class="sourceLine" id="cb24-4" title="4">data &lt;-<span class="st"> </span>chickwts <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb24-5" title="5"><span class="st">  </span><span class="kw">filter</span>(feed <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;meatmeal&quot;</span>, <span class="st">&quot;sunflower&quot;</span>))</a></code></pre></div>
+<p>Let’s run another Bayesian regression to predict the <strong>Weight</strong> with the <strong>2 types of feed type</strong>.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" title="1">model &lt;-<span class="st"> </span><span class="kw">stan_glm</span>(weight <span class="op">~</span><span class="st"> </span>feed, <span class="dt">data=</span>data)</a></code></pre></div>
+<h3 id="posterior-description">Posterior description</h3>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" title="1">posteriors &lt;-<span class="st"> </span>insight<span class="op">::</span><span class="kw">get_parameters</span>(model)</a>
+<a class="sourceLine" id="cb26-2" title="2"></a>
+<a class="sourceLine" id="cb26-3" title="3"><span class="kw">ggplot</span>(posteriors, <span class="kw">aes</span>(<span class="dt">x=</span>feedsunflower)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb26-4" title="4"><span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">fill =</span> <span class="st">&quot;red&quot;</span>)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>This represents the <strong>posterior distribution of the difference between meat meals and Sunflowers</strong>. Seems that the difference is rather <strong>positive</strong>… Eating Sunflowers makes you more fat (if you’re a chicken). <strong>By how much?</strong> Let us compute the <strong>median</strong> and the <strong>CI</strong>:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" title="1"><span class="kw">median</span>(posteriors<span class="op">$</span>feedsunflower)</a></code></pre></div>
+<pre><code>&gt; [1] 51
+</code></pre>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" title="1"><span class="kw">hdi</span>(posteriors<span class="op">$</span>feedsunflower)</a></code></pre></div>
+<pre><code>&gt; # Highest Density Interval
+&gt; 
+&gt;        89% HDI
+&gt;  [7.77, 87.66]
+</code></pre>
+<p>It makes you fat by around <code>51</code> (the median). However, the uncertainty is quite high: <strong>there is 89% chance that the difference between the two feed types is between <code>7.77</code> and <code>87.66</code>.</strong></p>
+<blockquote>
+<p><strong>Is this effect different from 0?</strong></p>
+</blockquote>
+<h3 id="rope-percentage">ROPE Percentage</h3>
+<p>Testing whether this distribution is different from 0 doesn’t make sense, as 0 is a single value (<em>and the probability that any distribution is different from a single value is infinite</em>).</p>
+<p>However, one way to assess <strong>significance</strong> could be to define an area around 0, which will consider as <em>equivalent</em> to zero (to no, - or negligible, effect). This is called the <a href="https://easystats.github.io/bayestestR/articles/region_of_practical_equivalence.html"><strong>Region of Practical Equivalence (ROPE)</strong></a>, and is one way of testing the significance of parameters.</p>
+<p><strong>How can we define this region?</strong></p>
+<blockquote>
+<p><em><strong>Driing driiiing</strong></em></p>
+</blockquote>
+<p>– <em><strong>The easystats team speaking. How can we help?</strong></em></p>
+<p>– <em><strong>I am Prof Howard. An expert in chicks… I mean chickens. Just calling to let you know that based on my expert knowledge, an effect between -20 and 20 is negligible. Bye.</strong></em></p>
+<p>Well, that’s convenient. Now we know that we can define the ROPE as the <code>[-20, 20]</code> range. All effects within this range are considered as <em>null</em> (negligible). We can now compute the <strong>proportion of the 89% most probable values (the 89% CI) which are not null</strong>, <em>i.e.</em>, which are outside this range.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" title="1"><span class="kw">rope</span>(posteriors<span class="op">$</span>feedsunflower, <span class="dt">range =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">20</span>, <span class="dv">20</span>), <span class="dt">ci=</span><span class="fl">0.89</span>)</a></code></pre></div>
+<pre><code>&gt; # Proportion of samples inside the ROPE [-20.00, 20.00]:
+&gt; 
+&gt;  inside ROPE
+&gt;       7.75 %
+</code></pre>
+<p><strong>7.75% of the 89% CI can be considered as null</strong>. Is that a lot? Based on our <a href="https://easystats.github.io/bayestestR/articles/guidelines.html"><strong>guidelines</strong></a>, yes, it is too much. <strong>Based on this particular definition of ROPE</strong>, we conclude that this effect is not significant (the probability of being negligible is too high).</p>
+<p>Although, to be honest, I have <strong>some doubts about this Prof Howard</strong>. I don’t really trust <strong>his definition of ROPE</strong>. Is there a more <strong>objective</strong> way of defining it?</p>
+<p><strong>Yes.</strong> One of the practice is for instance to use the <strong>tenth (<code>1/10 = 0.1</code>) of the standard deviation (SD)</strong> of the response variable, which can be considered as a “negligible” effect size.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" title="1">rope_value &lt;-<span class="st"> </span><span class="fl">0.1</span> <span class="op">*</span><span class="st"> </span><span class="kw">sd</span>(data<span class="op">$</span>weight)</a>
+<a class="sourceLine" id="cb33-2" title="2">rope_range &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span>rope_value, rope_value)</a>
+<a class="sourceLine" id="cb33-3" title="3">rope_range</a></code></pre></div>
+<pre><code>&gt; [1] -6.2  6.2
+</code></pre>
+<p>Let’s redefine our ROPE as the region within the <code>[-6.2, 6.2]</code> range. <strong>Note that this can be directly obtained by the <code>rope_range</code> function :)</strong></p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" title="1">rope_value &lt;-<span class="st"> </span><span class="kw">rope_range</span>(model)</a>
+<a class="sourceLine" id="cb35-2" title="2">rope_range</a></code></pre></div>
+<pre><code>&gt; [1] -6.2  6.2
+</code></pre>
+<p>Let’s recompute the <strong>percentage in ROPE</strong>:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" title="1"><span class="kw">rope</span>(posteriors<span class="op">$</span>feedsunflower, <span class="dt">range =</span> rope_range, <span class="dt">ci=</span><span class="fl">0.89</span>)</a></code></pre></div>
+<pre><code>&gt; # Proportion of samples inside the ROPE [-6.17, 6.17]:
+&gt; 
+&gt;  inside ROPE
+&gt;       0.00 %
+</code></pre>
+<p>With this reasonable definition of ROPE, we observe that the 89% of the posterior distribution of the effect does <strong>not</strong> overlap with the ROPE. Thus, we can conclude that <strong>the effect is significant</strong> (in the sense of <em>important</em> enough to be noted).</p>
+<h3 id="probability-of-direction-pd">Probability of Direction (pd)</h3>
+<p>Maybe we are not interested in whether the effect is not-negligible. Maybe <strong>we just want to know if this effect is positive or negative</strong>. In this case, we can simply compute the proportion of the posterior that is positive, no matter the “size” of the effect.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" title="1">n_positive &lt;-<span class="st"> </span>posteriors <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb39-2" title="2"><span class="st">  </span><span class="kw">filter</span>(feedsunflower <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># select only positive values</span></a>
+<a class="sourceLine" id="cb39-3" title="3"><span class="st">  </span><span class="kw">nrow</span>() <span class="co"># Get length</span></a>
+<a class="sourceLine" id="cb39-4" title="4">n_positive <span class="op">/</span><span class="st"> </span><span class="kw">nrow</span>(posteriors) <span class="op">*</span><span class="st"> </span><span class="dv">100</span></a></code></pre></div>
+<pre><code>&gt; [1] &quot;97.82&quot;
+</code></pre>
+<p>We can conclude that <strong>the effect is positive with a probability of 97.82%</strong>. We call this index the <a href="https://easystats.github.io/bayestestR/articles/probability_of_direction.html"><strong>Probability of Direction (pd)</strong></a>. It can, in fact, be computed more easily with the following:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" title="1"><span class="kw">p_direction</span>(posteriors<span class="op">$</span>feedsunflower)</a></code></pre></div>
+<pre><code>&gt; # Probability of Direction (pd)
+&gt; 
+&gt; pd = 97.82%
+</code></pre>
+<p>Interestingly, it so happens that <strong>this index is usually highly correlated with the frequentist <em>p</em>-value</strong>. We could almost roughly infer the corresponding <em>p</em>-value with a simple transformation:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" title="1">pd &lt;-<span class="st"> </span><span class="fl">97.82</span></a>
+<a class="sourceLine" id="cb43-2" title="2">onesided_p &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>pd <span class="op">/</span><span class="st"> </span><span class="dv">100</span>  </a>
+<a class="sourceLine" id="cb43-3" title="3">twosided_p &lt;-<span class="st"> </span>onesided_p <span class="op">*</span><span class="st"> </span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb43-4" title="4">twosided_p</a></code></pre></div>
+<pre><code>&gt; [1] 0.044
+</code></pre>
+<p>If we ran our model in the frequentist framework, we should approximately observe an effect with a <em>p</em>-value of 0.04. <strong>Is that true?</strong></p>
+<h3 id="comparison-to-frequentist">Comparison to frequentist</h3>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" title="1"><span class="kw">lm</span>(weight <span class="op">~</span><span class="st"> </span>feed, <span class="dt">data=</span>data) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-2" title="2"><span class="st">  </span><span class="kw">summary</span>()</a></code></pre></div>
+<pre><code>&gt; 
+&gt; Call:
+&gt; lm(formula = weight ~ feed, data = data)
+&gt; 
+&gt; Residuals:
+&gt;     Min      1Q  Median      3Q     Max 
+&gt; -123.91  -25.91   -6.92   32.09  103.09 
+&gt; 
+&gt; Coefficients:
+&gt;               Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept)      276.9       17.2   16.10  2.7e-13 ***
+&gt; feedsunflower     52.0       23.8    2.18     0.04 *  
+&gt; ---
+&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+&gt; 
+&gt; Residual standard error: 57 on 21 degrees of freedom
+&gt; Multiple R-squared:  0.185,   Adjusted R-squared:  0.146 
+&gt; F-statistic: 4.77 on 1 and 21 DF,  p-value: 0.0405
+</code></pre>
+<p>The frequentist model tells us that the difference is <strong>positive and significant</strong> (beta = 52, p = 0.04).</p>
+<p><strong>Although we arrived to a similar conclusion, the Bayesian framework allowed us to develop a more profound and intuitive understanding of our effect, and of the uncertainty of its estimation.</strong></p>
+<h2 id="all-with-one-function">All with one function</h2>
+<p>And yet, I agree, it was a bit <strong>tedious</strong> to extract and compute all the indices. <strong>But what if I told you that we can do all of this, and more, with only one function?</strong></p>
+<blockquote>
+<p><strong>Behold, <code>describe_posterior</code>!</strong></p>
+</blockquote>
+<p>This function computes all of the adored mentioned indices, and can be run directly on the model:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb47-1" title="1"><span class="kw">describe_posterior</span>(model)</a></code></pre></div>
+<pre><code>&gt;       Parameter Median CI CI_low CI_high  pd ROPE_CI ROPE_low ROPE_high
+&gt; 1   (Intercept)    277 89  250.2     307 100      89     -6.2       6.2
+&gt; 2 feedsunflower     51 89    7.8      88  98      89     -6.2       6.2
+&gt;   ROPE_Percentage  ESS Rhat Prior_Distribution Prior_Location Prior_Scale
+&gt; 1               0 3437    1             normal              0         617
+&gt; 2               0 3316    1             normal              0         154
+</code></pre>
+<p><strong>Tada!</strong> There we have it! The <strong>median</strong>, the <strong>CI</strong>, the <strong>pd</strong> and the <strong>ROPE percentage</strong>!</p>
+<p>Understanding and describing posterior distributions is just one aspect of Bayesian modelling… <strong>Are you ready for more?</strong> <a href="https://easystats.github.io/bayestestR/articles/example2_GLM.html"><strong>Click here</strong></a> to see the next example.</p>
+<div id="refs" class="references">
+
+<div id="ref-kruschke2014doing">
+
+<p>Kruschke, John. 2014. <em>Doing Bayesian Data Analysis: A Tutorial with R, Jags, and Stan</em>. Academic Press.</p>
+</div>
+
+<div id="ref-mcelreath2018statistical">
+
+<p>McElreath, Richard. 2018. <em>Statistical Rethinking: A Bayesian Course with Examples in R and Stan</em>. Chapman; Hall/CRC.</p>
+</div>
+
+</div>
+
+</body>
+</html>

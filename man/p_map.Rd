@@ -5,21 +5,25 @@
 \alias{p_map.numeric}
 \alias{p_map.stanreg}
 \alias{p_map.brmsfit}
+\alias{p_map.BFBayesFactor}
 \title{Bayesian p-value based on the density at the Maximum A Priori (MAP)}
 \usage{
-p_map(posterior, ...)
+p_map(x, ...)
 
-\method{p_map}{numeric}(posterior, precision = 2^10, ...)
+\method{p_map}{numeric}(x, precision = 2^10, ...)
 
-\method{p_map}{stanreg}(posterior, precision = 2^10,
-  effects = c("fixed", "random", "all"), parameters = NULL, ...)
+\method{p_map}{stanreg}(x, precision = 2^10, effects = c("fixed",
+  "random", "all"), parameters = NULL, ...)
 
-\method{p_map}{brmsfit}(posterior, precision = 2^10,
-  effects = c("fixed", "random", "all"), component = c("conditional",
-  "zi", "zero_inflated", "all"), parameters = NULL, ...)
+\method{p_map}{brmsfit}(x, precision = 2^10, effects = c("fixed",
+  "random", "all"), component = c("conditional", "zi", "zero_inflated",
+  "all"), parameters = NULL, ...)
+
+\method{p_map}{BFBayesFactor}(x, precision = 2^10, ...)
 }
 \arguments{
-\item{posterior}{Vector representing a posterior distribution. Can also be a \code{stanreg} or \code{brmsfit} model.}
+\item{x}{Vector representing a posterior distribution. Can also be a
+\code{stanreg} or \code{brmsfit} model.}
 
 \item{...}{Currently not used.}
 
@@ -44,16 +48,21 @@ Compute a Bayesian equivalent of the p-value, related to the odds that a paramet
 \examples{
 library(bayestestR)
 
-p_map(posterior = rnorm(1000, 0, 1))
-p_map(posterior = rnorm(1000, 10, 1))
-\dontrun{
+p_map(rnorm(1000, 0, 1))
+p_map(rnorm(1000, 10, 1))
+
 library(rstanarm)
-model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
+model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
 p_map(model)
 
+\dontrun{
 library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 p_map(model)
+
+library(BayesFactor)
+bf <- ttestBF(x = rnorm(100, 1, 1))
+p_map(bf)
 }
 
 }

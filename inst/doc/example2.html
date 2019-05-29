@@ -600,29 +600,36 @@ body {
 
 <body>
 
-<h1 id="example-1-bayesian-general-linear-models">Example 1: Bayesian (General) Linear Models</h1>
+<h1 id="example-2-confirmation-of-bayesian-skills">Example 2: Confirmation of Bayesian skills</h1>
 <ul>
-<li><a href="#loading-the-packages">Loading the packages</a></li>
-<li><a href="#a-linear-model">A Linear Model</a>
+<li><a href="#logistic-model">Logistic Model</a>
 <ul>
-<li><a href="#fitting-the-model">Fitting the model</a></li>
-<li><a href="#extracting-the-posterior">Extracting the posterior</a></li>
+<li><a href="#make-some-figures">Make some figures</a></li>
+<li><a href="#diagnostic-indices">Diagnostic Indices</a></li>
+</ul></li>
+<li><a href="#mixed-model">Mixed Model</a>
+<ul>
+<li><a href="#priors">Priors</a></li>
 </ul></li>
 </ul>
-<p>Now that you’ve read the <a href="https://easystats.github.io/bayestestR/articles/bayestestR.html"><strong>Get started</strong></a> section, let’s dive in the subtleties of Bayesian modelling using R.</p>
-<h2 id="loading-the-packages">Loading the packages</h2>
-<p>Once you’ve <a href="https://easystats.github.io/bayestestR/articles/bayestestR.html">installed</a> the necessary packages, we can load <code>rstanarm</code> (to fit the models) and <code>bayestestR</code> (to compute useful indices).</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">library</span>(rstanarm)</a>
-<a class="sourceLine" id="cb1-2" title="2"><span class="kw">library</span>(bayestestR)</a></code></pre></div>
-<h2 id="a-linear-model">A Linear Model</h2>
-<h3 id="fitting-the-model">Fitting the model</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">model &lt;-<span class="st"> </span><span class="kw">stan_glm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris)</a></code></pre></div>
-<h3 id="extracting-the-posterior">Extracting the posterior</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">posteriors &lt;-<span class="st"> </span>insight<span class="op">::</span><span class="kw">get_parameters</span>(model)</a></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">plot</span>(<span class="kw">density</span>(posteriors<span class="op">$</span>Petal.Length))</a></code></pre></div>
-<!-- ### Correspondance with Frequentist Models -->
-
-<!-- TO BE IMPROVED -->
+<p>This vignette can be referred to by citing the package:</p>
+<ul>
+<li>Makowski, D., Ben-Shachar M. S. &amp; Lüdecke, D. (2019). <em>Understand and Describe Bayesian Models and Posterior Distributions using bayestestR</em>. Available from <a href="https://github.com/easystats/bayestestR">https://github.com/easystats/bayestestR</a>. DOI: <a href="https://zenodo.org/record/2556486">10.5281/zenodo.2556486</a>.</li>
+</ul>
+<hr />
+<p>Now that <a href="https://easystats.github.io/bayestestR/articles/example1.html"><strong>describing and understanding posterior distributions of linear regressions</strong></a> has no secrets for you, let’s go deeper.</p>
+<blockquote>
+<p><strong>“But it’s only about regressions and I want to do ANOVAs and t-tests”</strong></p>
+</blockquote>
+<p>Don’t worry. Let us all remind and appreciate the fact that <strong>all basic statistical pocedures</strong> such as t-tests, ANOVAs, correlations or Chisquare tests <a href="https://lindeloev.github.io/tests-as-linear/"><strong><em>are</em> linear regressions</strong></a>. Now that we have accepted the beauty of it, we will continue with a general linear model.</p>
+<h2 id="logistic-model">Logistic Model</h2>
+<h3 id="make-some-figures">Make some figures</h3>
+<p>Visualization.</p>
+<h3 id="diagnostic-indices">Diagnostic Indices</h3>
+<p>About diagnostic indices such as Rhat and ESS.</p>
+<h2 id="mixed-model">Mixed Model</h2>
+<h3 id="priors">Priors</h3>
+<p>About priors.</p>
 
 </body>
 </html>

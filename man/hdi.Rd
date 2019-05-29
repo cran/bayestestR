@@ -3,20 +3,26 @@
 \name{hdi}
 \alias{hdi}
 \alias{hdi.numeric}
+\alias{hdi.data.frame}
 \alias{hdi.stanreg}
 \alias{hdi.brmsfit}
+\alias{hdi.BFBayesFactor}
 \title{Highest Density Interval (HDI)}
 \usage{
 hdi(x, ...)
 
-\method{hdi}{numeric}(x, ci = 0.9, verbose = TRUE, ...)
+\method{hdi}{numeric}(x, ci = 0.89, verbose = TRUE, ...)
 
-\method{hdi}{stanreg}(x, ci = 0.9, effects = c("fixed", "random",
+\method{hdi}{data.frame}(x, ci = 0.89, verbose = TRUE, ...)
+
+\method{hdi}{stanreg}(x, ci = 0.89, effects = c("fixed", "random",
   "all"), parameters = NULL, verbose = TRUE, ...)
 
-\method{hdi}{brmsfit}(x, ci = 0.9, effects = c("fixed", "random",
+\method{hdi}{brmsfit}(x, ci = 0.89, effects = c("fixed", "random",
   "all"), component = c("conditional", "zi", "zero_inflated", "all"),
   parameters = NULL, verbose = TRUE, ...)
+
+\method{hdi}{BFBayesFactor}(x, ci = 0.89, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution. Can also be a
@@ -58,32 +64,48 @@ Unlike equal-tailed intervals (see \link{ci}) that typically exclude 2.5\% from 
   of the distribution, the HDI is \emph{not} equal-tailed and therefore always
   includes the mode(s) of posterior distributions.
   \cr \cr
-  By default, \code{hdi()} returns the 90\% intervals (\code{ci = 0.9}),
-  deemed to be more stable than, for instance, 95\% intervals (\cite{Kruschke, 2015}).
+  By default, \code{hdi()} returns the 89\% intervals (\code{ci = 0.89}),
+  deemed to be more stable than, for instance, 95\% intervals (\cite{Kruschke, 2014}).
   An effective sample size of at least 10.000 is recommended if 95\% intervals
-  should be computed (\cite{Kruschke, 2015, p. 183ff}).
+  should be computed (\cite{Kruschke, 2014, p. 183ff}). Moreover, 89 is the
+  highest prime number that does not exceed the already unstable 95\% threshold.
+  What does it have to do with anything? Nothing, but it reminds us of the total
+  arbitrarity of any of these conventions (McElreath, 2015).
 }
 \examples{
 library(bayestestR)
 
 posterior <- rnorm(1000)
-hdi(posterior, ci = .90)
+hdi(posterior, ci = .89)
 hdi(posterior, ci = c(.80, .90, .95))
-\dontrun{
+
+df <- data.frame(replicate(4, rnorm(100)))
+hdi(df)
+hdi(df, ci = c(.80, .90, .95))
+
 library(rstanarm)
-model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
+model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
 hdi(model)
 hdi(model, ci = c(.80, .90, .95))
 
+\dontrun{
 library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 hdi(model)
 hdi(model, ci = c(.80, .90, .95))
+
+library(BayesFactor)
+bf <- ttestBF(x = rnorm(100, 1, 1))
+hdi(bf)
+hdi(bf, ci = c(.80, .90, .95))
 }
 
 }
 \references{
-Kruschke, J. (2015). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press.
+\itemize{
+  \item Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press.
+  \item McElreath, R. (2015). Statistical rethinking: A Bayesian course with examples in R and Stan. Chapman and Hall/CRC.
+}
 }
 \author{
 Credits go to \href{https://rdrr.io/cran/ggdistribute/src/R/stats.R}{ggdistribute} and \href{https://github.com/mikemeredith/HDInterval}{HDInterval}.

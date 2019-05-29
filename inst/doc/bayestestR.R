@@ -1,5 +1,11 @@
+## ----message=FALSE, warning=FALSE, include=FALSE-------------------------
+library(knitr)
+options(knitr.kable.NA = '')
+knitr::opts_chunk$set(comment=">")
+options(digits=2)
+
 ## ----echo=FALSE, fig.cap="Accurate depiction of a regular Bayesian user estimating a credible interval.", fig.align='center', out.width="50%"----
-knitr::include_graphics("https://github.com/easystats/bayestestR/raw/master/man/figures/bayesianMaster.png")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/bayesianMaster.png")
 
 ## ----eval=FALSE, message=FALSE, warning=FALSE, eval=FALSE----------------
 #  install.packages("devtools")
@@ -21,15 +27,13 @@ lm(Sepal.Length ~ Petal.Length, data=iris) %>%
 
 ## ----message=FALSE, warning=FALSE, eval=FALSE----------------------------
 #  model <- stan_glm(Sepal.Length ~ Petal.Length, data=iris)
-#  summary(model)
-
-## ----echo=FALSE, message=FALSE, warning=FALSE, comment=NA, results='hide'----
-library(rstanarm)
-set.seed(333)
-
-model <- stan_glm(Sepal.Length ~ Petal.Length, data=iris)
+#  describe_posterior(model)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE, comment=NA----------------
-model %>% 
-  summary()
+library(rstanarm)
+library(bayestestR)
+set.seed(333)
+
+junk <- capture.output(model <- stan_glm(Sepal.Length ~ Petal.Length, data=iris))
+knitr::kable(describe_posterior(model), digits=2)
 

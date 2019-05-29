@@ -3,23 +3,29 @@
 \name{ci}
 \alias{ci}
 \alias{ci.numeric}
+\alias{ci.data.frame}
 \alias{ci.stanreg}
 \alias{ci.brmsfit}
+\alias{ci.BFBayesFactor}
 \title{Confidence/Credible Interval}
 \usage{
 ci(x, ...)
 
-\method{ci}{numeric}(x, ci = 0.9, verbose = TRUE, ...)
+\method{ci}{numeric}(x, ci = 0.89, verbose = TRUE, ...)
 
-\method{ci}{stanreg}(x, ci = 0.9, effects = c("fixed", "random",
+\method{ci}{data.frame}(x, ci = 0.89, verbose = TRUE, ...)
+
+\method{ci}{stanreg}(x, ci = 0.89, effects = c("fixed", "random",
   "all"), parameters = NULL, verbose = TRUE, ...)
 
-\method{ci}{brmsfit}(x, ci = 0.9, effects = c("fixed", "random",
+\method{ci}{brmsfit}(x, ci = 0.89, effects = c("fixed", "random",
   "all"), component = c("conditional", "zi", "zero_inflated", "all"),
   parameters = NULL, verbose = TRUE, ...)
+
+\method{ci}{BFBayesFactor}(x, ci = 0.89, verbose = TRUE, ...)
 }
 \arguments{
-\item{x}{A \code{stanreg} or \code{brmsfit} model , or a vector representing a posterior distribution.}
+\item{x}{A \code{stanreg} or \code{brmsfit} model, or a vector representing a posterior distribution.}
 
 \item{...}{Currently not used.}
 
@@ -46,32 +52,68 @@ A data frame with following columns:
   \itemize{
     \item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a vector, this column is missing.
     \item \code{CI} The probability of the credible interval.
-    \item \code{CI_low} , \code{CI_high} The lower and upper credible interval limits for the parameters.
+    \item \code{CI_low}, \code{CI_high} The lower and upper credible interval limits for the parameters.
   }
 }
 \description{
-Compute Confidence/Credible Intervals (CI) for Bayesian and frequentist models using quantiles.
+Compute Confidence/Credible Intervals (CI) for Bayesian (using quantiles) and frequentist models.
 }
 \details{
 Documentation is accessible for:
 \itemize{
-  \item \href{https://easystats.github.io/bayestestR/reference/ci.html}{Bayesian models}
+ \item \href{https://easystats.github.io/bayestestR/reference/ci.html}{Bayesian models}
+ \item \href{https://easystats.github.io/parameters/reference/ci.merMod.html}{Frequentist models}
 }
+\strong{Bayesian models}
+\cr \cr
+This functions returns, by default, the quantile interval, i.e., an
+equal-tailed interval (ETI). A 90\% ETI has 5\% of the distribution on either
+side of its limits. It indicates the 5th percentile and the 95h percentile.
+In symmetric distributions, the two methods of computing credible intervals,
+the ETI and the \link[=hdi]{HDI}, return similar results.
+\cr \cr
+This is not the case for skewed distributions. Indeed, it is possible that
+parameter values in the ETI have lower credibility (are less probable) than
+parameter values outside the ETI. This property seems undesirable as a summary
+of the credible values in a distribution.
+\cr \cr
+On the other hand, the ETI range does change when transformations are applied
+to the distribution (for instance, for a log odds scale to probabilities):
+the lower and higher bounds of the transformed distribution will correspond
+to the transformed lower and higher bounds of the original distribution.
+On the contrary, applying transformations to the distribution will change
+the resulting HDI.
+\cr \cr
+\strong{Frequentist models}
+\cr \cr
+ This function is implemented in the \href{https://github.com/easystats/parameters}{parameters} package and attemps to retrieve, or compute, the Confidence Interval (default \code{ci} level: \code{.95}).
 }
 \examples{
 library(bayestestR)
 
-ci(rnorm(1000))
-\dontrun{
-library(rstanarm)
-model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
-ci(model)
-ci(model, ci = c(.80, .90, .95))
+posterior <- rnorm(1000)
+ci(posterior)
+ci(posterior, ci = c(.80, .89, .95))
 
+df <- data.frame(replicate(4, rnorm(100)))
+ci(df)
+ci(df, ci = c(.80, .89, .95))
+
+library(rstanarm)
+model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
+ci(model)
+ci(model, ci = c(.80, .89, .95))
+
+\dontrun{
 library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 ci(model)
-ci(model, ci = c(.80, .90, .95))
+ci(model, ci = c(.80, .89, .95))
+
+library(BayesFactor)
+bf <- ttestBF(x = rnorm(100, 1, 1))
+ci(bf)
+ci(bf, ci = c(.80, .89, .95))
 }
 
 }
