@@ -1,4 +1,4 @@
-#' Probability of Direction (\emph{pd})
+#' Probability of Direction (pd)
 #'
 #' Compute the \strong{Probability of Direction} (\strong{\emph{pd}}, also known as the Maximum Probability of Effect - \emph{MPE}). It varies between 50\% and 100\% and can be interpreted as the probability (expressed in percentage) that a parameter (described by its posterior distribution) is strictly positive or negative (whichever is the most probable). It is mathematically defined as the proportion of the posterior distribution that is of the median's sign. Altough differently expressed, this index is fairly similar (i.e., is strongly correlated) to the frequentist \strong{p-value}.
 #'
@@ -17,12 +17,13 @@
 #' }
 #' \strong{Relationship with the p-value}
 #' \cr \cr
-#' In most cases, it seems that the \emph{pd} chas a direct correspondance with the frequentist one-sided \emph{p}-value through the formula \ifelse{html}{\out{p<sub>one&nbsp;sided</sub>&nbsp;=&nbsp;1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>}}{\eqn{p_{one sided}=1-\frac{p_{d}}{100}}} and to the two-sided p-value (the most commonly reported one) through the formula \ifelse{html}{\out{p<sub>two&nbsp;sided</sub>&nbsp;=&nbsp;2&nbsp;*&nbsp;(1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>)}}{\eqn{p_{two sided}=2*(1-\frac{p_{d}}{100})}}. Thus, a two-sided p-value of respectively \code{.1}, \code{.05}, \code{.01} and \code{.001} would correspond approximately to a \emph{pd} of 95\%, 97.5\%, 99.5\% and 99.95\%.
+#' In most cases, it seems that the \emph{pd} has a direct correspondance with the frequentist one-sided \emph{p}-value through the formula \ifelse{html}{\out{p<sub>one&nbsp;sided</sub>&nbsp;=&nbsp;1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>}}{\eqn{p_{one sided}=1-\frac{p_{d}}{100}}} and to the two-sided p-value (the most commonly reported one) through the formula \ifelse{html}{\out{p<sub>two&nbsp;sided</sub>&nbsp;=&nbsp;2&nbsp;*&nbsp;(1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>)}}{\eqn{p_{two sided}=2*(1-\frac{p_{d}}{100})}}. Thus, a two-sided p-value of respectively \code{.1}, \code{.05}, \code{.01} and \code{.001} would correspond approximately to a \emph{pd} of 95\%, 97.5\%, 99.5\% and 99.95\%.
 #' \cr \cr
 #' \strong{Methods of computation}
 #' \cr \cr
 #'  The most simple and direct way to compute the \emph{pd} is to 1) look at the median's sign, 2) select the portion of the posterior of the same sign and 3) compute the percentage that this portion represents. This "simple" method is the most straigtfoward, but its precision is directly tied to the number of posterior draws. The second approach relies on \link[=estimate_density]{density estimation}. It starts by estimating the density function (for which many methods are available), and then computing the \link[=area_under_curve]{area under the curve} (AUC) of the density curve on the other side of 0.
 #'
+#' @return The probability of direction (pd) expressed in percentage (between 50\% and 100\%).
 #'
 #' @examples
 #' library(bayestestR)
@@ -45,6 +46,11 @@
 #' model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 #' p_direction(model)
 #' p_direction(model, method = "kernel")
+#'
+#' # emmeans
+#' # -----------------------------------------------
+#' library(emmeans)
+#' p_direction(emtrends(model, ~1, "wt"))
 #'
 #' # brms models
 #' # -----------------------------------------------
@@ -131,7 +137,17 @@ p_direction.data.frame <- function(x, method = "direct", ...) {
   out
 }
 
-
+#' @rdname p_direction
+#' @export
+p_direction.emmGrid <- function(x, method = "direct", ...) {
+  if (!requireNamespace("emmeans")) {
+    stop("Package \"emmeans\" needed for this function to work. Please install it.")
+  }
+  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+  out <- p_direction(xdf, method = method, ...)
+  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  out
+}
 
 #' @importFrom insight get_parameters
 #' @keywords internal

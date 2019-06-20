@@ -3,10 +3,10 @@
 #' Extract diagnostic metrics (Effective Sample Size (\code{ESS}), \code{Rhat} and Monte Carlo Standard Error \code{MCSE}).
 #'
 #' @param posteriors A stanreg or brms model.
-#' @param diagnostic Diagnostic metrics to compute. Can be a character or a list with "ESS", "Rhat", "MCSE" or "all".
+#' @param diagnostic Diagnostic metrics to compute.  Character (vector) or list with one or more of these options: \code{"ESS"}, \code{"Rhat"}, \code{"MCSE"} or \code{"all"}.
 #'
 #' @details
-#'   \strong{Effective Sample (ESS)} should be as large as possible, altough for most applications, an effective sample size greater than 1,000 is sufficient for stable estimates (Bürkner, 2017). The ESS corresponds to the number of independent samples with the same estimation power as the N autocorrelated samples. It is is a measure of \dQuote{how much independent information there is in autocorrelated chains} (\emph{Kruschke 2015, p182-3}).
+#'   \strong{Effective Sample (ESS)} should be as large as possible, altough for most applications, an effective sample size greater than 1000 is sufficient for stable estimates (Bürkner, 2017). The ESS corresponds to the number of independent samples with the same estimation power as the N autocorrelated samples. It is is a measure of \dQuote{how much independent information there is in autocorrelated chains} (\emph{Kruschke 2015, p182-3}).
 #'   \cr \cr
 #'   \strong{Rhat} should be the closest to 1. It should not be larger than 1.1 (Gelman and Rubin, 1992) or 1.01 (Vehtari et al., 2019). The split R-hat statistic quantifies the consistency of an ensemble of Markov chains.
 #'   \cr \cr
@@ -17,9 +17,8 @@
 #' # rstanarm models
 #' # -----------------------------------------------
 #' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
+#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
 #' diagnostic_posterior(model)
-#'
 #' \dontrun{
 #' # brms models
 #' # -----------------------------------------------

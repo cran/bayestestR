@@ -2,20 +2,21 @@
 % Please edit documentation in R/bayesfactor_inclusion.R
 \name{bayesfactor_inclusion}
 \alias{bayesfactor_inclusion}
-\title{Inclusion Bayes Factors for effects across Bayesian models}
+\title{Inclusion Bayes Factors for testing effects across Bayesian models}
 \usage{
 bayesfactor_inclusion(models, match_models = FALSE, prior_odds = NULL,
   ...)
 }
 \arguments{
-\item{models}{an object of class \link{bayesfactor_models} or \code{BFBayesFactor}.}
+\item{models}{An object of class \code{\link{bayesfactor_models}} or \code{BFBayesFactor}.}
 
-\item{match_models}{If \code{FALSE} (default), Inclustion BFs are computed by
+\item{match_models}{If \code{FALSE} (default), Inclusion BFs are computed by
 comparing all models with an effect against all models without the effect. If \code{TRUE},
 Inclusion BFs are computed by comparing all models with an effect against models without
-the effect AND without any higher-order interactions with the effect.}
+the effect AND without any higher-order interactions with the effect (additionally,
+interactions are compared only to models with the all main effects).}
 
-\item{prior_odds}{optional vector of prior odds for the models. See \code{BayesFactor::priorOdds}}
+\item{prior_odds}{Optional vector of prior odds for the models. See \code{\link[BayesFactor]{priorOdds<-}}.}
 
 \item{...}{Arguments passed to or from other methods.}
 }
@@ -23,14 +24,15 @@ the effect AND without any higher-order interactions with the effect.}
 a data frame containing the prior and posterior probabilities, and BF for each effect.
 }
 \description{
-Inclusion Bayes Factors for effects across Bayesian models
+Inclusion Bayes Factors for testing effects across Bayesian models
 }
 \details{
-Inclusion Bayes factors answer the question: Given the observed data,
-how much more likely are models with a particular effect, compared to models
-without that particular effect? In other words, on average - do models with
-effect X better fit (or describe) the data compared to models without effect X? See also
-\href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{this vignette}.
+Inclusion Bayes factors answer the question: Are the observed data more
+probable under models with a particular effect, than they are under models without
+that particular effect? In other words, on average - are models with effect \eqn{X}
+more likely to have produced the observed data than models without effect \eqn{X}?
+\cr \cr
+See also \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
 }
 \note{
 Random effects in the \code{lme} style will be displayed as interactions:
@@ -48,7 +50,7 @@ mo3 <- lm(Sepal.Length ~ Species * Petal.Length, data = iris)
 
 BFmodels <- bayesfactor_models(mo1, mo2, mo3, denominator = mo0)
 bayesfactor_inclusion(BFmodels)
-
+\dontrun{
 # BayesFactor
 # -------------------------------
 library(BayesFactor)
@@ -59,7 +61,7 @@ bayesfactor_inclusion(BF)
 
 # compare only matched models:
 bayesfactor_inclusion(BF, match_models = TRUE)
-
+}
 }
 \references{
 \itemize{

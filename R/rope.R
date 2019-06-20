@@ -77,6 +77,8 @@
 #' rope(model)
 #' rope(model, ci = c(.90, .95))
 #'
+#' library(emmeans)
+#' rope(emtrends(model, ~1, "wt"), ci = c(.90, .95))
 #' \dontrun{
 #' library(brms)
 #' model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
@@ -162,9 +164,22 @@ rope.data.frame <- function(x, range = "default", ci = .89, verbose = TRUE, ...)
   row.names(dat) <- NULL
 
   attr(dat, "HDI_area") <- HDI_area_attributes
-  attr(dat, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(dat, "object_name") <- .safe_deparse(substitute(x))
 
   class(dat) <- c("rope", "see_rope", "data.frame")
+  dat
+}
+
+#' @rdname rope
+#' @export
+rope.emmGrid <- function(x, range = "default", ci = .89, verbose = TRUE, ...) {
+  if (!requireNamespace("emmeans")) {
+    stop("Package \"emmeans\" needed for this function to work. Please install it.")
+  }
+  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+
+  dat <- rope(xdf, range = range, ci = ci, verbose = verbose, ...)
+  attr(dat, "object_name") <- .safe_deparse(substitute(x))
   dat
 }
 
@@ -266,7 +281,7 @@ rope.stanreg <- function(x, range = "default", ci = .89, effects = c("fixed", "r
   }
 
   attr(dat, "HDI_area") <- HDI_area_attributes
-  attr(dat, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(dat, "object_name") <- .safe_deparse(substitute(x))
 
   dat
 }
@@ -356,7 +371,7 @@ rope.brmsfit <- function(x, range = "default", ci = .89, effects = c("fixed", "r
   }
 
   attr(dat, "HDI_area") <- HDI_area_attributes
-  attr(dat, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(dat, "object_name") <- .safe_deparse(substitute(x))
 
   dat
 }

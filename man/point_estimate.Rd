@@ -25,7 +25,7 @@ point_estimate(x, centrality = "median", dispersion = FALSE, ...)
 \item{x}{Vector representing a posterior distribution. Can also be a
 \code{stanreg} or \code{brmsfit} model.}
 
-\item{centrality}{The point-estimates (centrality indices) to compute. Can be a character or a list with "median", "mean", "MAP" or "all".}
+\item{centrality}{The point-estimates (centrality indices) to compute.  Character (vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"} or \code{"all"}.}
 
 \item{dispersion}{Logical, if \code{TRUE}, computes indices of dispersion related to the estimate(s) (\code{SD} and \code{MAD} for \code{mean} and \code{median}, respectively).}
 
@@ -64,6 +64,12 @@ library(rstanarm)
 model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 point_estimate(model, centrality = "all", dispersion = TRUE)
 point_estimate(model, centrality = c("median", "MAP"))
+
+
+# emmeans estimates
+# -----------------------------------------------
+library(emmeans)
+point_estimate(emtrends(model, ~1, "wt"), centrality = c("median", "MAP"))
 
 # brms models
 # -----------------------------------------------

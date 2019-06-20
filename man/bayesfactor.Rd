@@ -12,9 +12,9 @@ bayesfactor(..., prior = NULL, direction = "two-sided",
 \arguments{
 \item{...}{A numeric vector, model object(s), or the output from \code{bayesfactor_models}.}
 
-\item{prior}{Vector representing a prior distribution (if \code{posterior} is a vector), or a data frame with column names matching \code{posterior}'s (if \code{posterior} is a data frame). Otherwise ignored.}
+\item{prior}{An object representing a prior distribution (see Details).}
 
-\item{direction}{Test type. One of \code{0}, \code{"two-sided"} (default, two tailed),
+\item{direction}{Test type (see details). One of \code{0}, \code{"two-sided"} (default, two tailed),
 \code{-1}, \code{"left"} (left tailed) or \code{1}, \code{"right"} (right tailed).}
 
 \item{hypothesis}{Value to be tested against (usually \code{0} in the context of null hypothesis testing).}
@@ -27,19 +27,22 @@ Only applies to mixed models. May be abbreviated.}
 \item{denominator}{Either an integer indicating which of the models to use as the denominator,
 or a model to use as a denominator. Ignored for \code{BFBayesFactor}.}
 
-\item{match_models}{If \code{FALSE} (default), Inclustion BFs are computed by
+\item{match_models}{If \code{FALSE} (default), Inclusion BFs are computed by
 comparing all models with an effect against all models without the effect. If \code{TRUE},
 Inclusion BFs are computed by comparing all models with an effect against models without
-the effect AND without any higher-order interactions with the effect.}
+the effect AND without any higher-order interactions with the effect (additionally,
+interactions are compared only to models with the all main effects).}
 
-\item{prior_odds}{optional vector of prior odds for the models. See \code{BayesFactor::priorOdds}}
+\item{prior_odds}{Optional vector of prior odds for the models. See \code{\link[BayesFactor]{priorOdds<-}}.}
 }
 \value{
 Some type of Bayes factor, depending on the input. See \code{\link{bayesfactor_savagedickey}}, \code{\link{bayesfactor_models}} or \code{\link{bayesfactor_inclusion}}
 }
 \description{
 This function compte the Bayes factors (BFs) that are appropriate to the input.
-For vectors or single models, it will compute \code{\link[=bayesfactor_savagedickey]{Savage-Dickey's BFs}}. For multiple models, it will return the BF corresponding to \code{\link[=bayesfactor_models]{comparison between models}} and if a comparison is passed, it will compute the \code{\link[=bayesfactor_inclusion]{inclusion BF}}.
+For vectors or single models, it will compute \code{\link[=bayesfactor_savagedickey]{Savage-Dickey's BFs}}.
+For multiple models, it will return the BF corresponding to \code{\link[=bayesfactor_models]{comparison between models}}
+and if a model comparison is passed, it will compute the \code{\link[=bayesfactor_inclusion]{inclusion BF}}.
 \cr\cr
 For a complete overview of these functions, read the \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{Bayes factor vignette}.
 }

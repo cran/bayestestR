@@ -19,7 +19,7 @@
 #'   \item For \code{BFBayesFactor}, \code{bayesfactor_models()} is mostly a wraparoud \code{BayesFactor::extractBF()}.
 #'   \item For all other model types (supported by \CRANpkg{insight}), BIC approximations are used to compute Bayes factors.
 #' }
-#' In order to correctly and precisely estimate Bayes Factors, a rule of thumb are
+#' In order to correctly and precisely estimate Bayes factors, a rule of thumb are
 #' the 4 P's: \strong{P}roper \strong{P}riors and \strong{P}lentiful \strong{P}osterior
 #' (i.e. probably at leat 40,000 samples instead of the default of 4,000).
 #' \cr \cr
@@ -28,6 +28,8 @@
 #' as "substantial" evidence against the denominator model (and vice versa, a Bayes factor
 #' smaller than 1/3 indicates substantial evidence in favor of the denominator model)
 #' (\cite{Wetzels et al. 2011}).
+#' \cr \cr
+#' See also \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
 #'
 #' @return A data frame containing the models' formulas (reconstructed fixed and random effects) and their BFs, that prints nicely.
 #'
@@ -112,8 +114,6 @@
 #'   \item Wetzels, R., Matzke, D., Lee, M. D., Rouder, J. N., Iverson, G. J., and Wagenmakers, E.-J. (2011). Statistical Evidence in Experimental Psychology: An Empirical Comparison Using 855 t Tests. Perspectives on Psychological Science, 6(3), 291–298. \doi{10.1177/1745691611406923}
 #' }
 #'
-#' @seealso update.BFGrid
-#'
 #' @importFrom insight get_response is_model
 #' @export
 bayesfactor_models <- function(..., denominator = 1, verbose = TRUE) {
@@ -127,8 +127,8 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
   mods <- list(...)
 
   if (!is.numeric(denominator)) {
-    model_name <- deparse(match.call()[["denominator"]])
-    arg_names <- sapply(match.call(expand.dots = F)$`...`, deparse)
+    model_name <- .safe_deparse(match.call()[["denominator"]])
+    arg_names <- sapply(match.call(expand.dots = F)$`...`, .safe_deparse)
     denominator_model <- which(arg_names == model_name)
 
     if (length(denominator_model) == 0) {
@@ -195,8 +195,8 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
   }
 
   if (!is.numeric(denominator)) {
-    model_name <- deparse(match.call()[["denominator"]])
-    arg_names <- sapply(match.call(expand.dots = F)$`...`, deparse)
+    model_name <- .safe_deparse(match.call()[["denominator"]])
+    arg_names <- sapply(match.call(expand.dots = F)$`...`, .safe_deparse)
     denominator_model <- which(arg_names == model_name)
 
     if (length(denominator_model) == 0) {
@@ -281,40 +281,8 @@ bayesfactor_models.BFBayesFactor <- function(..., verbose = TRUE) {
   res
 }
 
-#' Update bayesfactor_models
-#'
-#'
-#' @param object A \link{bayesfactor_models} object.
-#' @param subset Vector of model indices to keep or remove.
-#' @param reference Index of model to rereference to, or \code{"top"} to reference to the best model, or \code{"bottom"} to reference to the worst model.
-#' @param ... Currently not used.
-#' @export
-update.bayesfactor_models <- function(object, subset = NULL, reference = NULL, ...) {
-  if (!is.null(reference)) {
-    if (reference == "top") {
-      reference <- which.max(object$BF)
-    } else if (reference == "bottom") {
-      reference <- which.min(object$BF)
-    }
-    object$BF <- object$BF / object$BF[reference]
-    attr(object, "denominator") <- reference
-  }
 
-  denominator <- attr(object, "denominator")
 
-  if (!is.null(subset)) {
-    object_subset <- object[subset, ]
-
-    if (denominator %in% subset) {
-      attr(object_subset, "denominator") <- which(denominator == subset)
-    } else {
-      object_subset <- rbind(object[denominator, ], object_subset)
-      attr(object_subset, "denominator") <- 1
-    }
-    object <- object_subset
-  }
-  object
-}
 
 #' @keywords internal
 #' @importFrom insight find_formula

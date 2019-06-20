@@ -57,7 +57,7 @@ nrow(insight::get_parameters(model))  # Size (number of rows)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
 ggplot(posteriors, aes(x = Petal.Length)) +
-  geom_density(fill = "orange")
+  geom_density(fill = "wheat")
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
 mean(posteriors$Petal.Length)
@@ -70,7 +70,7 @@ map_estimate(posteriors$Petal.Length)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
 ggplot(posteriors, aes(x = Petal.Length)) +
-  geom_density(fill = "orange") +
+  geom_density(fill = "wheat") +
   # The mean in blue
   geom_vline(xintercept=mean(posteriors$Petal.Length), color="blue", size=1) +
   # The median in red
@@ -101,7 +101,7 @@ model <- stan_glm(weight ~ feed, data=data)
 posteriors <- insight::get_parameters(model)
 
 ggplot(posteriors, aes(x=feedsunflower)) +
-  geom_density(fill = "red")
+  geom_density(fill = "wheat")
 
 ## ----message=FALSE, warning=FALSE, eval=TRUE-----------------------------
 median(posteriors$feedsunflower)
@@ -109,6 +109,9 @@ hdi(posteriors$feedsunflower)
 
 ## ----message=FALSE, warning=FALSE, eval=TRUE-----------------------------
 rope(posteriors$feedsunflower, range = c(-20, 20), ci=0.89)
+
+## ----echo=FALSE, fig.cap="Prof. Sanders giving default values to define the Region of Practical Equivalence (ROPE).", fig.align='center', out.width="75%"----
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/profsanders.png")
 
 ## ----message=FALSE, warning=FALSE, eval=TRUE-----------------------------
 rope_value <- 0.1 * sd(data$weight)
@@ -148,5 +151,5 @@ lm(weight ~ feed, data=data) %>%
   summary()
 
 ## ----message=FALSE, warning=FALSE, eval=TRUE-----------------------------
-describe_posterior(model)
+describe_posterior(model, test = c("p_direction","rope","bayesfactor"))
 

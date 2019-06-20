@@ -89,6 +89,9 @@
 #' test <- equivalence_test(model)
 #' plot(test)
 #'
+#' library(emmeans)
+#' equivalence_test(emtrends(model, ~1, "wt"))
+#'
 #' library(brms)
 #' model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 #' equivalence_test(model)
@@ -124,13 +127,13 @@ equivalence_test.numeric <- function(x, range = "default", ci = .89, verbose = T
   out <- as.data.frame(rope_data)
 
   if (all(ci < 1)) {
-    out$ROPE_Equivalence <- ifelse(out$ROPE_Percentage == 0, "rejected",
-      ifelse(out$ROPE_Percentage == 100, "accepted", "undecided")
+    out$ROPE_Equivalence <- ifelse(out$ROPE_Percentage == 0, "Rejected",
+      ifelse(out$ROPE_Percentage == 100, "Accepted", "Undecided")
     )
   } else {
     # Related to guidelines for full rope (https://easystats.github.io/bayestestR/articles/4_Guidelines.html)
-    out$ROPE_Equivalence <- ifelse(out$ROPE_Percentage < 2.5, "rejected",
-      ifelse(out$ROPE_Percentage > 97.5, "accepted", "undecided")
+    out$ROPE_Equivalence <- ifelse(out$ROPE_Percentage < 2.5, "Rejected",
+      ifelse(out$ROPE_Percentage > 97.5, "Accepted", "Undecided")
     )
   }
 
@@ -171,6 +174,18 @@ equivalence_test.data.frame <- function(x, range = "default", ci = .89, verbose 
   out
 }
 
+#' @rdname equivalence_test
+#' @export
+equivalence_test.emmGrid <- function(x, range = "default", ci = .89, verbose = TRUE, ...) {
+  if (!requireNamespace("emmeans")) {
+    stop("Package \"emmeans\" needed for this function to work. Please install it.")
+  }
+  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+
+  out <- equivalence_test(xdf, range = range, ci = ci, verbose = verbose, ...)
+  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  out
+}
 
 
 #' @rdname equivalence_test

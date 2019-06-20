@@ -6,6 +6,17 @@ print.bayesfactor_savagedickey <- function(x, digits = 2, log = FALSE, ...) {
 
   if (log) {
     BFE$BF <- log(BFE$BF)
+  }
+
+  xBF <- BFE$BF
+  BFE$BF <- as.character(round(xBF, digits = digits))
+  big_ind <- abs(xBF) >= 1000 | abs(xBF) < 1 / (10^digits)
+  big_ind <- sapply(big_ind, isTRUE)
+  if (isTRUE(any(big_ind))) {
+    BFE$BF[big_ind] <- formatC(xBF, format = "e", digits = digits)[big_ind]
+  }
+
+  if (log) {
     colnames(BFE)[colnames(BFE) == "BF"] <- "log(Bayes Factor)"
   } else {
     colnames(BFE)[colnames(BFE) == "BF"] <- "Bayes Factor"
@@ -15,11 +26,11 @@ print.bayesfactor_savagedickey <- function(x, digits = 2, log = FALSE, ...) {
 
   print.data.frame(BFE, digits = digits, row.names = FALSE)
   cat("---\n")
-  cat(paste0("Evidence Against Test Value: ", round(hypothesis, digits), "\n"))
+  cat("Evidence Against Test Value: ", round(hypothesis, digits), "\n")
   if (direction < 0) {
-    cat(paste0("Left-Sided test\n"))
+    cat("Left-Sided test\n")
   } else if (direction > 0) {
-    cat(paste0("Right-Sided test\n"))
+    cat("Right-Sided test\n")
   }
   invisible(x)
 }

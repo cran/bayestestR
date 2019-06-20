@@ -5,10 +5,11 @@
 \alias{pd}
 \alias{p_direction.numeric}
 \alias{p_direction.data.frame}
+\alias{p_direction.emmGrid}
 \alias{p_direction.stanreg}
 \alias{p_direction.brmsfit}
 \alias{p_direction.BFBayesFactor}
-\title{Probability of Direction (\emph{pd})}
+\title{Probability of Direction (pd)}
 \usage{
 p_direction(x, ...)
 
@@ -17,6 +18,8 @@ pd(x, ...)
 \method{p_direction}{numeric}(x, method = "direct", ...)
 
 \method{p_direction}{data.frame}(x, method = "direct", ...)
+
+\method{p_direction}{emmGrid}(x, method = "direct", ...)
 
 \method{p_direction}{stanreg}(x, effects = c("fixed", "random", "all"),
   parameters = NULL, method = "direct", ...)
@@ -47,6 +50,9 @@ for the output.}
 or the zero-inflated part of the model be returned? May be abbreviated. Only
 applies to \pkg{brms}-models.}
 }
+\value{
+The probability of direction (pd) expressed in percentage (between 50\% and 100\%).
+}
 \description{
 Compute the \strong{Probability of Direction} (\strong{\emph{pd}}, also known as the Maximum Probability of Effect - \emph{MPE}). It varies between 50\% and 100\% and can be interpreted as the probability (expressed in percentage) that a parameter (described by its posterior distribution) is strictly positive or negative (whichever is the most probable). It is mathematically defined as the proportion of the posterior distribution that is of the median's sign. Altough differently expressed, this index is fairly similar (i.e., is strongly correlated) to the frequentist \strong{p-value}.
 }
@@ -61,7 +67,7 @@ The Probability of Direction (pd) is an index of effect existence, ranging from 
 }
 \strong{Relationship with the p-value}
 \cr \cr
-In most cases, it seems that the \emph{pd} chas a direct correspondance with the frequentist one-sided \emph{p}-value through the formula \ifelse{html}{\out{p<sub>one&nbsp;sided</sub>&nbsp;=&nbsp;1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>}}{\eqn{p_{one sided}=1-\frac{p_{d}}{100}}} and to the two-sided p-value (the most commonly reported one) through the formula \ifelse{html}{\out{p<sub>two&nbsp;sided</sub>&nbsp;=&nbsp;2&nbsp;*&nbsp;(1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>)}}{\eqn{p_{two sided}=2*(1-\frac{p_{d}}{100})}}. Thus, a two-sided p-value of respectively \code{.1}, \code{.05}, \code{.01} and \code{.001} would correspond approximately to a \emph{pd} of 95\%, 97.5\%, 99.5\% and 99.95\%.
+In most cases, it seems that the \emph{pd} has a direct correspondance with the frequentist one-sided \emph{p}-value through the formula \ifelse{html}{\out{p<sub>one&nbsp;sided</sub>&nbsp;=&nbsp;1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>}}{\eqn{p_{one sided}=1-\frac{p_{d}}{100}}} and to the two-sided p-value (the most commonly reported one) through the formula \ifelse{html}{\out{p<sub>two&nbsp;sided</sub>&nbsp;=&nbsp;2&nbsp;*&nbsp;(1&nbsp;-&nbsp;<sup>p(<em>d</em>)</sup>/<sub>100</sub>)}}{\eqn{p_{two sided}=2*(1-\frac{p_{d}}{100})}}. Thus, a two-sided p-value of respectively \code{.1}, \code{.05}, \code{.01} and \code{.001} would correspond approximately to a \emph{pd} of 95\%, 97.5\%, 99.5\% and 99.95\%.
 \cr \cr
 \strong{Methods of computation}
 \cr \cr
@@ -88,6 +94,11 @@ library(rstanarm)
 model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 p_direction(model)
 p_direction(model, method = "kernel")
+
+# emmeans
+# -----------------------------------------------
+library(emmeans)
+p_direction(emtrends(model, ~1, "wt"))
 
 # brms models
 # -----------------------------------------------

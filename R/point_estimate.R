@@ -2,7 +2,7 @@
 #'
 #' Compute various point-estimates, such as the mean, the median or the MAP, to describe posterior distributions.
 #'
-#' @param centrality The point-estimates (centrality indices) to compute. Can be a character or a list with "median", "mean", "MAP" or "all".
+#' @param centrality The point-estimates (centrality indices) to compute.  Character (vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"} or \code{"all"}.
 #' @param dispersion Logical, if \code{TRUE}, computes indices of dispersion related to the estimate(s) (\code{SD} and \code{MAD} for \code{mean} and \code{median}, respectively).
 #' @param ... Additional arguments to be passed to or from methods.
 #' @inheritParams hdi
@@ -26,6 +26,12 @@
 #' model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 #' point_estimate(model, centrality = "all", dispersion = TRUE)
 #' point_estimate(model, centrality = c("median", "MAP"))
+#'
+#'
+#' # emmeans estimates
+#' # -----------------------------------------------
+#' library(emmeans)
+#' point_estimate(emtrends(model, ~1, "wt"), centrality = c("median", "MAP"))
 #'
 #' # brms models
 #' # -----------------------------------------------
@@ -102,6 +108,18 @@ point_estimate.data.frame <- function(x, centrality = "median", dispersion = FAL
   out <- cbind(data.frame("Parameter" = names(x), stringsAsFactors = FALSE), estimates)
   rownames(out) <- NULL
 
+  out
+}
+
+#' @export
+point_estimate.emmGrid <- function(x, centrality = "median", dispersion = FALSE, ...) {
+  if (!requireNamespace("emmeans")) {
+    stop("Package \"emmeans\" needed for this function to work. Please install it.")
+  }
+  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+
+  out <- point_estimate(xdf, centrality = centrality, dispersion = dispersion, ...)
+  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
   out
 }
 

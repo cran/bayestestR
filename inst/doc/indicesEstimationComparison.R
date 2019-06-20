@@ -8,6 +8,7 @@ options(digits=2)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(see)
 
 df <- read.csv("https://raw.github.com/easystats/circus/master/data/bayesSim_study1.csv")
 
@@ -25,11 +26,11 @@ df %>%
   # geom_point(alpha=0.05, size=2, stroke = 0, shape=16) +
   # geom_smooth(method="loess") +
   geom_boxplot(outlier.shape=NA) +
-  theme_classic() +
+  theme_modern() +
   scale_fill_manual(values = c("beta" = "#607D8B", "MAP" = "#795548", "Mean" = "#FF9800", "Median" = "#FFEB3B"),
                     name = "Index") +
-  ylab("Point-estimate of the true value 0\n") +
-  xlab("\nNoise") +
+  ylab("Point-estimate") +
+  xlab("Noise") +
   facet_wrap(~ outcome_type * true_effect, scales="free") 
 
 ## ---- message=FALSE, warning=FALSE---------------------------------------
@@ -46,30 +47,23 @@ df %>%
   # geom_point(alpha=0.05, size=2, stroke = 0, shape=16) +
   # geom_smooth(method="loess") +
   geom_boxplot(outlier.shape=NA) +
-  theme_classic() +
+  theme_modern() +
   scale_fill_manual(values = c("beta" = "#607D8B", "MAP" = "#795548", "Mean" = "#FF9800", "Median" = "#FFEB3B"),
                     name = "Index") +
-  xlab("Point-estimate of the true value 0\n") +
-  ylab("\nNoise") +
+  ylab("Point-estimate") +
+  xlab("Sample size") +
   facet_wrap(~ outcome_type * true_effect, scales="free")
 
 ## ---- message=FALSE, warning=FALSE---------------------------------------
 df %>%
   select(sample_size, error, true_effect, outcome_type, beta, Median, Mean, MAP) %>%
   gather(estimate, value, -sample_size, -error, -true_effect, -outcome_type) %>%
-  glm(true_effect ~ outcome_type / value * estimate * sample_size * error, data=., family="binomial") %>%
+  glm(true_effect ~ outcome_type / estimate / value, data=., family="binomial") %>%
   broom::tidy() %>%
   select(term, estimate, p=p.value) %>%
   filter(stringr::str_detect(term, 'outcome_type'),
          stringr::str_detect(term, ':value')) %>%
-  mutate(
-    sample_size = stringr::str_detect(term, 'sample_size'),
-    error = stringr::str_detect(term, 'error'),
-    term = stringr::str_remove(term, "estimate"),
-    term = stringr::str_remove(term, "outcome_type"),
-    p = paste0(sprintf("%.2f", p), ifelse(p < .001, "***", ifelse(p < .01, "**", ifelse(p < .05, "*", ""))))) %>%
-  arrange(sample_size, error, term) %>% 
-  select(-sample_size, -error) %>% 
+  arrange(desc(estimate)) %>% 
   knitr::kable(digits=2) 
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
