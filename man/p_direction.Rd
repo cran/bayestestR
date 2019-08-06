@@ -31,7 +31,7 @@ pd(x, ...)
 \method{p_direction}{BFBayesFactor}(x, method = "direct", ...)
 }
 \arguments{
-\item{x}{Vector representing a posterior distribution. Can also be a \code{stanreg} or \code{brmsfit} model.}
+\item{x}{Vector representing a posterior distribution. Can also be a Bayesian model (\code{stanreg}, \code{brmsfit} or \code{BayesFactor}).}
 
 \item{...}{Currently not used.}
 
@@ -54,12 +54,12 @@ applies to \pkg{brms}-models.}
 The probability of direction (pd) expressed in percentage (between 50\% and 100\%).
 }
 \description{
-Compute the \strong{Probability of Direction} (\strong{\emph{pd}}, also known as the Maximum Probability of Effect - \emph{MPE}). It varies between 50\% and 100\% and can be interpreted as the probability (expressed in percentage) that a parameter (described by its posterior distribution) is strictly positive or negative (whichever is the most probable). It is mathematically defined as the proportion of the posterior distribution that is of the median's sign. Altough differently expressed, this index is fairly similar (i.e., is strongly correlated) to the frequentist \strong{p-value}.
+Compute the \strong{Probability of Direction} (\strong{\emph{pd}}, also known as the Maximum Probability of Effect - \emph{MPE}). It varies between 50\% and 100\% (\emph{i.e.}, \code{0.5} and \code{1}) and can be interpreted as the probability (expressed in percentage) that a parameter (described by its posterior distribution) is strictly positive or negative (whichever is the most probable). It is mathematically defined as the proportion of the posterior distribution that is of the median's sign. Altough differently expressed, this index is fairly similar (\emph{i.e.}, is strongly correlated) to the frequentist \strong{p-value}.
 }
 \details{
 \strong{What is the \emph{pd}?}
 \cr \cr
-The Probability of Direction (pd) is an index of effect existence, ranging from 50\% to 100\%, representing the certainty with which an effect goes in a particular direction (i.e., is positive or negative). Beyond its simplicity of interpretation, understanding and computation, this index also presents other interesting properties:
+The Probability of Direction (pd) is an index of effect existence, ranging from 50\% to 100\%, representing the certainty with which an effect goes in a particular direction (\emph{i.e.}, is positive or negative). Beyond its simplicity of interpretation, understanding and computation, this index also presents other interesting properties:
 \itemize{
   \item It is independent from the model: It is solely based on the posterior distributions and does not require any additional information from the data or the model.
   \item It is robust to the scale of both the response variable and the predictors.

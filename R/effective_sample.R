@@ -17,7 +17,7 @@
 #'
 #' @examples
 #' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
+#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
 #' effective_sample(model)
 #' @export
 effective_sample <- function(model, ...) {
@@ -41,7 +41,7 @@ effective_sample.brmsfit <- function(model, effects = c("fixed", "random", "all"
     )
 
   if (!requireNamespace("rstan", quietly = TRUE)) {
-    stop("Package 'rstan' required for this function to work. Please install it.")
+    stop("Package 'rstan' required for this function to work. Please install it by running `install.packages('stan')`.")
   }
 
   s <- rstan::summary(model$fit)$summary

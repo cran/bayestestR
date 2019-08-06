@@ -1,5 +1,5 @@
 ---
-title: "Example 3: Become a Bayesian master"
+title: "3. Become a Bayesian master"
 output: 
   github_document:
     toc: true
@@ -17,6 +17,7 @@ vignette: >
 editor_options: 
   chunk_output_type: console
 bibliography: bibliography.bib
+csl: apa.csl
 ---
 
 This vignette can be referred to by citing the package:
@@ -29,18 +30,32 @@ This vignette can be referred to by citing the package:
 library(knitr)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")
+knitr::opts_chunk$set(dpi=300)
 options(digits=2)
 
 set.seed(333)
 ```
 
 ```{r echo=FALSE, fig.cap="Yoda Bayes (896 BBY - 4 ABY).", fig.align='center', out.width="80%"}
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/YodaBayes.png")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/YodaBayes.jpg")
 ```
 
 
 
+
+## Mixed Models
+
 TO BE CONTINUED.
 
-- [Testing Contrasts from Bayesian Models with 'emmeans' and 'bayestestR'](https://easystats.github.io/blog/posts/bayestestr_emmeans/)
+### Priors
 
+TO BE CONTINUED.
+
+
+## What's next?
+
+The journey to become a true Bayesian master is not over. It is merely the beginning. It is now time to leave the `bayestestR` universe and apply the Bayesian framework in a variety of other statistical contexts: 
+
+- [**Marginal means**](https://easystats.github.io/estimate/articles/marginal_means.html)
+- [**Contrast analysis**](https://easystats.github.io/estimate/articles/contrast_analysis.html)
+- [**Testing Contrasts from Bayesian Models with 'emmeans' and 'bayestestR'**](https://easystats.github.io/blog/posts/bayestestr_emmeans/)

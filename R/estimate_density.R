@@ -4,7 +4,7 @@
 #'
 #' @inheritParams hdi
 #' @inheritParams stats::density
-#' @param method Method of density estimation. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.
+#' @param method Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.
 #' @param precision Number of points of density data. See the \code{n} parameter in \link[=density]{density}.
 #' @param extend Extend the range of the x axis by a factor of \code{extend_scale}.
 #' @param extend_scale Ratio of range by which to extend the x axis. A value of \code{0.1} means that the x axis will be extended by \code{1/10} of the range of the data.
@@ -38,7 +38,7 @@
 #' # rstanarm models
 #' # -----------------------------------------------
 #' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
+#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
 #' head(estimate_density(model))
 #'
 #' library(emmeans)
@@ -59,10 +59,6 @@
 estimate_density <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ...) {
   UseMethod("estimate_density")
 }
-
-#' @rdname estimate_density
-#' @export
-estimate_probability <- estimate_density
 
 
 
@@ -148,7 +144,7 @@ estimate_density.data.frame <- function(x, method = "kernel", precision = 2^10, 
 #' @export
 estimate_density.emmGrid <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ...) {
   if (!requireNamespace("emmeans")) {
-    stop("Package \"emmeans\" needed for this function to work. Please install it.")
+    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
   }
   x <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
 
@@ -200,9 +196,9 @@ as.data.frame.density <- function(x, ...) {
 
 
 
-#' Probability of a Given Point
+#' Density Probability at a Given Value
 #'
-#' Compute the density of a given point of a distribution.
+#' Compute the density value at a given point of a distribution (i.e., the value of the \code{y} axis of a value \code{x} of a distribution).
 #'
 #' @param posterior Vector representing a posterior distribution.
 #' @param x The value of which to get the approximate probability.
@@ -215,13 +211,7 @@ as.data.frame.density <- function(x, ...) {
 #' density_at(posterior, c(0, 1))
 #' @importFrom stats approx density
 #' @export
-density_at <- function(posterior, x, precision = 2^10, ...) {
-  density <- estimate_density(posterior, precision = precision, ...)
+density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
+  density <- estimate_density(posterior, precision = precision, method = method, ...)
   stats::approx(density$x, density$y, xout = x)$y
 }
-
-
-
-#' @rdname density_at
-#' @export
-probability_at <- density_at

@@ -5,7 +5,7 @@ knitr::opts_chunk$set(comment=">")
 options(digits=2)
 
 ## ----echo=FALSE, fig.cap="Accurate depiction of a regular Bayesian user estimating a credible interval.", fig.align='center', out.width="50%"----
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/bayesianMaster.png")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/bayesianMaster.jpg")
 
 ## ----eval=FALSE, message=FALSE, warning=FALSE, eval=FALSE----------------
 #  install.packages("devtools")

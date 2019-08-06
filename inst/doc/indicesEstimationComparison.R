@@ -14,7 +14,7 @@ df <- read.csv("https://raw.github.com/easystats/circus/master/data/bayesSim_stu
 
 ## ---- message=FALSE, warning=FALSE---------------------------------------
 df %>%
-  select(error, true_effect, outcome_type, beta, Median, Mean, MAP) %>%
+  select(error, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
   gather(estimate, value, -error, -true_effect, -outcome_type) %>%
   mutate(temp = as.factor(cut(error, 10, labels = FALSE))) %>% 
   group_by(temp) %>% 
@@ -27,7 +27,7 @@ df %>%
   # geom_smooth(method="loess") +
   geom_boxplot(outlier.shape=NA) +
   theme_modern() +
-  scale_fill_manual(values = c("beta" = "#607D8B", "MAP" = "#795548", "Mean" = "#FF9800", "Median" = "#FFEB3B"),
+  scale_fill_manual(values = c("Coefficient" = "#607D8B", "MAP" = "#795548", "Mean" = "#FF9800", "Median" = "#FFEB3B"),
                     name = "Index") +
   ylab("Point-estimate") +
   xlab("Noise") +
@@ -35,7 +35,7 @@ df %>%
 
 ## ---- message=FALSE, warning=FALSE---------------------------------------
 df %>%
-  select(sample_size, true_effect, outcome_type, beta, Median, Mean, MAP) %>%
+  select(sample_size, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
   gather(estimate, value, -sample_size, -true_effect, -outcome_type) %>%
   mutate(temp = as.factor(cut(sample_size, 10, labels = FALSE))) %>% 
   group_by(temp) %>% 
@@ -48,7 +48,7 @@ df %>%
   # geom_smooth(method="loess") +
   geom_boxplot(outlier.shape=NA) +
   theme_modern() +
-  scale_fill_manual(values = c("beta" = "#607D8B", "MAP" = "#795548", "Mean" = "#FF9800", "Median" = "#FFEB3B"),
+  scale_fill_manual(values = c("Coefficient" = "#607D8B", "MAP" = "#795548", "Mean" = "#FF9800", "Median" = "#FFEB3B"),
                     name = "Index") +
   ylab("Point-estimate") +
   xlab("Sample size") +
@@ -56,7 +56,7 @@ df %>%
 
 ## ---- message=FALSE, warning=FALSE---------------------------------------
 df %>%
-  select(sample_size, error, true_effect, outcome_type, beta, Median, Mean, MAP) %>%
+  select(sample_size, error, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
   gather(estimate, value, -sample_size, -error, -true_effect, -outcome_type) %>%
   glm(true_effect ~ outcome_type / estimate / value, data=., family="binomial") %>%
   broom::tidy() %>%

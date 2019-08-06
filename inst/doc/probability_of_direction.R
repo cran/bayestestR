@@ -10,21 +10,25 @@ set.seed(333)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(see)
 
-read.csv("https://raw.github.com/easystats/circus/master/data/bayesSim_study1.csv") %>% 
-  mutate(effect_existence = ifelse(true_effect == 1, "Presence of true effect", "Absence of true effect")) %>% 
+read.csv("https://raw.github.com/easystats/easystats/master/publications/makowski_2019_bayesian/data/data.csv") %>% 
+  mutate(effect_existence = ifelse(true_effect == 1, "Presence of true effect", "Absence of true effect"),
+         p_direction = p_direction * 100) %>% 
   ggplot(aes(x=p_direction, y=p_value, color=effect_existence)) +
-  geom_point(alpha=0.1, stroke=0, shape=16) +
+  geom_point2(alpha=0.1) +
   geom_segment(aes(x=95, y=Inf, xend=95, yend=0.1), color="black", linetype="longdash") +
   geom_segment(aes(x=-Inf, y=0.1, xend=95, yend=0.1), color="black", linetype="longdash") +
-  theme_classic() +
-  scale_y_reverse(breaks = round(seq(0, 1, length.out = 11), digits=2)) +
-  scale_x_continuous(breaks = round(c(95, seq(50, 100, length.out = 6)))) +
+  geom_segment(aes(x=97.5, y=Inf, xend=97.5, yend=0.05), color="black", linetype="dashed") +
+  geom_segment(aes(x=-Inf, y=0.05, xend=97.5, yend=0.05), color="black", linetype="dashed") +
+  theme_modern() +
+  scale_y_reverse(breaks = c(0.05, round(seq(0, 1, length.out = 11), digits=2))) +
+  scale_x_continuous(breaks = c(95, 97.5, round(seq(50, 100, length.out = 6)))) +
   scale_color_manual(values=c("Presence of true effect"="green", "Absence of true effect"="red")) +
   theme(legend.title = element_blank()) +
   guides(colour = guide_legend(override.aes = list(alpha = 1))) +
-  xlab("\nProbability of Direction (pd)") +
-  ylab("Frequentist p-value\n")
+  xlab("Probability of Direction (pd)") +
+  ylab("Frequentist p-value")
 
 ## ----message=FALSE, warning=FALSE, fig.align='center'--------------------
 library(bayestestR)

@@ -2,12 +2,9 @@
 % Please edit documentation in R/estimate_density.R
 \name{density_at}
 \alias{density_at}
-\alias{probability_at}
-\title{Probability of a Given Point}
+\title{Density Probability at a Given Value}
 \usage{
-density_at(posterior, x, precision = 2^10, ...)
-
-probability_at(posterior, x, precision = 2^10, ...)
+density_at(posterior, x, precision = 2^10, method = "kernel", ...)
 }
 \arguments{
 \item{posterior}{Vector representing a posterior distribution.}
@@ -16,10 +13,12 @@ probability_at(posterior, x, precision = 2^10, ...)
 
 \item{precision}{Number of points of density data. See the \code{n} parameter in \link[=density]{density}.}
 
+\item{method}{Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.}
+
 \item{...}{Currently not used.}
 }
 \description{
-Compute the density of a given point of a distribution.
+Compute the density value at a given point of a distribution (i.e., the value of the \code{y} axis of a value \code{x} of a distribution).
 }
 \examples{
 library(bayestestR)

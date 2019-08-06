@@ -14,9 +14,9 @@ library(ggplot2)
 # Generate a normal distribution
 posterior <- distribution_normal(1000)
 
-# Compute HDI and Quantile CI
-ci_hdi <- hdi(posterior)
-ci_eti <- ci(posterior)
+# Compute HDI and ETI
+ci_hdi <- ci(posterior, method = "HDI")
+ci_eti <- ci(posterior, method = "ETI")
 
 # Plot the distribution and add the limits of the two CIs
 posterior %>% 
@@ -40,8 +40,8 @@ library(ggplot2)
 posterior <- distribution_beta(1000, 6, 2)
 
 # Compute HDI and Quantile CI
-ci_hdi <- hdi(posterior)
-ci_eti <- ci(posterior)
+ci_hdi <- ci(posterior, method = "HDI")
+ci_eti <- ci(posterior, method = "ETI")
 
 # Plot the distribution and add the limits of the two CIs
 posterior %>% 

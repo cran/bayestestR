@@ -21,6 +21,17 @@
 # is string empty?
 #' @keywords internal
 .is_empty_object <- function(x) {
+  if (is.list(x)) {
+    x <- tryCatch({
+      .compact_list(x)
+    },
+    error = function(x) {
+      x
+    }
+    )
+  }
+  # this is an ugly fix because of ugly tibbles
+  if (inherits(x, c("tbl_df", "tbl"))) x <- as.data.frame(x)
   x <- suppressWarnings(x[!is.na(x)])
   length(x) == 0 || is.null(x)
 }
@@ -65,4 +76,26 @@
 #' @keywords internal
 .select_nums <- function(x) {
   x[unlist(lapply(x, is.numeric))]
+}
+
+
+
+#' Used in describe_posterior
+#' @keywords internal
+.reoder_rows <- function(x, out, ci = NULL) {
+  if (!is.data.frame(out) || nrow(out) == 1) {
+    return(out)
+  }
+
+  if (is.null(ci)) {
+    refdata <- point_estimate(x, centrality = "median", dispersion = FALSE)
+    order <- refdata$Parameter
+    out <- out[match(order, out$Parameter), ]
+  } else {
+    uncertainty <- ci(x, ci = ci)
+    order <- paste0(uncertainty$Parameter, uncertainty$CI)
+    out <- out[match(order, paste0(out$Parameter, out$CI)), ]
+  }
+  rownames(out) <- NULL
+  out
 }

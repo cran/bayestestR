@@ -2,20 +2,16 @@
 % Please edit documentation in R/estimate_density.R
 \name{estimate_density}
 \alias{estimate_density}
-\alias{estimate_probability}
 \title{Density Estimation}
 \usage{
 estimate_density(x, method = "kernel", precision = 2^10,
   extend = FALSE, extend_scale = 0.1, bw = "SJ", ...)
-
-estimate_probability(x, method = "kernel", precision = 2^10,
-  extend = FALSE, extend_scale = 0.1, bw = "SJ", ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution. Can also be a
-\code{stanreg} or \code{brmsfit} model.}
+\code{stanreg}, \code{brmsfit} or a \code{BayesFactor} model.}
 
-\item{method}{Method of density estimation. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.}
+\item{method}{Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.}
 
 \item{precision}{Number of points of density data. See the \code{n} parameter in \link[=density]{density}.}
 
@@ -72,7 +68,7 @@ head(estimate_density(df))
 # rstanarm models
 # -----------------------------------------------
 library(rstanarm)
-model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
+model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
 head(estimate_density(model))
 
 library(emmeans)

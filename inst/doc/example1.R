@@ -57,7 +57,7 @@ nrow(insight::get_parameters(model))  # Size (number of rows)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
 ggplot(posteriors, aes(x = Petal.Length)) +
-  geom_density(fill = "wheat")
+  geom_density(fill = "orange")
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
 mean(posteriors$Petal.Length)
@@ -70,7 +70,7 @@ map_estimate(posteriors$Petal.Length)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
 ggplot(posteriors, aes(x = Petal.Length)) +
-  geom_density(fill = "wheat") +
+  geom_density(fill = "orange") +
   # The mean in blue
   geom_vline(xintercept=mean(posteriors$Petal.Length), color="blue", size=1) +
   # The median in red
@@ -101,7 +101,7 @@ model <- stan_glm(weight ~ feed, data=data)
 posteriors <- insight::get_parameters(model)
 
 ggplot(posteriors, aes(x=feedsunflower)) +
-  geom_density(fill = "wheat")
+  geom_density(fill = "red")
 
 ## ----message=FALSE, warning=FALSE, eval=TRUE-----------------------------
 median(posteriors$feedsunflower)

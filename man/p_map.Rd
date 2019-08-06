@@ -6,28 +6,31 @@
 \alias{p_map.stanreg}
 \alias{p_map.brmsfit}
 \alias{p_map.BFBayesFactor}
-\title{Bayesian p-value based on the density at the Maximum A Priori (MAP)}
+\title{Bayesian p-value based on the density at the Maximum A Posteriori (MAP)}
 \usage{
-p_map(x, ...)
+p_map(x, precision = 2^10, method = "kernel", ...)
 
-\method{p_map}{numeric}(x, precision = 2^10, ...)
+\method{p_map}{numeric}(x, precision = 2^10, method = "kernel", ...)
 
-\method{p_map}{stanreg}(x, precision = 2^10, effects = c("fixed",
-  "random", "all"), parameters = NULL, ...)
+\method{p_map}{stanreg}(x, precision = 2^10, method = "kernel",
+  effects = c("fixed", "random", "all"), parameters = NULL, ...)
 
-\method{p_map}{brmsfit}(x, precision = 2^10, effects = c("fixed",
-  "random", "all"), component = c("conditional", "zi", "zero_inflated",
-  "all"), parameters = NULL, ...)
+\method{p_map}{brmsfit}(x, precision = 2^10, method = "kernel",
+  effects = c("fixed", "random", "all"), component = c("conditional",
+  "zi", "zero_inflated", "all"), parameters = NULL, ...)
 
-\method{p_map}{BFBayesFactor}(x, precision = 2^10, ...)
+\method{p_map}{BFBayesFactor}(x, precision = 2^10, method = "kernel",
+  ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution. Can also be a
-\code{stanreg} or \code{brmsfit} model.}
+\code{stanreg}, \code{brmsfit} or a \code{BayesFactor} model.}
+
+\item{precision}{Number of points of density data. See the \code{n} parameter in \link[=density]{density}.}
+
+\item{method}{Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.}
 
 \item{...}{Currently not used.}
-
-\item{precision}{Number of points for density estimation. See the \code{n}-parameter in \link[=density]{density}.}
 
 \item{effects}{Should results for fixed effects, random effects or both be returned?
 Only applies to mixed models. May be abbreviated.}
@@ -43,7 +46,10 @@ or the zero-inflated part of the model be returned? May be abbreviated. Only
 applies to \pkg{brms}-models.}
 }
 \description{
-Compute a Bayesian equivalent of the p-value, related to the odds that a parameter (described by its posterior distribution) has against the null hypothesis (\emph{h0}) using Mills' (2014, 2017) \emph{Objective Bayesian Hypothesis Testing} framework. It is mathematically based on the density at the Maximum A Priori (MAP) and corresponds to the density value at 0 divided by the density of the MAP estimate.
+Compute a Bayesian equivalent of the \emph{p}-value, related to the odds that a parameter (described by its posterior distribution) has against the null hypothesis (\emph{h0}) using Mills' (2014, 2017) \emph{Objective Bayesian Hypothesis Testing} framework. It corresponds to the density value at 0 divided by the density at the Maximum A Posteriori (MAP).
+}
+\details{
+Note that this method is sensitive to the density estimation \code{method} (see the secion in the examples below).
 }
 \examples{
 library(bayestestR)
@@ -52,7 +58,7 @@ p_map(rnorm(1000, 0, 1))
 p_map(rnorm(1000, 10, 1))
 
 library(rstanarm)
-model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200)
+model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
 p_map(model)
 
 library(emmeans)
@@ -67,7 +73,34 @@ bf <- ttestBF(x = rnorm(100, 1, 1))
 p_map(bf)
 }
 
+\donttest{
+# ---------------------------------------
+# Robustness to density estimation method
+set.seed(333)
+data <- data.frame()
+for (iteration in 1:250) {
+  x <- rnorm(1000, 1, 1)
+  result <- data.frame(
+    "Kernel" = p_map(x, method = "kernel"),
+    "KernSmooth" = p_map(x, method = "KernSmooth"),
+    "logspline" = p_map(x, method = "logspline")
+  )
+  data <- rbind(data, result)
+}
+data$KernSmooth <- data$Kernel - data$KernSmooth
+data$logspline <- data$Kernel - data$logspline
+
+summary(data$KernSmooth)
+summary(data$logspline)
+boxplot(data[c("KernSmooth", "logspline")])
+}
+
 }
 \references{
-\href{https://www.youtube.com/watch?v=Ip8Ci5KUVRc}{Mill's talk}
+\itemize{
+  \item Mills, J. A. (2018). Objective Bayesian Precise Hypothesis Testing. University of Cincinnati.
+}
+}
+\seealso{
+\href{https://www.youtube.com/watch?v=Ip8Ci5KUVRc}{Jeff Mill's talk}
 }

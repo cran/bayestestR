@@ -5,26 +5,29 @@
 \alias{map_estimate.numeric}
 \alias{map_estimate.stanreg}
 \alias{map_estimate.brmsfit}
-\title{Maximum A Posteriori (MAP) Estimate}
+\title{Maximum A Posteriori probability estimate (MAP)}
 \usage{
-map_estimate(x, ...)
+map_estimate(x, precision = 2^10, method = "kernel", ...)
 
-\method{map_estimate}{numeric}(x, precision = 2^10, ...)
+\method{map_estimate}{numeric}(x, precision = 2^10, method = "kernel",
+  ...)
 
-\method{map_estimate}{stanreg}(x, precision = 2^10,
+\method{map_estimate}{stanreg}(x, precision = 2^10, method = "kernel",
   effects = c("fixed", "random", "all"), parameters = NULL, ...)
 
-\method{map_estimate}{brmsfit}(x, precision = 2^10,
+\method{map_estimate}{brmsfit}(x, precision = 2^10, method = "kernel",
   effects = c("fixed", "random", "all"), component = c("conditional",
   "zi", "zero_inflated", "all"), parameters = NULL, ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution. Can also be a
-\code{stanreg} or \code{brmsfit} model.}
-
-\item{...}{Currently not used.}
+\code{stanreg}, \code{brmsfit} or a \code{BayesFactor} model.}
 
 \item{precision}{Number of points of density data. See the \code{n} parameter in \link[=density]{density}.}
+
+\item{method}{Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.}
+
+\item{...}{Currently not used.}
 
 \item{effects}{Should results for fixed effects, random effects or both be returned?
 Only applies to mixed models. May be abbreviated.}
@@ -40,16 +43,15 @@ or the zero-inflated part of the model be returned? May be abbreviated. Only
 applies to \pkg{brms}-models.}
 }
 \value{
-A numeric value if \code{posterior} is a vector.
-  If \code{density = TRUE}, or if \code{posterior} is a model-object, returns
-  a data frame with following columns:
+A numeric value if \code{posterior} is a vector. If \code{posterior}
+is a model-object, returns a data frame with following columns:
   \itemize{
     \item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a vector, this column is missing.
-    \item \code{MAP} The MAP estimate for the posterior or each model parameter.
+    \item \code{MAP_Estimate} The MAP estimate for the posterior or each model parameter.
   }
 }
 \description{
-Find the \strong{Highest Maximum A Posteriori (MAP)} estimate of a posterior, \emph{i.e.,} the most probable value. It corresponds to the "peak" (or the \emph{mode}) of the posterior distribution. Note this function relies on \link{estimate_density}, which by default uses a different smoothing bandwidth (\code{"SJ"}) from the legacy default implemented the base R \link{density} function (\code{"nrd0"}).
+Find the \strong{Highest Maximum A Posteriori probability estimate (MAP)} of a posterior, i.e., the value associated with the highest probability density (the "peak" of the posterior distribution). In other words, it is an estimation of the \emph{mode} for continuous parameters. Note that this function relies on \link{estimate_density}, which by default uses a different smoothing bandwidth (\code{"SJ"}) compared to the legacy default implemented the base R \link{density} function (\code{"nrd0"}).
 }
 \examples{
 library(bayestestR)

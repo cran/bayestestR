@@ -17,6 +17,7 @@ vignette: >
 editor_options: 
   chunk_output_type: console
 bibliography: bibliography.bib
+csl: apa.csl
 ---
 
 
@@ -30,7 +31,7 @@ options(digits=2)
 
 ## Why use the Bayesian Framework?
 
-Reasons to prefer this approach are **reliability**, **accuracy** (in noisy data and small samples), the possibility of introducing **prior knowledge** into the analysis and, critically, **results intuitiveness** and their **straightforward interpretation** [@andrews2013prior; @etz2016bayesian; @kruschke2010believe; @kruschke2012time; @wagenmakers2018bayesian]. 
+The Bayesian framework for statistics is quickly gaining in popularity among scientists, associated with the general shift towards **open and honest science**. Reasons to prefer this approach are **reliability**, **accuracy** (in noisy data and small samples), the possibility of introducing **prior knowledge** into the analysis and, critically, **results intuitiveness** and their **straightforward interpretation** [@andrews2013prior; @etz2016bayesian; @kruschke2010believe; @kruschke2012time; @wagenmakers2018bayesian]. 
 
 In general, the frequentist approach has been associated with the focus on null hypothesis testing, and the misuse of *p*-values has been shown to critically contribute to the reproducibility crisis of psychological science [@chambers2014instead; @szucs2016empirical]. There is a general agreement that the generalization of the Bayesian approach is one way of overcoming these issues [@benjamin2018redefine; @etz2016bayesian].
 
@@ -40,9 +41,9 @@ Once we agreed that the Bayesian framework is the right way to go, you might won
 
 ## What is the Bayesian Framework?
 
-Adopting the Bayesian framework is more of a shift in the paradigm than a change in the methodology. Indeed, all the common statistical procedures (t-tests, correlations, ANOVAs, regressions, ...) can be achieved using the Bayesian framework. One of the core difference is that in the **frequentist view** (the "classic" statistics, with *p* and *t* values, as well as some weird *degrees of freedom*), **the effects are fixed** (but unknown) and **data are random**. On the contrary, the Bayesian inference process computes the **probability** of different effects *given the observed data*. Instead of having one estimated value of the "true effect", this probabilistic approach gives a distribution of values, called the **"posterior" distribution**. 
+Adopting the Bayesian framework is more of a shift in the paradigm than a change in the methodology. Indeed, all the common statistical procedures (t-tests, correlations, ANOVAs, regressions, ...) can be achieved using the Bayesian framework. One of the core difference is that in the **frequentist view** (the "classic" statistics, with *p* and *t* values, as well as some weird *degrees of freedom*), **the effects are fixed** (but unknown) and **data are random**. On the other hand, in the Bayesian inference process, instead of having estimates of the "true effect", the probability of different effects *given the observed data* is computed, resulting in a distribution of possible values for the parameters, called the ***posterior distribution***. 
 
-Bayesian’s uncertainty can be summarized, for instance, by giving the **median** of the distribution, as well as a range of values on the posterior distribution that includes the 95% most probable values (the 95\% ***Credible* Interval**). To illustrate the difference of interpretation, the Bayesian framework allows to say *"given the observed data, the effect has 95% probability of falling within this range"*, while the frequentist less straightforward alternative (the 95\% ***Confidence* Interval**) would be *"there is a 95\% probability that when computing a confidence interval from data of this sort, the effect falls within this range"*. 
+The uncertainty in Bayesian inference can be summarized, for instance, by the **median** of the distribution, as well as a range of values of the posterior distribution that includes the 95\% most probable values (the 95\% ***credible* interval***). *Cum grano salis*, these are considered the counterparts to the point-estimate and confidence interval in a frequentist framework. To illustrate the difference of interpretation, the Bayesian framework allows to say *"given the observed data, the effect has 95\% probability of falling within this range"*, while the frequentist less straightforward alternative would be *"when repeatedly computing confidence intervals from data of this sort, there is a 95\% probability that the effect falls within a given range"*. In essence, the Bayesian sampling algorithms (such as MCMC sampling) return a probability distribution (*the posterior*) of an effect that is compatible with the observed data. Thus, an effect can be described by [characterizing its posterior distribution](https://easystats.github.io/bayestestR/articles/guidelines.html) in relation to its centrality (point-estimates), uncertainty, as well as existence and significance
 
 
 In other words, omitting the maths behind it, we can say that:
@@ -53,7 +54,7 @@ In other words, omitting the maths behind it, we can say that:
 
 
 ```{r echo=FALSE, fig.cap="Accurate depiction of a regular Bayesian user estimating a credible interval.", fig.align='center', out.width="50%"}
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/bayesianMaster.png")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/bayesianMaster.jpg")
 ```
 
 
