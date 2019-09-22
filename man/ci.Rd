@@ -5,10 +5,13 @@
 \alias{ci.numeric}
 \alias{ci.data.frame}
 \alias{ci.emmGrid}
+\alias{ci.sim.merMod}
+\alias{ci.sim}
 \alias{ci.stanreg}
 \alias{ci.brmsfit}
 \alias{ci.BFBayesFactor}
-\title{Confidence/Credible Interval (CI)}
+\alias{ci.MCMCglmm}
+\title{Confidence/Credible/Compatibility Interval (CI)}
 \usage{
 ci(x, ...)
 
@@ -21,6 +24,13 @@ ci(x, ...)
 \method{ci}{emmGrid}(x, ci = 0.89, method = "ETI", verbose = TRUE,
   ...)
 
+\method{ci}{sim.merMod}(x, ci = 0.89, method = "ETI",
+  effects = c("fixed", "random", "all"), parameters = NULL,
+  verbose = TRUE, ...)
+
+\method{ci}{sim}(x, ci = 0.89, method = "ETI", parameters = NULL,
+  verbose = TRUE, ...)
+
 \method{ci}{stanreg}(x, ci = 0.89, method = "ETI",
   effects = c("fixed", "random", "all"), parameters = NULL,
   verbose = TRUE, ...)
@@ -32,6 +42,9 @@ ci(x, ...)
 
 \method{ci}{BFBayesFactor}(x, ci = 0.89, method = "ETI",
   verbose = TRUE, ...)
+
+\method{ci}{MCMCglmm}(x, ci = 0.89, method = "ETI", verbose = TRUE,
+  ...)
 }
 \arguments{
 \item{x}{A \code{stanreg} or \code{brmsfit} model, or a vector representing a posterior distribution.}
@@ -67,13 +80,19 @@ A data frame with following columns:
   }
 }
 \description{
-Compute Confidence/Credible Intervals (CI) for Bayesian and frequentist models. The Documentation is accessible for:
+Compute Confidence/Credible/Compatibility Intervals (CI) for Bayesian and frequentist models. The Documentation is accessible for:
 }
 \details{
 \itemize{
  \item \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{Bayesian models}
  \item \href{https://easystats.github.io/parameters/reference/ci.merMod.html}{Frequentist models}
 }
+}
+\note{
+When it comes to interpretation, we recommend thinking of the CI in terms of
+  an "uncertainty" or "compatibility" interval, the latter being defined as
+  \dQuote{Given any value in the interval and the background assumptions,
+  the data should not seem very surprising} (\cite{Gelman & Greenland 2019}).
 }
 \examples{
 library(bayestestR)
@@ -87,7 +106,7 @@ ci(df, method = "ETI", ci = c(.80, .89, .95))
 ci(df, method = "HDI", ci = c(.80, .89, .95))
 
 library(rstanarm)
-model <- stan_glm(mpg ~ wt, data = mtcars, chains = 2, iter = 200)
+model <- stan_glm(mpg ~ wt, data = mtcars, chains = 2, iter = 200, refresh = 0)
 ci(model, method = "ETI", ci = c(.80, .89))
 ci(model, method = "HDI", ci = c(.80, .89))
 \dontrun{
@@ -107,4 +126,7 @@ ci(model, method = "ETI")
 ci(model, method = "HDI")
 }
 
+}
+\references{
+Gelman A, Greenland S. Are confidence intervals better termed "uncertainty intervals"? BMJ 2019;l5381. \doi{10.1136/bmj.l5381}
 }

@@ -194,6 +194,16 @@ rope.BFBayesFactor <- function(x, range = "default", ci = .89, verbose = TRUE, .
 }
 
 
+#' @rdname rope
+#' @export
+rope.MCMCglmm <- function(x, range = "default", ci = .89, verbose = TRUE, ...) {
+  nF <- x$Fixed$nfl
+  d <- as.data.frame(x$Sol[, 1:nF, drop = FALSE])
+  out <- rope(d, range = range, ci = ci, verbose = verbose, ...)
+  out
+}
+
+
 #' @keywords internal
 .rope <- function(x, range = c(-0.1, 0.1), ci = .89, ci_method = "HDI", verbose = TRUE) {
   HDI_area <- .hdi_area <- ci(x, ci = ci, method = ci_method, verbose = verbose)
@@ -234,6 +244,75 @@ rope.stanreg <- function(x, range = "default", ci = .89, ci_method = "HDI", effe
 
   # check for possible collinearity that might bias ROPE
   if (verbose) .check_multicollinearity(x, "rope")
+
+  rope_data <- rope(
+    insight::get_parameters(x, effects = effects, parameters = parameters),
+    range = range,
+    ci = ci,
+    ci_method = ci_method,
+    verbose = verbose,
+    ...
+  )
+
+  out <- .prepare_output(rope_data, insight::clean_parameters(x))
+
+  attr(out, "HDI_area") <- attr(rope_data, "HDI_area")
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  class(out) <- class(rope_data)
+
+  out
+}
+
+
+
+#' @rdname rope
+#' @export
+rope.brmsfit <- function(x, range = "default", ci = .89, ci_method = "HDI", effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, verbose = TRUE, ...) {
+  effects <- match.arg(effects)
+  component <- match.arg(component)
+
+  if (insight::is_multivariate(x)) {
+    stop("Multivariate response models are not yet supported.")
+  }
+
+  if (all(range == "default")) {
+    range <- rope_range(x)
+  } else if (!all(is.numeric(range)) || length(range) != 2) {
+    stop("`range` should be 'default' or a vector of 2 numeric values (e.g., c(-0.1, 0.1)).")
+  }
+
+  # check for possible collinearity that might bias ROPE
+  if (verbose) .check_multicollinearity(x, "rope")
+
+  rope_data <- rope(
+    insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
+    range = range,
+    ci = ci,
+    ci_method = ci_method,
+    verbose = verbose,
+    ...
+  )
+
+  out <- .prepare_output(rope_data, insight::clean_parameters(x))
+
+  attr(out, "HDI_area") <- attr(rope_data, "HDI_area")
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  class(out) <- class(rope_data)
+
+  out
+}
+
+
+
+#' @export
+rope.sim.merMod <- function(x, range = "default", ci = .89, ci_method = "HDI", effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+  effects <- match.arg(effects)
+
+  if (all(range == "default")) {
+    range <- rope_range(x)
+  } else if (!all(is.numeric(range)) || length(range) != 2) {
+    stop("`range` should be 'default' or a vector of 2 numeric values (e.g., c(-0.1, 0.1)).")
+  }
 
   list <- lapply(c("fixed", "random"), function(.x) {
     parms <- insight::get_parameters(x, effects = .x, parameters = parameters)
@@ -289,93 +368,40 @@ rope.stanreg <- function(x, range = "default", ci = .89, ci_method = "HDI", effe
 
 
 
-#' @rdname rope
 #' @export
-rope.brmsfit <- function(x, range = "default", ci = .89, ci_method = "HDI", effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, verbose = TRUE, ...) {
-  effects <- match.arg(effects)
-  component <- match.arg(component)
-
-  if (insight::is_multivariate(x)) {
-    stop("Multivariate response models are not yet supported.")
-  }
-
-  eff <- c("fixed", "fixed", "random", "random")
-  com <- c("conditional", "zi", "conditional", "zi")
-
+rope.sim <- function(x, range = "default", ci = .89, ci_method = "HDI", parameters = NULL, verbose = TRUE, ...) {
   if (all(range == "default")) {
     range <- rope_range(x)
   } else if (!all(is.numeric(range)) || length(range) != 2) {
     stop("`range` should be 'default' or a vector of 2 numeric values (e.g., c(-0.1, 0.1)).")
   }
 
-  # check for possible collinearity that might bias ROPE
-  if (verbose) .check_multicollinearity(x, "rope")
+  parms <- insight::get_parameters(x, parameters = parameters)
+  getropedata <- .prepare_rope_df(parms, range, ci, ci_method, verbose)
 
-  .get_rope <- function(.x, .y) {
-    parms <- insight::get_parameters(x, effects = .x, component = .y, parameters = parameters)
+  dat <- getropedata$tmp
+  HDI_area <- getropedata$HDI_area
 
-    getropedata <- .prepare_rope_df(parms, range, ci, ci_method, verbose)
-    tmp <- getropedata$tmp
-    HDI_area <- getropedata$HDI_area
+  if (!.is_empty_object(dat)) {
+    dat <- .clean_up_tmp_stanreg(
+      dat,
+      group = "fixed",
+      cols = c("CI", "ROPE_low", "ROPE_high", "ROPE_Percentage"),
+      parms = names(parms)
+    )
 
-    if (!.is_empty_object(tmp)) {
-      tmp <- .clean_up_tmp_brms(
-        tmp,
-        group = .x,
-        component = .y,
-        cols = c("CI", "ROPE_low", "ROPE_high", "ROPE_Percentage", "Component", "Group"),
-        parms = names(parms)
-      )
-
-      if (!.is_empty_object(HDI_area)) {
-        attr(tmp, "HDI_area") <- HDI_area
-      }
-    } else {
-      tmp <- NULL
+    if (!.is_empty_object(HDI_area)) {
+      attr(dat, "HDI_area") <- HDI_area
     }
-
-    tmp
-  }
-
-  list <- mapply(.get_rope, eff, com, SIMPLIFY = FALSE)
-  dat <- do.call(rbind, args = c(.compact_list(list), make.row.names = FALSE))
-
-  dat <- switch(
-    effects,
-    fixed = .select_rows(dat, "Group", "fixed"),
-    random = .select_rows(dat, "Group", "random"),
-    dat
-  )
-
-  dat <- switch(
-    component,
-    conditional = .select_rows(dat, "Component", "conditional"),
-    zi = ,
-    zero_inflated = .select_rows(dat, "Component", "zero_inflated"),
-    dat
-  )
-
-  if (all(dat$Group == dat$Group[1])) {
-    dat <- .remove_column(dat, "Group")
-  }
-
-  if (all(dat$Component == dat$Component[1])) {
-    dat <- .remove_column(dat, "Component")
-  }
-
-  HDI_area_attributes <- lapply(.compact_list(list), attr, "HDI_area")
-
-  if (effects != "all") {
-    HDI_area_attributes <- HDI_area_attributes[[1]]
   } else {
-    names(HDI_area_attributes) <- c("fixed", "random")
+    dat <- NULL
   }
 
-  attr(dat, "HDI_area") <- HDI_area_attributes
   attr(dat, "object_name") <- .safe_deparse(substitute(x))
 
   dat
 }
+
 
 
 

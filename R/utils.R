@@ -46,7 +46,8 @@
 # remove column
 #' @keywords internal
 .remove_column <- function(data, variables) {
-  data[, -which(colnames(data) %in% variables), drop = FALSE]
+  data[variables] <- NULL
+  data
 }
 
 
@@ -80,22 +81,73 @@
 
 
 
-#' Used in describe_posterior
+## TODO remove?!?
+
+# #' Used in describe_posterior
+# #' @keywords internal
+# .reorder_rows <- function(x, out, ci = NULL) {
+#   if (!is.data.frame(out) || nrow(out) == 1) {
+#     return(out)
+#   }
+#
+#   if (is.null(ci)) {
+#     refdata <- point_estimate(x, centrality = "median", dispersion = FALSE)
+#     order <- refdata$Parameter
+#     out <- out[match(order, out$Parameter), ]
+#   } else {
+#     uncertainty <- ci(x, ci = ci)
+#     order <- paste0(uncertainty$Parameter, uncertainty$CI)
+#     out <- out[match(order, paste0(out$Parameter, out$CI)), ]
+#   }
+#   rownames(out) <- NULL
+#   out
+# }
+
+
 #' @keywords internal
-.reoder_rows <- function(x, out, ci = NULL) {
-  if (!is.data.frame(out) || nrow(out) == 1) {
-    return(out)
+.get_direction <- function(direction) {
+  if (length(direction) > 1) warning("Using first 'direction' value.")
+
+  if (is.numeric(direction[1])) {
+    return(direction[1])
   }
 
-  if (is.null(ci)) {
-    refdata <- point_estimate(x, centrality = "median", dispersion = FALSE)
-    order <- refdata$Parameter
-    out <- out[match(order, out$Parameter), ]
-  } else {
-    uncertainty <- ci(x, ci = ci)
-    order <- paste0(uncertainty$Parameter, uncertainty$CI)
-    out <- out[match(order, paste0(out$Parameter, out$CI)), ]
+  Value <- c(
+    "left" = -1,
+    "right" = 1,
+    "two-sided" = 0,
+    "twosided" = 0,
+    "one-sided" = 1,
+    "onesided" = 1,
+    "<" = -1,
+    ">" = 1,
+    "=" = 0,
+    "==" = 0,
+    "-1" = -1,
+    "0" = 0,
+    "1" = 1,
+    "+1" = 1
+  )
+
+  direction <- Value[tolower(direction[1])]
+
+  if (is.na(direction)) {
+    stop("Unrecognized 'direction' argument.")
   }
-  rownames(out) <- NULL
-  out
+  direction
+}
+
+.prepare_output <- function(temp, cleaned_parameters) {
+  merge_by <- intersect(c("Parameter", "Effects", "Component"), colnames(temp))
+  temp$.roworder <- 1:nrow(temp)
+  out <- merge(x = temp, y = cleaned_parameters, by = merge_by, all.x = TRUE)
+  attr(out, "Cleaned_Parameter") <- out$Cleaned_Parameter[order(out$.roworder)]
+  .remove_column(out[order(out$.roworder), ], c("Group", "Cleaned_Parameter", "Response", "Function", ".roworder"))
+}
+
+
+.merge_and_sort <- function(x, y, by, all) {
+  x$.rowid <- 1:nrow(x)
+  x <- merge(x, y, by = by, all = all)
+  .remove_column(x[order(x$.rowid), ], ".rowid")
 }

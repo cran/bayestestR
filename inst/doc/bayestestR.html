@@ -612,6 +612,11 @@ body {
 </ul></li>
 <li><a href="#references">References</a></li>
 </ul>
+<p>This vignette can be referred to by citing the package:</p>
+<ul>
+<li>Makowski, D., Ben-Shachar, M. S., &amp; Lüdecke, D. (2019). <em>bayestestR: Describing Effects and their Uncertainty, Existence and Significance within the Bayesian Framework</em>. Journal of Open Source Software, 4(40), 1541. <a href="https://doi.org/10.21105/joss.01541">https://doi.org/10.21105/joss.01541</a></li>
+</ul>
+<hr />
 <h2 id="why-use-the-bayesian-framework">Why use the Bayesian Framework?</h2>
 <p>The Bayesian framework for statistics is quickly gaining in popularity among scientists, associated with the general shift towards <strong>open and honest science</strong>. Reasons to prefer this approach are <strong>reliability</strong>, <strong>accuracy</strong> (in noisy data and small samples), the possibility of introducing <strong>prior knowledge</strong> into the analysis and, critically, <strong>results intuitiveness</strong> and their <strong>straightforward interpretation</strong> (Andrews &amp; Baguley, 2013; Etz &amp; Vandekerckhove, 2016; Kruschke, 2010; Kruschke, Aguinis, &amp; Joo, 2012; Wagenmakers et al., 2018).</p>
 <p>In general, the frequentist approach has been associated with the focus on null hypothesis testing, and the misuse of <em>p</em>-values has been shown to critically contribute to the reproducibility crisis of psychological science (Chambers, Feredoes, Muthukumaraswamy, &amp; Etchells, 2014; Szucs &amp; Ioannidis, 2016). There is a general agreement that the generalization of the Bayesian approach is one way of overcoming these issues (Benjamin et al., 2018; Etz &amp; Vandekerckhove, 2016).</p>
@@ -736,11 +741,8 @@ F-statistic:  469 on 1 and 148 DF,  p-value: &lt;2e-16
 <th align="right">ROPE_low</th>
 <th align="right">ROPE_high</th>
 <th align="right">ROPE_Percentage</th>
-<th align="right">ESS</th>
 <th align="right">Rhat</th>
-<th align="left">Prior_Distribution</th>
-<th align="right">Prior_Location</th>
-<th align="right">Prior_Scale</th>
+<th align="right">ESS</th>
 </tr>
 </thead>
 <tbody>
@@ -755,11 +757,8 @@ F-statistic:  469 on 1 and 148 DF,  p-value: &lt;2e-16
 <td align="right">-0.08</td>
 <td align="right">0.08</td>
 <td align="right">0</td>
-<td align="right">4056</td>
 <td align="right">1</td>
-<td align="left">normal</td>
-<td align="right">0</td>
-<td align="right">8.3</td>
+<td align="right">4056</td>
 </tr>
 <tr class="even">
 <td align="left">Petal.Length</td>
@@ -772,11 +771,8 @@ F-statistic:  469 on 1 and 148 DF,  p-value: &lt;2e-16
 <td align="right">-0.08</td>
 <td align="right">0.08</td>
 <td align="right">0</td>
-<td align="right">4311</td>
 <td align="right">1</td>
-<td align="left">normal</td>
-<td align="right">0</td>
-<td align="right">1.2</td>
+<td align="right">4311</td>
 </tr>
 </tbody>
 </table>

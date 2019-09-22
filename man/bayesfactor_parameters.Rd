@@ -22,11 +22,13 @@ bayesfactor_savagedickey(posterior, prior = NULL,
 
 \method{bayesfactor_parameters}{stanreg}(posterior, prior = NULL,
   direction = "two-sided", null = 0, verbose = TRUE,
-  effects = c("fixed", "random", "all"), ...)
+  effects = c("fixed", "random", "all"), component = c("conditional",
+  "zi", "zero_inflated", "all"), ...)
 
 \method{bayesfactor_parameters}{brmsfit}(posterior, prior = NULL,
   direction = "two-sided", null = 0, verbose = TRUE,
-  effects = c("fixed", "random", "all"), ...)
+  effects = c("fixed", "random", "all"), component = c("conditional",
+  "zi", "zero_inflated", "all"), ...)
 
 \method{bayesfactor_parameters}{emmGrid}(posterior, prior = NULL,
   direction = "two-sided", null = 0, verbose = TRUE, ...)
@@ -54,6 +56,10 @@ or a data frame - representing a posterior distribution(s) from (see Details).}
 
 \item{effects}{Should results for fixed effects, random effects or both be returned?
 Only applies to mixed models. May be abbreviated.}
+
+\item{component}{Should results for all parameters, parameters for the conditional model
+or the zero-inflated part of the model be returned? May be abbreviated. Only
+applies to \pkg{brms}-models.}
 }
 \value{
 A data frame containing the Bayes factor representing evidence \emph{against} the null.
@@ -70,6 +76,8 @@ and posterior odds of the parameter falling within or outside the null;
 When the null is a point, a Savage-Dickey density ratio is computed, which is also
 an approximation of a Bayes factor comparing the marginal likelihoods of the model
 against a model in which the tested parameter has been restricted to the point null.
+\cr \cr
+\strong{For info on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
 \cr \cr
 For more info, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
 }
@@ -121,6 +129,7 @@ bayesfactor_parameters(posterior, prior)
 # rstanarm models
 # ---------------
 library(rstanarm)
+contrasts(sleep$group) <- contr.bayes # see vingette
 stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
 bayesfactor_parameters(stan_model)
 bayesfactor_parameters(stan_model, null = rope_range(stan_model))
@@ -134,6 +143,7 @@ bayesfactor_parameters(group_diff, prior = stan_model)
 # brms models
 # -----------
 library(brms)
+contrasts(sleep$group) <- contr.bayes # see vingette
 my_custom_priors <-
   set_prior("student_t(3, 0, 1)", class = "b") +
   set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")

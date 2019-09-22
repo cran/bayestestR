@@ -46,117 +46,6 @@
 
 
 
-
-#' @importFrom insight get_parameters
-#' @keywords internal
-.compute_interval_stanreg <- function(x, ci, effects, parameters, verbose, fun) {
-  list <- lapply(c("fixed", "random"), function(.x) {
-    parms <- insight::get_parameters(x, effects = .x, parameters = parameters)
-    tmp <- do.call(rbind, sapply(
-      parms,
-      get(fun, asNamespace("bayestestR")),
-      ci = ci,
-      verbose = verbose,
-      simplify = FALSE
-    ))
-
-    if (!.is_empty_object(tmp)) {
-      tmp <- .clean_up_tmp_stanreg(
-        tmp,
-        group = .x,
-        cols = c("CI", "CI_low", "CI_high", "Group"),
-        parms = names(parms)
-      )
-    } else {
-      tmp <- NULL
-    }
-
-    tmp
-  })
-
-  dat <- do.call(rbind, args = c(.compact_list(list), make.row.names = FALSE))
-
-  dat <- switch(
-    effects,
-    fixed = .select_rows(dat, "Group", "fixed"),
-    random = .select_rows(dat, "Group", "random"),
-    dat
-  )
-
-  if (all(dat$Group == dat$Group[1])) {
-    dat <- .remove_column(dat, "Group")
-  }
-
-  class(dat) <- unique(c(paste0("bayestestR_", fun), paste0("see_", fun), class(dat)))
-  dat
-}
-
-
-
-
-#' @importFrom insight get_parameters
-#' @keywords internal
-.compute_interval_brmsfit <- function(x, ci, effects, component, parameters, verbose, fun) {
-  eff <- c("fixed", "fixed", "random", "random")
-  com <- c("conditional", "zi", "conditional", "zi")
-
-  .get_hdi <- function(.x, .y) {
-    parms <- insight::get_parameters(x, effects = .x, component = .y, parameters = parameters)
-    tmp <- do.call(rbind, sapply(
-      parms,
-      get(fun, asNamespace("bayestestR")),
-      ci = ci,
-      verbose = verbose,
-      simplify = FALSE
-    ))
-
-    if (!.is_empty_object(tmp)) {
-      tmp <- .clean_up_tmp_brms(
-        tmp,
-        group = .x,
-        component = .y,
-        cols = c("CI", "CI_low", "CI_high", "Component", "Group"),
-        parms = names(parms)
-      )
-    } else {
-      tmp <- NULL
-    }
-
-    tmp
-  }
-
-  list <- mapply(.get_hdi, eff, com, SIMPLIFY = FALSE)
-  dat <- do.call(rbind, args = c(.compact_list(list), make.row.names = FALSE))
-
-  dat <- switch(
-    effects,
-    fixed = .select_rows(dat, "Group", "fixed"),
-    random = .select_rows(dat, "Group", "random"),
-    dat
-  )
-
-  dat <- switch(
-    component,
-    conditional = .select_rows(dat, "Component", "conditional"),
-    zi = ,
-    zero_inflated = .select_rows(dat, "Component", "zero_inflated"),
-    dat
-  )
-
-  if (all(dat$Group == dat$Group[1])) {
-    dat <- .remove_column(dat, "Group")
-  }
-
-  if (all(dat$Component == dat$Component[1])) {
-    dat <- .remove_column(dat, "Component")
-  }
-
-  class(dat) <- unique(c(paste0("bayestestR_", fun), paste0("see_", fun), class(dat)))
-  dat
-}
-
-
-
 #' @keywords internal
 .compute_interval_dataframe <- function(x, ci, verbose, fun) {
   numeric_variables <- sapply(x, is.numeric, simplify = TRUE)
@@ -177,4 +66,41 @@
 
   class(dat) <- unique(c(paste0("bayestestR_", fun), paste0("see_", fun), class(dat)))
   dat
+}
+
+
+
+#' @keywords internal
+.compute_interval_simMerMod <- function(x, ci, effects, parameters, verbose, fun) {
+  fixed <- fixed.data <- NULL
+  random <- random.data <- NULL
+
+  if (effects %in% c("fixed", "all")) {
+    fixed.data <- insight::get_parameters(x, effects = "fixed", parameters = parameters)
+    fixed <- .compute_interval_dataframe(fixed.data, ci, verbose, fun)
+    fixed$Group <- "fixed"
+  }
+
+  if (effects %in% c("random", "all")) {
+    random.data <- insight::get_parameters(x, effects = "random", parameters = parameters)
+    random <- .compute_interval_dataframe(random.data, ci, verbose, fun)
+    random$Group <- "random"
+  }
+
+  d <- do.call(rbind, list(fixed, random))
+
+  if (length(unique(d$Group)) == 1) {
+    d <- .remove_column(d, "Group")
+  }
+
+  list(result = d, data = do.call(cbind, .compact_list(list(fixed.data, random.data))))
+}
+
+
+
+#' @keywords internal
+.compute_interval_sim <- function(x, ci, parameters, verbose, fun) {
+  fixed.data <- insight::get_parameters(x, parameters = parameters)
+  d <- .compute_interval_dataframe(fixed.data, ci, verbose, fun)
+  list(result = d, data = fixed.data)
 }

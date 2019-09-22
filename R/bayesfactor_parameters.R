@@ -12,6 +12,8 @@
 #' an approximation of a Bayes factor comparing the marginal likelihoods of the model
 #' against a model in which the tested parameter has been restricted to the point null.
 #' \cr \cr
+#' \strong{For info on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
+#' \cr \cr
 #' For more info, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
 #'
 #' @param posterior A numerical vector, \code{stanreg} / \code{brmsfit} object, \code{emmGrid}
@@ -73,6 +75,7 @@
 #' # rstanarm models
 #' # ---------------
 #' library(rstanarm)
+#' contrasts(sleep$group) <- contr.bayes # see vingette
 #' stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
 #' bayesfactor_parameters(stan_model)
 #' bayesfactor_parameters(stan_model, null = rope_range(stan_model))
@@ -86,6 +89,7 @@
 #' # brms models
 #' # -----------
 #' library(brms)
+#' contrasts(sleep$group) <- contr.bayes # see vingette
 #' my_custom_priors <-
 #'   set_prior("student_t(3, 0, 1)", class = "b") +
 #'   set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
@@ -118,7 +122,6 @@ bayesfactor_parameters <- function(posterior, prior = NULL, direction = "two-sid
 bayesfactor_savagedickey <- function(posterior, prior = NULL, direction = "two-sided", null = 0, verbose = TRUE, hypothesis = NULL, ...) {
   .Deprecated("bayesfactor_parameters")
 
-  dots <- list(...)
   if (!is.null(hypothesis)) {
     null <- hypothesis
     warning("The 'hypothesis' argument is deprecated. Please use 'null' instead.")
@@ -153,7 +156,7 @@ bayesfactor_parameters.numeric <- function(posterior, prior = NULL, direction = 
   posterior <- data.frame(X = posterior)
   # colnames(posterior) <- colnames(prior) <- nm
 
-  # Get savage-dickey BFs
+  # Get BFs
   sdbf <- bayesfactor_parameters.data.frame(
     posterior = posterior, prior = prior,
     direction = direction, null = null, ...
@@ -163,29 +166,42 @@ bayesfactor_parameters.numeric <- function(posterior, prior = NULL, direction = 
 }
 
 
-#' @importFrom insight get_parameters
+#' @importFrom insight get_parameters clean_parameters
 #' @rdname bayesfactor_parameters
 #' @export
 bayesfactor_parameters.stanreg <- function(posterior, prior = NULL,
                                            direction = "two-sided", null = 0,
                                            verbose = TRUE,
                                            effects = c("fixed", "random", "all"),
+                                           component = c("conditional", "zi", "zero_inflated", "all"),
                                            ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
+  cleaned_parameters <- insight::clean_parameters(posterior)
 
   # Get Priors
   if (is.null(prior)) {
-    prior <- .update_to_priors(posterior, verbose = verbose)
+    prior <- posterior
   }
 
-  prior <- insight::get_parameters(prior, effects = effects)
-  posterior <- insight::get_parameters(posterior, effects = effects)
+  prior <- .update_to_priors(prior, verbose = verbose)
+  prior <- insight::get_parameters(prior, effects = effects, component = component)
+  posterior <- insight::get_parameters(posterior, effects = effects, component = component)
 
-  # Get savage-dickey BFs
-  bayesfactor_parameters.data.frame(
+  # Get BFs
+  temp <- bayesfactor_parameters.data.frame(
     posterior = posterior, prior = prior,
     direction = direction, null = null, ...
   )
+
+  bf_val <- .prepare_output(temp, cleaned_parameters)
+
+  class(bf_val) <- class(temp)
+  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis")
+  attr(bf_val, "direction") <- attr(temp, "direction")
+  attr(bf_val, "plot_data") <- attr(temp, "plot_data")
+
+  bf_val
 }
 
 
@@ -223,17 +239,10 @@ bayesfactor_parameters.emmGrid <- function(posterior, prior = NULL,
   prior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(prior, names = FALSE)))
   posterior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(posterior, names = FALSE)))
 
+  # Get BFs
   bayesfactor_parameters.data.frame(
     posterior = posterior, prior = prior,
     direction = direction, null = null, ...
-  )
-}
-
-#' @export
-bayesfactor_parameters.bayesfactor_models <- function(...) {
-  stop(
-    "Oh no, 'bayesfactor_parameters()' does not know how to deal with multiple models :(\n",
-    "You want might want to use 'bayesfactor_inclusion()' here to test specific terms across models."
   )
 }
 
@@ -280,7 +289,7 @@ bayesfactor_parameters.data.frame <- function(posterior, prior = NULL,
 
   attr(bf_val, "hypothesis") <- null
   attr(bf_val, "direction") <- direction
-  attr(bf_val, "plot_data") <- .make_sdBF_plot_data(posterior, prior, direction, null)
+  attr(bf_val, "plot_data") <- .make_BF_plot_data(posterior, prior, direction, null)
 
   bf_val
 }
@@ -350,29 +359,10 @@ bayesfactor_parameters.data.frame <- function(posterior, prior = NULL,
 
 # UTILS -------------------------------------------------------------------
 
-#' @keywords internal
-.get_direction <- function(direction) {
-  if (length(direction) > 1) {
-    warning("Using first 'direction' value.")
-    direction <- direction[1]
-  }
-
-  String <- c("left", "right", "one-sided", "onesided", "two-sided", "twosided", "<", ">", "=", "-1", "0", "1", "+1")
-  Value <- c(-1, 1, 1, 1, 0, 0, -1, 1, 0, -1, 0, 1, 1)
-
-  ind <- String == direction
-  if (length(ind) == 0) {
-    stop("Unrecognized 'direction' argument.")
-  }
-  Value[ind]
-}
-
-
-
 #' @importFrom stats median mad approx
 #' @importFrom utils stack
 #' @keywords internal
-.make_sdBF_plot_data <- function(posterior, prior, direction, null) {
+.make_BF_plot_data <- function(posterior, prior, direction, null) {
   if (!requireNamespace("logspline")) {
     stop("Package \"logspline\" needed for this function to work. Please install it.")
   }
@@ -448,3 +438,26 @@ bayesfactor_parameters.data.frame <- function(posterior, prior = NULL,
     d_points = rbind(posterior[[2]], prior[[2]])
   )
 }
+
+
+# Bad Methods -------------------------------------------------------------
+
+#' @export
+bayesfactor_parameters.bayesfactor_models <- function(...) {
+  stop(
+    "Oh no, 'bayesfactor_parameters()' does not know how to deal with multiple models :(\n",
+    "You might want to use 'bayesfactor_inclusion()' here to test specific terms across models."
+  )
+}
+
+#' @export
+bayesfactor_parameters.sim <- function(...) {
+  stop(
+    "Bayes factors are based on the shift from a prior to a posterior. ",
+    "Since simulated draws are not based on any priors, computing Bayes factors does not make sense :(\n",
+    "You might want to try `rope`, `ci`, `pd` or `pmap` for posterior-based inference."
+  )
+}
+
+#' @export
+bayesfactor_parameters.sim.merMod <- bayesfactor_parameters.sim

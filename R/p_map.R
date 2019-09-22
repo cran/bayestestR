@@ -126,9 +126,9 @@ p_map.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
   out
 }
 
-#' @rdname p_map
+
 #' @export
-p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
+p_map.sim.merMod <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
   effects <- match.arg(effects)
 
   out <- .p_map_models(
@@ -141,6 +141,39 @@ p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("f
     ...
   )
 
+  attr(out, "data") <- insight::get_parameters(x, effects = effects, parameters = parameters)
+  out
+}
+
+
+#' @export
+p_map.sim <- function(x, precision = 2^10, method = "kernel", parameters = NULL, ...) {
+  out <- .p_map_models(
+    x = x,
+    precision = precision,
+    method = method,
+    effects = "fixed",
+    component = "conditional",
+    parameters = parameters,
+    ...
+  )
+
+  attr(out, "data") <- insight::get_parameters(x, parameters = parameters)
+  out
+}
+
+
+#' @rdname p_map
+#' @export
+p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
+  effects <- match.arg(effects)
+
+  out <- .prepare_output(
+    p_map(insight::get_parameters(x, effects = effects, parameters = parameters), precision = precision, method = method),
+    insight::clean_parameters(x)
+  )
+
+  class(out) <- unique(c("p_map", class(out)))
   attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
   out
 }
@@ -151,16 +184,12 @@ p_map.brmsfit <- function(x, precision = 2^10, method = "kernel", effects = c("f
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  out <- .p_map_models(
-    x = x,
-    precision = precision,
-    method = method,
-    effects = effects,
-    component = component,
-    parameters = parameters,
-    ...
+  out <- .prepare_output(
+    p_map(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), precision = precision, method = method, ...),
+    insight::clean_parameters(x)
   )
 
+  class(out) <- unique(c("p_map", class(out)))
   attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
   out
 }

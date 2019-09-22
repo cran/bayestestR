@@ -1,6 +1,6 @@
-#' Confidence/Credible Interval (CI)
+#' Confidence/Credible/Compatibility Interval (CI)
 #'
-#' Compute Confidence/Credible Intervals (CI) for Bayesian and frequentist models. The Documentation is accessible for:
+#' Compute Confidence/Credible/Compatibility Intervals (CI) for Bayesian and frequentist models. The Documentation is accessible for:
 #'
 #' \itemize{
 #'  \item \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{Bayesian models}
@@ -20,6 +20,13 @@
 #'     \item \code{CI_low}, \code{CI_high} The lower and upper credible interval limits for the parameters.
 #'   }
 #'
+#' @note When it comes to interpretation, we recommend thinking of the CI in terms of
+#'   an "uncertainty" or "compatibility" interval, the latter being defined as
+#'   \dQuote{Given any value in the interval and the background assumptions,
+#'   the data should not seem very surprising} (\cite{Gelman & Greenland 2019}).
+#'
+#' @references Gelman A, Greenland S. Are confidence intervals better termed "uncertainty intervals"? BMJ 2019;l5381. \doi{10.1136/bmj.l5381}
+#'
 #' @examples
 #' library(bayestestR)
 #'
@@ -32,7 +39,7 @@
 #' ci(df, method = "HDI", ci = c(.80, .89, .95))
 #'
 #' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt, data = mtcars, chains = 2, iter = 200)
+#' model <- stan_glm(mpg ~ wt, data = mtcars, chains = 2, iter = 200, refresh = 0)
 #' ci(model, method = "ETI", ci = c(.80, .89))
 #' ci(model, method = "HDI", ci = c(.80, .89))
 #' \dontrun{
@@ -86,6 +93,24 @@ ci.data.frame <- ci.numeric
 ci.emmGrid <- ci.numeric
 
 
+
+#' @rdname ci
+#' @export
+ci.sim.merMod <- function(x, ci = .89, method = "ETI", effects = c("fixed", "random", "all"),
+                          parameters = NULL, verbose = TRUE, ...) {
+  .ci_bayesian(x, ci = ci, method = method, effects = effects, parameters = parameters, verbose = verbose, ...)
+}
+
+
+
+#' @rdname ci
+#' @export
+ci.sim <- function(x, ci = .89, method = "ETI", parameters = NULL, verbose = TRUE, ...) {
+  .ci_bayesian(x, ci = ci, method = method, parameters = parameters, verbose = verbose, ...)
+}
+
+
+
 #' @rdname ci
 #' @export
 ci.stanreg <- function(x, ci = .89, method = "ETI", effects = c("fixed", "random", "all"),
@@ -106,3 +131,13 @@ ci.brmsfit <- function(x, ci = .89, method = "ETI", effects = c("fixed", "random
 #' @rdname ci
 #' @export
 ci.BFBayesFactor <- ci.numeric
+
+
+
+
+#' @rdname ci
+#' @export
+ci.MCMCglmm <- function(x, ci = .89, method = "ETI", verbose = TRUE, ...) {
+  nF <- x$Fixed$nfl
+  ci(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), ci = ci, method = method, verbose = verbose, ...)
+}

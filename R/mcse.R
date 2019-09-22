@@ -14,12 +14,11 @@
 #' @references Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press.
 #'
 #' @examples
-#' \dontrun{
+#' library(bayestestR)
 #' library(rstanarm)
 #'
-#' model <- stan_glm(mpg ~ wt + am, data = mtcars, chains = 1)
+#' model <- stan_glm(mpg ~ wt + am, data = mtcars, chains = 1, refresh = 0)
 #' mcse(model)
-#' }
 #' @importFrom insight get_parameters
 #' @export
 mcse <- function(model, ...) {
@@ -33,7 +32,7 @@ mcse.brmsfit <- function(model, effects = c("fixed", "random", "all"), component
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  pars <-
+  params <-
     insight::get_parameters(
       model,
       effects = effects,
@@ -49,7 +48,7 @@ mcse.brmsfit <- function(model, effects = c("fixed", "random", "all"), component
       parameters = parameters
     )
 
-  mcse_helper(pars, ess$ESS)
+  .mcse(params, ess$ESS)
 }
 
 
@@ -59,7 +58,7 @@ mcse.stanreg <- function(model, effects = c("fixed", "random", "all"), parameter
   # check arguments
   effects <- match.arg(effects)
 
-  pars <-
+  params <-
     insight::get_parameters(
       model,
       effects = effects,
@@ -73,19 +72,20 @@ mcse.stanreg <- function(model, effects = c("fixed", "random", "all"), parameter
       parameters = parameters
     )
 
-  mcse_helper(pars, ess$ESS)
+  .mcse(params, ess$ESS)
 }
 
 
 
 #' @importFrom stats sd
-mcse_helper <- function(pars, ess) {
+#' @keywords internal
+.mcse <- function(params, ess) {
   # get standard deviations from posterior samples
-  stddev <- sapply(pars, stats::sd)
+  stddev <- sapply(params, stats::sd)
 
   # compute mcse
   data.frame(
-    Parameter = colnames(pars),
+    Parameter = colnames(params),
     MCSE = stddev / sqrt(ess),
     stringsAsFactors = FALSE,
     row.names = NULL

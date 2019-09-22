@@ -49,7 +49,7 @@ eti.numeric <- function(x, ci = .89, verbose = TRUE, ...) {
   out <- do.call(rbind, lapply(ci, function(i) {
     .eti(x = x, ci = i, verbose = verbose)
   }))
-  class(out) <- unique(c("eti", "see_eti", "bayestestR_ci", "see_ci", class(out)))
+  class(out) <- unique(c("bayestestR_eti", "see_eti", "bayestestR_ci", "see_ci", class(out)))
   attr(out, "data") <- x
   out
 }
@@ -63,6 +63,43 @@ eti.data.frame <- function(x, ci = .89, verbose = TRUE, ...) {
   attr(dat, "object_name") <- deparse(substitute(x), width.cutoff = 500)
   dat
 }
+
+
+
+#' @rdname eti
+#' @export
+eti.MCMCglmm <- function(x, ci = .89, verbose = TRUE, ...) {
+  nF <- x$Fixed$nfl
+  d <- as.data.frame(x$Sol[, 1:nF, drop = FALSE])
+  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
+  attr(dat, "data") <- deparse(substitute(x), width.cutoff = 500)
+  dat
+}
+
+
+
+#' @rdname eti
+#' @export
+eti.sim.merMod <- function(x, ci = .89, effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+  effects <- match.arg(effects)
+  dat <- .compute_interval_simMerMod(x = x, ci = ci, effects = effects, parameters = parameters, verbose = verbose, fun = "eti")
+  out <- dat$result
+  attr(out, "data") <- dat$data
+  out
+}
+
+
+
+#' @rdname eti
+#' @export
+eti.sim <- function(x, ci = .89, parameters = NULL, verbose = TRUE, ...) {
+  dat <- .compute_interval_sim(x = x, ci = ci, parameters = parameters, verbose = verbose, fun = "eti")
+  out <- dat$result
+  attr(out, "data") <- dat$data
+  out
+}
+
+
 
 #' @rdname eti
 #' @export
@@ -83,7 +120,13 @@ eti.emmGrid <- function(x, ci = .89, verbose = TRUE, ...) {
 eti.stanreg <- function(x, ci = .89, effects = c("fixed", "random", "all"),
                         parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
-  out <- .compute_interval_stanreg(x, ci, effects, parameters, verbose, fun = "eti")
+
+  out <- .prepare_output(
+    eti(insight::get_parameters(x, effects = effects, parameters = parameters), ci = ci, verbose = verbose, ...),
+    insight::clean_parameters(x)
+  )
+
+  class(out) <- unique(c("bayestestR_eti", "see_eti", class(out)))
   attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
   out
 }
@@ -96,7 +139,13 @@ eti.brmsfit <- function(x, ci = .89, effects = c("fixed", "random", "all"),
                         parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
-  out <- .compute_interval_brmsfit(x, ci, effects, component, parameters, verbose, fun = "eti")
+
+  out <- .prepare_output(
+    eti(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), ci = ci, verbose = verbose, ...),
+    insight::clean_parameters(x)
+  )
+
+  class(out) <- unique(c("bayestestR_hdi", "see_hdi", class(out)))
   attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
   out
 }
