@@ -64,9 +64,15 @@ simulate_prior.brmsfit <- function(model, n = 1000, effects = c("fixed", "random
   for (param in priors[[1]]) {
     prior <- priors[priors[[1]] == param, ]
 
+    ## TODO fix once insight 0.7.0 is on CRAN
+    names(prior) <- tolower(names(prior))
+
     # Get actual scale
     if ("adjusted_scale" %in% names(prior)) {
       scale <- prior$adjusted_scale
+      # is autoscale = FALSE, scale contains NA values - replace
+      # with non-adjusted then.
+      if (anyNA(scale)) scale[is.na(scale)] <- prior$scale[is.na(scale)]
     } else {
       scale <- prior$scale
     }

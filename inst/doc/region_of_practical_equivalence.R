@@ -21,7 +21,7 @@ library(see)
 set.seed(333)
 
 data <- iris  # Use the iris data
-junk <- capture.output(model <- stan_glm(Sepal.Length ~ Sepal.Width, data=data))
+model <- stan_glm(Sepal.Length ~ Sepal.Width, data=data, refresh = 0)
 
 ## ----echo=TRUE, message=FALSE, warning=FALSE, comment=">"----------------
 # Compute indices
@@ -43,7 +43,7 @@ percentage_in_rope
 ## ----echo=FALSE, message=FALSE, warning=FALSE, comment=">"---------------
 set.seed(333)
 data$Sepal.Width_scaled <- data$Sepal.Width / 100
-junk <- capture.output(model <- stan_glm(Sepal.Length ~ Sepal.Width_scaled, data=data))
+model <- stan_glm(Sepal.Length ~ Sepal.Width_scaled, data=data, refresh = 0)
 
 ## ----echo=TRUE, message=FALSE, warning=FALSE, comment=">"----------------
 # Compute indices

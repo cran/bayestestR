@@ -52,7 +52,7 @@ nrow(posteriors)  # Size (number of rows)
 #  nrow(insight::get_parameters(model))  # Size (number of rows)
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE, comment=NA, echo=FALSE----
-junk <- capture.output(model <- stan_glm(Sepal.Length ~ Petal.Length, data=iris, chains = 2, iter = 1000, warmup = 250))
+model <- stan_glm(Sepal.Length ~ Petal.Length, data=iris, chains = 2, iter = 1000, warmup = 250, refresh = 0)
 nrow(insight::get_parameters(model))  # Size (number of rows)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
