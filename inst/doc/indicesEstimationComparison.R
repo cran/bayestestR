@@ -1,10 +1,10 @@
-## ----message=FALSE, warning=FALSE, include=FALSE-------------------------
+## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
 library(knitr)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")
 options(digits=2)
 
-## ----message=FALSE, warning=FALSE----------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -12,7 +12,7 @@ library(see)
 
 df <- read.csv("https://raw.github.com/easystats/circus/master/data/bayesSim_study1.csv")
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 df %>%
   select(error, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
   gather(estimate, value, -error, -true_effect, -outcome_type) %>%
@@ -33,7 +33,7 @@ df %>%
   xlab("Noise") +
   facet_wrap(~ outcome_type * true_effect, scales="free") 
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 df %>%
   select(sample_size, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
   gather(estimate, value, -sample_size, -true_effect, -outcome_type) %>%
@@ -54,7 +54,7 @@ df %>%
   xlab("Sample size") +
   facet_wrap(~ outcome_type * true_effect, scales="free")
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 df %>%
   select(sample_size, error, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
   gather(estimate, value, -sample_size, -error, -true_effect, -outcome_type) %>%
@@ -66,10 +66,10 @@ df %>%
   arrange(desc(estimate)) %>% 
   knitr::kable(digits=2) 
 
-## ----message=FALSE, warning=FALSE----------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 df <- read.csv("https://raw.github.com/easystats/circus/master/data/bayesSim_study2.csv")
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 df %>%
   select(iterations, true_effect, outcome_type, beta, Median, Mean, MAP) %>%
   gather(estimate, value, -iterations, -true_effect, -outcome_type) %>%
@@ -87,7 +87,7 @@ df %>%
   xlab("\nNumber of Iterations") +
   facet_wrap(~ outcome_type * true_effect, scales="free") 
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 df %>%
   mutate(warmup = warmup / iterations) %>% 
   select(warmup, true_effect, outcome_type, beta, Median, Mean, MAP) %>%

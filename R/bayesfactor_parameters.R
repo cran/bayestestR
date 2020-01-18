@@ -1,39 +1,44 @@
-#' Savage-Dickey density ratio Bayes Factor (BF)
+#' Bayes Factors (BF) for a Single Parameter
 #'
 #' This method computes Bayes factors against the null (either a point or an interval),
-#' bases on prior and posterior samples of a single parameter. This Bayes factor indicates
+#' based on prior and posterior samples of a single parameter. This Bayes factor indicates
 #' the degree by which the mass of the posterior distribution has shifted further away
 #' from or closer to the null value(s) (relative to the prior distribution), thus indicating
 #' if the null value has become less or more likely given the observed data.
 #' \cr \cr
 #' When the null is an interval, the Bayes factor is computed by comparing the prior
-#' and posterior odds of the parameter falling within or outside the null;
+#' and posterior odds of the parameter falling within or outside the null interval;
 #' When the null is a point, a Savage-Dickey density ratio is computed, which is also
 #' an approximation of a Bayes factor comparing the marginal likelihoods of the model
 #' against a model in which the tested parameter has been restricted to the point null.
 #' \cr \cr
-#' \strong{For info on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
+#' \code{bayesfactor_pointnull()} and \code{bayesfactor_rope()} are wrappers around
+#' \code{bayesfactor_parameters} with different defaults for the null to be tested against
+#' (a point and a range, respectively). Aliases of the main functions are prefixed
+#' with \code{bf_*}, like \code{bf_parameters()} or \code{bf_pointnull()}
 #' \cr \cr
-#' For more info, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
+#' \strong{For more info, in particular on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
 #'
 #' @param posterior A numerical vector, \code{stanreg} / \code{brmsfit} object, \code{emmGrid}
-#' or a data frame - representing a posterior distribution(s) from (see Details).
-#' @param prior An object representing a prior distribution (see Details).
-#' @param direction Test type (see details). One of \code{0}, \code{"two-sided"} (default, two tailed),
+#' or a data frame - representing a posterior distribution(s) from (see 'Details').
+#' @param prior An object representing a prior distribution (see 'Details').
+#' @param direction Test type (see 'Details'). One of \code{0}, \code{"two-sided"} (default, two tailed),
 #' \code{-1}, \code{"left"} (left tailed) or \code{1}, \code{"right"} (right tailed).
 #' @param null Value of the null, either a scaler (for point-null) or a a range
 #' (for a interval-null).
-#' @param hypothesis Deprecated in favour of \code{null}.
 #' @inheritParams hdi
 #'
 #' @return A data frame containing the Bayes factor representing evidence \emph{against} the null.
 #'
 #' @details This method is used to compute Bayes factors based on prior and posterior distributions.
-#' When \code{posterior} is a model (\code{stanreg}, \code{brmsfit}), posterior and prior samples are
-#' extracted for each parameter, and Savage-Dickey Bayes factors are computed for each parameter.
-#'
-#' \strong{NOTE:} For \code{brmsfit} models, the model must have been fitted with \emph{custom (non-default)}
-#' priors. See example below.
+#' \cr\cr
+#' For the computation of Bayes factors, the model priors must be proper priors (at the very least
+#' they should be \emph{not flat}, and it is preferable that they be \emph{informative}); As the priors for
+#' the alternative get wider, the likelihood of the null value(s) increases, to the extreme that for completely
+#' flat priors the null is infinitely more favorable than the alternative (this is called \emph{the Jeffreys-Lindley-Bartlett
+#' paradox}). Thus, you should only ever try (or want) to compute a Bayes factor when you have an informed prior.
+#' \cr\cr
+#' (Note that by default, \code{brms::brm()} uses flat priors for fixed-effects; See example below.)
 #'
 #' \subsection{Setting the correct \code{prior}}{
 #' It is important to provide the correct \code{prior} for meaningful results.
@@ -119,12 +124,10 @@ bayesfactor_parameters <- function(posterior, prior = NULL, direction = "two-sid
 
 #' @rdname bayesfactor_parameters
 #' @export
-bayesfactor_savagedickey <- function(posterior, prior = NULL, direction = "two-sided", null = 0, verbose = TRUE, hypothesis = NULL, ...) {
-  .Deprecated("bayesfactor_parameters")
+bayesfactor_pointull <- function(posterior, prior = NULL, direction = "two-sided", null = 0, verbose = TRUE, ...) {
 
-  if (!is.null(hypothesis)) {
-    null <- hypothesis
-    warning("The 'hypothesis' argument is deprecated. Please use 'null' instead.")
+  if (length(null) > 1) {
+    message("'null' is a range - computing a ROPE based Bayes factor.")
   }
 
   bayesfactor_parameters(
@@ -136,6 +139,35 @@ bayesfactor_savagedickey <- function(posterior, prior = NULL, direction = "two-s
     ...
   )
 }
+
+#' @rdname bayesfactor_parameters
+#' @export
+bayesfactor_rope <- function(posterior, prior = NULL, direction = "two-sided", null = rope_range(posterior), verbose = TRUE, ...) {
+  if (length(null) < 2) {
+    message("'null' is a point - computing a Savage-Dickey (point null) Bayes factor.")
+  }
+
+  bayesfactor_parameters(
+    posterior = posterior,
+    prior = prior,
+    direction = direction,
+    null = null,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @rdname bayesfactor_parameters
+#' @export
+bf_parameters <- bayesfactor_parameters
+
+#' @rdname bayesfactor_parameters
+#' @export
+bf_pointull <- bayesfactor_pointull
+
+#' @rdname bayesfactor_parameters
+#' @export
+bf_rope <- bayesfactor_rope
 
 #' @rdname bayesfactor_parameters
 #' @export
@@ -166,38 +198,37 @@ bayesfactor_parameters.numeric <- function(posterior, prior = NULL, direction = 
 }
 
 
-#' @importFrom insight get_parameters clean_parameters
+#' @importFrom insight clean_parameters
 #' @rdname bayesfactor_parameters
 #' @export
-bayesfactor_parameters.stanreg <- function(posterior, prior = NULL,
-                                           direction = "two-sided", null = 0,
+bayesfactor_parameters.stanreg <- function(posterior,
+                                           prior = NULL,
+                                           direction = "two-sided",
+                                           null = 0,
                                            verbose = TRUE,
                                            effects = c("fixed", "random", "all"),
                                            component = c("conditional", "zi", "zero_inflated", "all"),
+                                           parameters = NULL,
                                            ...) {
+  cleaned_parameters <- insight::clean_parameters(posterior)
   effects <- match.arg(effects)
   component <- match.arg(component)
-  cleaned_parameters <- insight::clean_parameters(posterior)
 
-  # Get Priors
-  if (is.null(prior)) {
-    prior <- posterior
-  }
-
-  prior <- .update_to_priors(prior, verbose = verbose)
-  prior <- insight::get_parameters(prior, effects = effects, component = component)
-  posterior <- insight::get_parameters(posterior, effects = effects, component = component)
+  samps <- .clean_priors_and_posteriors(posterior, prior,
+                                        verbose = verbose,
+                                        effects = effects, component = component,
+                                        parameters = parameters)
 
   # Get BFs
   temp <- bayesfactor_parameters.data.frame(
-    posterior = posterior, prior = prior,
+    posterior = samps$posterior, prior = samps$prior,
     direction = direction, null = null, ...
   )
 
   bf_val <- .prepare_output(temp, cleaned_parameters)
 
   class(bf_val) <- class(temp)
-  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis")
+  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis") # don't change the name of this attribute - it is used only internally for "see" and printing
   attr(bf_val, "direction") <- attr(temp, "direction")
   attr(bf_val, "plot_data") <- attr(temp, "plot_data")
 
@@ -212,36 +243,21 @@ bayesfactor_parameters.brmsfit <- bayesfactor_parameters.stanreg
 
 
 
-#' @importFrom stats update
-#' @importFrom insight get_parameters
 #' @rdname bayesfactor_parameters
 #' @export
-bayesfactor_parameters.emmGrid <- function(posterior, prior = NULL,
-                                           direction = "two-sided", null = 0,
+bayesfactor_parameters.emmGrid <- function(posterior,
+                                           prior = NULL,
+                                           direction = "two-sided",
+                                           null = 0,
                                            verbose = TRUE,
                                            ...) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
-  }
 
-  if (is.null(prior)) {
-    prior <- posterior
-    warning(
-      "Prior not specified! ",
-      "Please provide the original model to get meaningful results."
-    )
-  } else if (!inherits(prior, "emmGrid")) { # then is it a model
-    prior <- .update_to_priors(prior, verbose = verbose)
-    prior <- insight::get_parameters(prior, effects = "fixed")
-    prior <- stats::update(posterior, post.beta = as.matrix(prior))
-  }
-
-  prior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(prior, names = FALSE)))
-  posterior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(posterior, names = FALSE)))
+  samps <- .clean_priors_and_posteriors(posterior, prior,
+                                        verbose = verbose)
 
   # Get BFs
   bayesfactor_parameters.data.frame(
-    posterior = posterior, prior = prior,
+    posterior = samps$posterior, prior = samps$prior,
     direction = direction, null = null, ...
   )
 }
@@ -249,8 +265,10 @@ bayesfactor_parameters.emmGrid <- function(posterior, prior = NULL,
 
 #' @rdname bayesfactor_parameters
 #' @export
-bayesfactor_parameters.data.frame <- function(posterior, prior = NULL,
-                                              direction = "two-sided", null = 0,
+bayesfactor_parameters.data.frame <- function(posterior,
+                                              prior = NULL,
+                                              direction = "two-sided",
+                                              null = 0,
                                               verbose = TRUE,
                                               ...) {
   # find direction
@@ -287,7 +305,7 @@ bayesfactor_parameters.data.frame <- function(posterior, prior = NULL,
     class(bf_val)
   ))
 
-  attr(bf_val, "hypothesis") <- null
+  attr(bf_val, "hypothesis") <- null # don't change the name of this attribute - it is used only internally for "see" and printing
   attr(bf_val, "direction") <- direction
   attr(bf_val, "plot_data") <- .make_BF_plot_data(posterior, prior, direction, null)
 
@@ -355,90 +373,6 @@ bayesfactor_parameters.data.frame <- function(posterior, prior = NULL,
     stop("'null' must be of length 1 or 2")
   }
 }
-
-
-# UTILS -------------------------------------------------------------------
-
-#' @importFrom stats median mad approx
-#' @importFrom utils stack
-#' @keywords internal
-.make_BF_plot_data <- function(posterior, prior, direction, null) {
-  if (!requireNamespace("logspline")) {
-    stop("Package \"logspline\" needed for this function to work. Please install it.")
-  }
-
-  estimate_samples_density <- function(samples) {
-    nm <- .safe_deparse(substitute(samples))
-    samples <- utils::stack(samples)
-    samples <- split(samples, samples$ind)
-
-    samples <- lapply(samples, function(data) {
-      # 1. estimate density
-      x <- data$values
-
-      extend_scale <- 0.05
-      precision <- 2^8
-
-      x_range <- range(x)
-      x_rangex <- stats::median(x) + 7 * stats::mad(x) * c(-1, 1)
-      x_range <- c(
-        max(c(x_range[1], x_rangex[1])),
-        min(c(x_range[2], x_rangex[2]))
-      )
-
-      extension_scale <- diff(x_range) * extend_scale
-      x_range[1] <- x_range[1] - extension_scale
-      x_range[2] <- x_range[2] + extension_scale
-
-      x_axis <- seq(x_range[1], x_range[2], length.out = precision)
-      f_x <- logspline::logspline(x)
-      y <- logspline::dlogspline(x_axis, f_x)
-      d_points <- data.frame(x = x_axis, y = y)
-
-      # 2. estimate points
-      d_null <- stats::approx(d_points$x, d_points$y, xout = null)
-      d_null$y[is.na(d_null$y)] <- 0
-
-      # 3. direction?
-      if (direction > 0) {
-        d_points <- d_points[d_points$x > min(null), , drop = FALSE]
-        norm_factor <- 1 - logspline::plogspline(min(null), f_x)
-        d_points$y <- d_points$y / norm_factor
-        d_null$y <- d_null$y / norm_factor
-      } else if (direction < 0) {
-        d_points <- d_points[d_points$x < max(null), , drop = FALSE]
-        norm_factor <- logspline::plogspline(max(null), f_x)
-        d_points$y <- d_points$y / norm_factor
-        d_null$y <- d_null$y / norm_factor
-      }
-
-      d_points$ind <- d_null$ind <- data$ind[1]
-      list(d_points, d_null)
-    })
-
-    # 4a. orgenize
-    point0 <- lapply(samples, function(.) as.data.frame(.[[2]]))
-    point0 <- do.call("rbind", point0)
-
-    samplesX <- lapply(samples, function(.) .[[1]])
-    samplesX <- do.call("rbind", samplesX)
-
-    samplesX$Distribution <- point0$Distribution <- nm
-    rownames(samplesX) <- rownames(point0) <- c()
-
-    list(samplesX, point0)
-  }
-
-  # 4b. orgenize
-  posterior <- estimate_samples_density(posterior)
-  prior <- estimate_samples_density(prior)
-
-  list(
-    plot_data = rbind(posterior[[1]], prior[[1]]),
-    d_points = rbind(posterior[[2]], prior[[2]])
-  )
-}
-
 
 # Bad Methods -------------------------------------------------------------
 

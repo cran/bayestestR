@@ -2,25 +2,33 @@
 % Please edit documentation in R/p_map.R
 \name{p_map}
 \alias{p_map}
-\alias{p_map.numeric}
+\alias{p_pointnull}
 \alias{p_map.stanreg}
 \alias{p_map.brmsfit}
-\alias{p_map.BFBayesFactor}
 \title{Bayesian p-value based on the density at the Maximum A Posteriori (MAP)}
 \usage{
 p_map(x, precision = 2^10, method = "kernel", ...)
 
-\method{p_map}{numeric}(x, precision = 2^10, method = "kernel", ...)
+p_pointnull(x, precision = 2^10, method = "kernel", ...)
 
-\method{p_map}{stanreg}(x, precision = 2^10, method = "kernel",
-  effects = c("fixed", "random", "all"), parameters = NULL, ...)
+\method{p_map}{stanreg}(
+  x,
+  precision = 2^10,
+  method = "kernel",
+  effects = c("fixed", "random", "all"),
+  parameters = NULL,
+  ...
+)
 
-\method{p_map}{brmsfit}(x, precision = 2^10, method = "kernel",
-  effects = c("fixed", "random", "all"), component = c("conditional",
-  "zi", "zero_inflated", "all"), parameters = NULL, ...)
-
-\method{p_map}{BFBayesFactor}(x, precision = 2^10, method = "kernel",
-  ...)
+\method{p_map}{brmsfit}(
+  x,
+  precision = 2^10,
+  method = "kernel",
+  effects = c("fixed", "random", "all"),
+  component = c("conditional", "zi", "zero_inflated", "all"),
+  parameters = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution. Can also be a
@@ -50,6 +58,11 @@ Compute a Bayesian equivalent of the \emph{p}-value, related to the odds that a 
 }
 \details{
 Note that this method is sensitive to the density estimation \code{method} (see the secion in the examples below).
+\subsection{Strengths and Limitations}{
+\strong{Strengths:} Straightforward computation. Objective property of the posterior distribution.
+\cr \cr
+\strong{Limitations:} Limited information favoring the null hypothesis. Relates on density approximation. Indirect relationship between mathematical definition and interpretation. Only suitable for weak / very diffused priors.
+}
 }
 \examples{
 library(bayestestR)
@@ -94,10 +107,10 @@ summary(data$KernSmooth)
 summary(data$logspline)
 boxplot(data[c("KernSmooth", "logspline")])
 }
-
 }
 \references{
 \itemize{
+  \item Makowski D, Ben-Shachar MS, Chen SHA, Lüdecke D (2019) Indices of Effect Existence and Significance in the Bayesian Framework. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
   \item Mills, J. A. (2018). Objective Bayesian Precise Hypothesis Testing. University of Cincinnati.
 }
 }

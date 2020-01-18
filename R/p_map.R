@@ -3,6 +3,11 @@
 #' Compute a Bayesian equivalent of the \emph{p}-value, related to the odds that a parameter (described by its posterior distribution) has against the null hypothesis (\emph{h0}) using Mills' (2014, 2017) \emph{Objective Bayesian Hypothesis Testing} framework. It corresponds to the density value at 0 divided by the density at the Maximum A Posteriori (MAP).
 #'
 #' @details Note that this method is sensitive to the density estimation \code{method} (see the secion in the examples below).
+#' \subsection{Strengths and Limitations}{
+#' \strong{Strengths:} Straightforward computation. Objective property of the posterior distribution.
+#' \cr \cr
+#' \strong{Limitations:} Limited information favoring the null hypothesis. Relates on density approximation. Indirect relationship between mathematical definition and interpretation. Only suitable for weak / very diffused priors.
+#' }
 #'
 #' @inheritParams hdi
 #' @inheritParams density_at
@@ -50,10 +55,10 @@
 #' summary(data$logspline)
 #' boxplot(data[c("KernSmooth", "logspline")])
 #' }
-#'
 #' @seealso \href{https://www.youtube.com/watch?v=Ip8Ci5KUVRc}{Jeff Mill's talk}
 #'
 #' @references \itemize{
+#'   \item Makowski D, Ben-Shachar MS, Chen SHA, Lüdecke D (2019) Indices of Effect Existence and Significance in the Bayesian Framework. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
 #'   \item Mills, J. A. (2018). Objective Bayesian Precise Hypothesis Testing. University of Cincinnati.
 #' }
 #'
@@ -63,12 +68,12 @@ p_map <- function(x, precision = 2^10, method = "kernel", ...) {
   UseMethod("p_map")
 }
 
-
-
-
-
-
 #' @rdname p_map
+#' @export
+p_pointnull <- p_map
+
+
+
 #' @export
 p_map.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
   # Density at MAP
@@ -106,6 +111,9 @@ p_map.data.frame <- function(x, precision = 2^10, method = "kernel", ...) {
   out
 }
 
+
+
+
 #' @export
 p_map.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
   if (!requireNamespace("emmeans")) {
@@ -113,18 +121,39 @@ p_map.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
   }
   xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
   out <- p_map(xdf, precision = precision, method = method, ...)
-  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
+
+
 
 
 #' @importFrom insight get_parameters
 #' @keywords internal
 .p_map_models <- function(x, precision, method, effects, component, parameters, ...) {
-  out <- p_map(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), precision = precision, method = method, ...)
+  p_map(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), precision = precision, method = method, ...)
+}
 
+
+
+
+#' @export
+p_map.mcmc <- function(x, precision = 2^10, method = "kernel", parameters = NULL, ...) {
+  out <- .p_map_models(
+    x = x,
+    precision = precision,
+    method = method,
+    effects = "fixed",
+    component = "conditional",
+    parameters = parameters,
+    ...
+  )
+
+  attr(out, "data") <- insight::get_parameters(x, parameters = parameters)
   out
 }
+
+
 
 
 #' @export
@@ -146,6 +175,8 @@ p_map.sim.merMod <- function(x, precision = 2^10, method = "kernel", effects = c
 }
 
 
+
+
 #' @export
 p_map.sim <- function(x, precision = 2^10, method = "kernel", parameters = NULL, ...) {
   out <- .p_map_models(
@@ -163,6 +194,8 @@ p_map.sim <- function(x, precision = 2^10, method = "kernel", parameters = NULL,
 }
 
 
+
+
 #' @rdname p_map
 #' @export
 p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
@@ -174,9 +207,12 @@ p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("f
   )
 
   class(out) <- unique(c("p_map", class(out)))
-  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
+
+
+
 
 #' @rdname p_map
 #' @export
@@ -190,20 +226,31 @@ p_map.brmsfit <- function(x, precision = 2^10, method = "kernel", effects = c("f
   )
 
   class(out) <- unique(c("p_map", class(out)))
-  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
 
 
 
 
-#' @rdname p_map
 #' @export
 p_map.BFBayesFactor <- function(x, precision = 2^10, method = "kernel", ...) {
   out <- p_map(insight::get_parameters(x), precision = precision, method = method, ...)
-  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
+
+
+
+#' @export
+p_map.MCMCglmm <- function(x, precision = 2^10, method = "kernel", ...) {
+  nF <- x$Fixed$nfl
+  out <- p_map(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), precision = precision, method = method, ...)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  out
+}
+
+
 
 
 #' @rdname as.numeric.p_direction

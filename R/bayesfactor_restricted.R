@@ -3,9 +3,9 @@
 #' This method computes Bayes factors for comparing a model with an order restrictions on its parameters
 #' with the fully unrestricted model. \emph{Note that this method should only be used for confirmatory analyses}.
 #' \cr \cr
-#' \strong{For info on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
+#' The \code{bf_*} function is an alias of the main function.
 #' \cr \cr
-#' For more info, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
+#' \strong{For more info, in particular on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
 #'
 #' @param posterior A \code{stanreg} / \code{brmsfit} object, \code{emmGrid} or a data frame - representing a posterior distribution(s) from (see Details).
 #' @param hypothesis A character vector specifying the restrictions as logical conditions (see examples below).
@@ -15,14 +15,17 @@
 #' @details This method is used to compute Bayes factors for order-restricted models vs un-restricted
 #' models by setting an order restriction on the prior and posterior distributions
 #' (\cite{Morey & Wagenmakers, 2013}).
-#'
-#' (Though it is possible to use \code{bayesfactor_restricted} to test interval restrictions,
-#' it is more suitable for testing order restrictions (see examples)).
-#'
-#' When \code{posterior} is a model (\code{stanreg}, \code{brmsfit}), posterior and prior samples are
-#' extracted for each parameter, and Savage-Dickey Bayes factors are computed for each parameter.
-#'
-#' \strong{NOTE:} For \code{brmsfit} models, the model must have been fitted with \emph{custom (non-default)} priors. See example below.
+#' \cr\cr
+#' (Though it is possible to use \code{bayesfactor_restricted()} to test interval restrictions,
+#' it is more suitable for testing order restrictions; see examples).
+#' \cr\cr
+#' For the computation of Bayes factors, the model priors must be proper priors (at the very least
+#' they should be \emph{not flat}, and it is preferable that they be \emph{informative}); As the priors for
+#' the alternative get wider, the likelihood of the null value(s) increases, to the extreme that for completely
+#' flat priors the null is infinitely more favorable than the alternative (this is called \emph{the Jeffreys-Lindley-Bartlett
+#' paradox}). Thus, you should only ever try (or want) to compute a Bayes factor when you have an informed prior.
+#' \cr\cr
+#' (Note that by default, \code{brms::brm()} uses flat priors for fixed-effects.)
 #'
 #' \subsection{Setting the correct \code{prior}}{
 #' It is important to provide the correct \code{prior} for meaningful results.
@@ -100,7 +103,7 @@
 #' # >                          Hypothesis P(Prior) P(Posterior) Bayes Factor
 #' # >  lemon < control & control < sulfur     0.17         0.75         4.49
 #' # > ---
-#' # > Bayes factors for the restricted movel vs. the un-restricted model.
+#' # > Bayes factors for the restricted model vs. the un-restricted model.
 #' }
 #'
 #' @references
@@ -115,27 +118,27 @@ bayesfactor_restricted <- function(posterior, hypothesis, prior = NULL, verbose 
   UseMethod("bayesfactor_restricted")
 }
 
-#' @importFrom insight get_parameters
+#' @rdname bayesfactor_restricted
+#' @export
+bf_restricted <- bayesfactor_restricted
+
 #' @rdname bayesfactor_restricted
 #' @export
 bayesfactor_restricted.stanreg <- function(posterior, hypothesis, prior = NULL,
                                            verbose = TRUE,
                                            effects = c("fixed", "random", "all"),
+                                           component = c("conditional", "zi", "zero_inflated", "all"),
                                            ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
 
-  # Get Priors
-  if (is.null(prior)) {
-    prior <- posterior
-  }
-
-  prior <- .update_to_priors(prior, verbose = verbose)
-  prior <- insight::get_parameters(prior, effects = effects)
-  posterior <- insight::get_parameters(posterior, effects = effects)
+  samps <- .clean_priors_and_posteriors(posterior, prior,
+                                        effects, component,
+                                        verbose = verbose)
 
   # Get savage-dickey BFs
   bayesfactor_restricted.data.frame(
-    posterior = posterior, prior = prior,
+    posterior = samps$posterior, prior = samps$prior,
     hypothesis = hypothesis
   )
 }
@@ -144,34 +147,16 @@ bayesfactor_restricted.stanreg <- function(posterior, hypothesis, prior = NULL,
 #' @export
 bayesfactor_restricted.brmsfit <- bayesfactor_restricted.stanreg
 
-#' @importFrom stats update
-#' @importFrom insight get_parameters
 #' @rdname bayesfactor_restricted
 #' @export
 bayesfactor_restricted.emmGrid <- function(posterior, hypothesis, prior = NULL,
                                            verbose = TRUE,
                                            ...) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package \"emmeans\" needed for this function to work. Please install it.")
-  }
-
-  if (is.null(prior)) {
-    prior <- posterior
-    warning(
-      "Prior not specified! ",
-      "Please provide the original model to get meaningful results."
-    )
-  } else if (!inherits(prior, "emmGrid")) { # then is it a model
-    prior <- .update_to_priors(prior, verbose = verbose)
-    prior <- insight::get_parameters(prior, effects = "fixed")
-    prior <- stats::update(posterior, post.beta = as.matrix(prior))
-  }
-
-  prior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(prior, names = FALSE)))
-  posterior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(posterior, names = FALSE)))
+  samps <- .clean_priors_and_posteriors(posterior, prior,
+                                        verbose = verbose)
 
   bayesfactor_restricted.data.frame(
-    posterior = posterior, prior = prior,
+    posterior = samps$posterior, prior = samps$prior,
     hypothesis = hypothesis
   )
 }

@@ -1,8 +1,8 @@
-## ----message=FALSE, warning=FALSE, include=FALSE-------------------------
+## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
 library(knitr)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")
-knitr::opts_chunk$set(dpi=300)
+knitr::opts_chunk$set(dpi=150)
 options(digits=2)
 
 set.seed(333)

@@ -5,7 +5,17 @@
 #' @inheritParams rope
 #' @param threshold The threshold value that separates significant from negligible effect. If \code{"default"}, the range is set to \code{0.1} if input is a vector, and based on \code{\link[=rope_range]{rope_range()}} if a Bayesian model is provided.
 #'
-#' @return Values between 0.5 and 1 corresponding to the probability of practical significance (ps).
+#' @return Values between 0 and 1 corresponding to the probability of practical significance (ps).
+#'
+#' @details \code{p_significance()} returns the proportion of a probability
+#'   distribution (\code{x}) that is outside a certain range (the negligible
+#'   effect, or ROPE, see argument \code{threshold}). If there are values of the
+#'   distribution both below and above the ROPE, \code{p_significance()} returns
+#'   the higher probability of a value being outside the ROPE. Typically, this
+#'   value should be larger than 0.5 to indicate practical significance. However,
+#'   if the range of the negligible effect is rather large compared to the
+#'   range of the probability distribution \code{x}, \code{p_significance()}
+#'   will be less than 0.5, which indicates no clear practical significance.
 #'
 #' @examples
 #' library(bayestestR)
@@ -57,7 +67,6 @@ p_significance.numeric <- function(x, threshold = "default", ...) {
 }
 
 
-#' @rdname p_significance
 #' @export
 p_significance.data.frame <- function(x, threshold = "default", ...) {
   threshold <- .select_threshold_ps(x = x, threshold = threshold)
@@ -77,7 +86,7 @@ p_significance.data.frame <- function(x, threshold = "default", ...) {
   )
 
   attr(out, "threshold") <- threshold
-  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
   class(out) <- unique(c("p_significance", "see_p_significance", class(out)))
 
   out
@@ -86,11 +95,26 @@ p_significance.data.frame <- function(x, threshold = "default", ...) {
 
 
 
-#' @rdname p_significance
 #' @export
 p_significance.MCMCglmm <- function(x, threshold = "default", ...) {
   nF <- x$Fixed$nfl
-  p_significance(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), threshold = threshold, ...)
+  out <- p_significance(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), threshold = threshold, ...)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  out
+}
+
+
+#' @export
+p_significance.BFBayesFactor <- function(x, threshold = "default", ...) {
+  out <- p_significance(insight::get_parameters(x), threshold = threshold, ...)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  out
+}
+
+
+#' @export
+p_significance.mcmc <- function(x, threshold = "default", ...) {
+  p_significance(as.data.frame(x), threshold = threshold, ...)
 }
 
 
@@ -103,7 +127,7 @@ p_significance.emmGrid <- function(x, threshold = "default", ...) {
   xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
   out <- p_significance(xdf, threshold = threshold, ...)
 
-  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
 
@@ -121,6 +145,31 @@ p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed"
 
   data <- p_significance(
     insight::get_parameters(x, effects = effects, parameters = parameters),
+    threshold = threshold
+  )
+
+  out <- .prepare_output(data, insight::clean_parameters(x))
+
+  attr(out, "threshold") <- threshold
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  class(out) <- class(data)
+
+  out
+}
+
+
+
+
+
+#' @rdname p_significance
+#' @export
+p_significance.brmsfit <- function(x, threshold = "default", effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, verbose = TRUE, ...) {
+  effects <- match.arg(effects)
+  component <- match.arg(component)
+  threshold <- .select_threshold_ps(model = x, threshold = threshold)
+
+  data <- p_significance(
+    insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
     threshold = threshold
   )
 
@@ -156,6 +205,15 @@ as.double.p_significance <- as.numeric.p_significance
 
 #' @keywords internal
 .select_threshold_ps <- function(x = NULL, model = NULL, threshold = "default") {
+  # If a range is passed
+  if (length(threshold) > 1) {
+    if(length(unique(abs(threshold))) == 1) { # If symetric range
+      threshold <- abs(threshold[2])
+    } else{
+      stop("`threshold` should be 'default' or a numeric value (e.g., 0.1).")
+    }
+  }
+  # If default
   if (all(threshold == "default")) {
     if (!is.null(model)) {
       threshold <- rope_range(model)[2]

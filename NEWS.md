@@ -1,8 +1,36 @@
-# bayestestR 0.3.3
+# bayestestR 0.5.0
+
+## General
+
+- Added `p_pointnull()` as an alias to `p_MAP()`.
+- Added `si()` function to compute support intervals.
+- Added `weighted_posteriors()` for generating posterior samples averaged across models.
+- Added `plot()`-method for `p_significance()`.
+- `p_significance()` now also works for *brmsfit*-objects.
+- `estimate_density()` now also works for *MCMCglmm*-objects.
+- `equivalence_test()` gets `effects` and `component` arguments for *stanreg* and *brmsfit*  models, to print specific model components.
+- Support for *mcmc* objects (package **coda**)
+- Provide more distributions via `distribution()`.
+- Added `distribution_tweedie()`.
+- Better handling of `stanmvreg` models for `describe_posterior()`, `diagnostic_posterior()` and `describe_prior()`.
+
+## Breaking changes
+
+- `point_estimate()`: argument `centrality` default value changed from 'median' to 'all'.
+- `p_rope()`, previously as exploratory index, was renamed as `mhdior()` (for *Max HDI inside/outside ROPE*), as `p_rope()` will refer to `rope(..., ci = 1)` ( #258 )
+
+## Bug fixes
+
+- Fixed mistake in description of `p_significance()`.
+- Fixed error when computing BFs with `emmGrid` based on some non-linear models ( #260 ).
+- Fixed wrong output for percentage-values in `print.equivalence_test()`.
+- Fixed issue in `describe_posterior()` for `BFBayesFactor`-objects with more than one model.
+
+# bayestestR 0.4.0
 
 ## New functions / features
 
-- `convert_bayesian_to_frequentist` Convert (refit) Bayesian model as frequentist
+- `convert_bayesian_to_frequentist()` Convert (refit) Bayesian model as frequentist
 - `distribution_binomial()` for perfect binomial distributions
 - `simulate_ttest()` Simulate data with a mean difference
 - `simulate_correlation()` Simulate correlated datasets

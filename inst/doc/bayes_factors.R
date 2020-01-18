@@ -1,45 +1,56 @@
-## ----setup, include=FALSE------------------------------------------------
+## ----setup, include=FALSE-----------------------------------------------------
 library(knitr)
-library(rstanarm)
 library(bayestestR)
+library(rstanarm)
+library(BayesFactor)
+library(emmeans)
+
 library(ggplot2)
 library(see)
-library(emmeans)
-library(lme4)
-library(BayesFactor)
 
-options(knitr.kable.NA = '')
-opts_chunk$set(echo = TRUE)
-opts_chunk$set(comment = ">")
-knitr::opts_chunk$set(dpi=300)
-theme_set(see::theme_modern())
-options(digits = 2)
-set.seed(5)
+options(knitr.kable.NA = '',
+        digits = 2)
+opts_chunk$set(echo = TRUE,
+               comment = ">",
+               message = FALSE,
+               warning = FALSE,
+               dpi = 150)
+theme_set(theme_modern())
+set.seed(4)
 
 ## ----deathsticks_fig, echo=FALSE, fig.cap="Bayesian analysis of the Students' (1908) Sleep data set.", fig.align='center', out.width="80%"----
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/deathsticks.jpg")
 
-## ----sleep_boxplot, echo=FALSE, message=FALSE, warning=FALSE-------------
+## ----sleep_boxplot, echo=FALSE------------------------------------------------
 ggplot(sleep, aes(x = group, y = extra, fill= group)) +
   geom_boxplot() +
   theme_classic()
 
-## ---- echo=FALSE---------------------------------------------------------
-null <- c(-.5,.5)
-xrange <- c(-12,12)
-ggplot() + aes(x = 0, y = 0) + 
-  stat_function(aes(fill = "Null"),
-                fun = dnorm, args = list(sd = 2.5),
-                xlim = null, geom = "area") + 
-  stat_function(aes(fill = "Alternative"),
-                fun = dnorm, args = list(sd = 2.5),
-                xlim = c(xrange[1],null[1]), geom = "area") + 
-  stat_function(aes(fill = "Alternative"),
-                fun = dnorm, args = list(sd = 2.5),
-                xlim = c(null[2],xrange[2]), geom = "area") + 
-  stat_function(fun = dnorm, args = list(sd = 2.5),
-                xlim = xrange, size = 1) +
-  scale_fill_flat(name = "") + 
+## ----rstanarm_model, eval = FALSE---------------------------------------------
+#  library(rstanarm)
+#  
+#  model <- stan_glm(extra ~ group, data = sleep,
+#                    prior = normal(0, 3, autoscale = FALSE))
+
+## ---- echo=FALSE--------------------------------------------------------------
+model <- stan_glm(extra ~ group, data = sleep,
+                  prior = normal(0, 3, autoscale = FALSE),
+                  refresh = 0)
+
+## ---- echo=FALSE--------------------------------------------------------------
+null <- c(-1,1)
+xrange <- c(-10,10)
+
+x_vals <- seq(xrange[1], xrange[2], length.out = 400)
+d_vals <- dnorm(x_vals, sd = 3)
+in_null <- null[1] < x_vals & x_vals < null[2]
+range_groups <- rep(0, length(x_vals))
+range_groups[!in_null & x_vals < 0] <- -1
+range_groups[!in_null & x_vals > 0] <- 1
+
+ggplot(mapping = aes(x_vals, d_vals, fill = in_null, group = range_groups)) +
+  geom_area(color = "black", size = 1) +
+  scale_fill_flat(name = "", labels = c("Alternative", "Null")) + 
   labs(x = "Drug effect", y = "Density") + 
   theme_modern() + 
   theme(legend.position = c(0.2, 0.8))
@@ -47,104 +58,90 @@ ggplot() + aes(x = 0, y = 0) +
 pnull <- diff(pnorm(null, sd = 2.5))
 prior_odds <- (1 - pnull) / pnull
 
-## ----rstanarm_disp, eval=FALSE, message=FALSE, warning=FALSE-------------
-#  library(rstanarm)
-#  model <- stan_glm(extra ~ group, data = sleep)
+## ----rstanarm_fit, echo=FALSE-------------------------------------------------
 
-## ----rstanarm_fit, echo=FALSE, message=FALSE, warning=FALSE--------------
-model <- stan_glm(extra ~ group, data = sleep, refresh = 0)
 model_prior <- bayestestR:::.update_to_priors.stanreg(model)
 posterior <- insight::get_parameters(model)$group2
 prior <- insight::get_parameters(model_prior)$group2
 
 f_post <- logspline::logspline(posterior)
 
-dpost <- function(q){
-  logspline::dlogspline(q,f_post)
-}
+d_vals_post <- logspline::dlogspline(x_vals,f_post)
 
-xrange <- c(-12,12)
-ggplot() + aes(x = 0, y = 0) + 
-  stat_function(aes(fill = "Null"),
-                fun = dpost,
-                xlim = null, geom = "area") + 
-  stat_function(aes(fill = "Alternative"),
-                fun = dpost,
-                xlim = c(xrange[1],null[1]), geom = "area") + 
-  stat_function(aes(fill = "Alternative"),
-                fun = dpost,
-                xlim = c(null[2],xrange[2]), geom = "area") + 
-  stat_function(fun = dpost,
-                xlim = xrange, size = 1) +
-  scale_fill_flat(name = "") + 
-  geom_vline(xintercept = point_estimate(posterior)$Median, size = 1, linetype = "dashed") + 
+ggplot(mapping = aes(x_vals, d_vals_post, fill = in_null, group = range_groups)) +
+  geom_area(color = "black", size = 1) +
+  scale_fill_flat(name = "", labels = c("Alternative", "Null")) + 
   labs(x = "Drug effect", y = "Density") + 
   theme_modern() + 
   theme(legend.position = c(0.2, 0.8))
 
-My_first_BF <- bayesfactor_parameters(model, null = c(-.5,.5))
-
+My_first_BF <- bayesfactor_parameters(model, null = c(-1,1), prior = model_prior)
 
 BF <- My_first_BF$BF[2]
 post_odds <- prior_odds * BF
 
-## ---- echo=TRUE, eval=FALSE----------------------------------------------
-#  My_first_BF <- bayesfactor_parameters(model, null = c(-.5,.5))
+med_post <- point_estimate(posterior)$Median
+
+## ---- eval=FALSE--------------------------------------------------------------
+#  My_first_BF <- bayesfactor_parameters(model, null = c(-1, 1))
 #  My_first_BF
 
-## ---- echo=FALSE, message=FALSE, warning=FALSE---------------------------
+## ---- echo=FALSE--------------------------------------------------------------
 print(My_first_BF)
 
-## ---- echo=TRUE, eval=FALSE----------------------------------------------
-#  plot(My_first_BF)
+## -----------------------------------------------------------------------------
+library(see)
+plot(My_first_BF)
 
-## ---- echo=FALSE, message=FALSE, warning=FALSE---------------------------
-plot(bayesfactor_parameters(
+## ---- eval=FALSE--------------------------------------------------------------
+#  My_second_BF <- bayesfactor_parameters(model, null = 0)
+#  My_second_BF
+
+## ---- echo=FALSE--------------------------------------------------------------
+My_second_BF <- bayesfactor_parameters(
   data.frame(group2 = posterior),
   data.frame(group2 = prior),
-  null = c(-.5,.5))) + 
-  theme(legend.position = c(0.2, 0.8))
+  null = 0)
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
-My_second_BF <- bayesfactor_parameters(model, null = 0)
-My_second_BF
+print(My_second_BF)
 
-## ---- echo=TRUE, eval=FALSE----------------------------------------------
-#  plot(My_second_BF)
+## -----------------------------------------------------------------------------
+plot(My_second_BF)
 
-## ---- echo=FALSE, message=FALSE, warning=FALSE---------------------------
-plot(bayesfactor_parameters(
+## ----savagedickey_one_sided, eval=FALSE---------------------------------------
+#  test_group2_right <- bayesfactor_parameters(model, direction = ">")
+#  test_group2_right
+
+## ----prior_n_post_plot_one_sided, echo=FALSE----------------------------------
+test_group2_right <- bayesfactor_parameters(
   data.frame(group2 = posterior),
   data.frame(group2 = prior),
-  null = 0)) + 
-  theme(legend.position = c(0.2, 0.8))
-
-## ----prior_n_post_plot_one_sided, echo=FALSE, message=FALSE, warning=FALSE----
-
-# Using "see"
-bfsd <- bayesfactor_parameters(
-  data.frame(group2 = posterior),
-  data.frame(group2 = prior),
+  null = 0,
   direction = ">"
 )
 
-plot(bfsd) +
-  theme(legend.position = c(0.8,0.8))
+BF <- test_group2_right$BF
 
+print(test_group2_right)
 
-## ----savagedickey_one_sided, message=FALSE, warning=FALSE----------------
-test_group2_right <- bayesfactor_parameters(model, direction = ">")
-test_group2_right
+## -----------------------------------------------------------------------------
+plot(test_group2_right)
 
-## ------------------------------------------------------------------------
-library(emmeans)
-group_diff <- pairs(emmeans(model, ~ group))
-group_diff
+## ---- eval=FALSE--------------------------------------------------------------
+#  my_first_si <- si(model, BF = 1)
+#  my_first_si
 
-# pass the original model via prior
-bayesfactor_parameters(group_diff, prior = model)
+## ---- echo=FALSE--------------------------------------------------------------
+my_first_si <- si(data.frame(group2 = posterior),
+                  data.frame(group2 = prior),
+                  BF = 1)
 
-## ----brms_disp, eval=FALSE, message=FALSE, warning=FALSE-----------------
+print(my_first_si)
+
+## -----------------------------------------------------------------------------
+plot(my_first_si)
+
+## ----brms_disp, eval=FALSE----------------------------------------------------
 #  library(brms)
 #  
 #  m0 <- brm(Sepal.Length ~ 1, # intercept only model
@@ -158,13 +155,12 @@ bayesfactor_parameters(group_diff, prior = model)
 #  m4 <- brm(Sepal.Length ~ Species * Petal.Length,
 #            data = iris, save_all_pars = TRUE)
 
-## ----brms_models_disp, eval=FALSE----------------------------------------
+## ----brms_models_disp, eval=FALSE---------------------------------------------
 #  library(bayestestR)
 #  comparison <- bayesfactor_models(m1, m2, m3, m4, denominator = m0)
 #  comparison
 
-## ----brms_models_print, echo=FALSE, message=FALSE, warning=FALSE---------
-# dput(comparison)
+## ----brms_models_print, echo=FALSE--------------------------------------------
 comparison <- structure(
   list(
     Model = c(
@@ -179,50 +175,102 @@ comparison <- structure(
   class = c("bayesfactor_models", "see_bayesfactor_models", "data.frame"),
   row.names = c(NA, -5L),
   denominator = 5L,
-  BF_method = "marginal likelihoods (bridgesampling)"
+  BF_method = "marginal likelihoods (bridgesampling)", unsupported_models = FALSE
 )
-comparison
 
-## ----update_models1, message=FALSE, warning=FALSE------------------------
+print(comparison)
+
+## ----update_models1-----------------------------------------------------------
 update(comparison, reference = 3)
 
-## ----update_models2, message=FALSE, warning=FALSE------------------------
+## ----update_models2-----------------------------------------------------------
 update(comparison, reference = 2)
 
-## ----lme4_models, message=FALSE, warning=FALSE---------------------------
-library(lme4)
+## ----lme4_models, eval=FALSE--------------------------------------------------
+#  library(lme4)
+#  
+#  m0 <- lmer(Sepal.Length ~ (1 | Species), data = iris)
+#  m1 <- lmer(Sepal.Length ~ Petal.Length + (1 | Species), data = iris)
+#  m2 <- lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species), data = iris)
+#  m3 <- lmer(Sepal.Length ~ Petal.Length + Petal.Width + (Petal.Length | Species), data = iris)
+#  m4 <- lmer(Sepal.Length ~ Petal.Length * Petal.Width + (Petal.Length | Species), data = iris)
+#  
+#  bayesfactor_models(m1, m2, m3, m4, denominator = m0)
 
-m0 <- lmer(Sepal.Length ~ (1 | Species), data = iris)
-m1 <- lmer(Sepal.Length ~ Petal.Length + (1 | Species), data = iris)
-m2 <- lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species), data = iris)
-m3 <- lmer(Sepal.Length ~ Petal.Length + Petal.Width + (Petal.Length | Species), data = iris)
-m4 <- lmer(Sepal.Length ~ Petal.Length * Petal.Width + (Petal.Length | Species), data = iris)
+## ---- echo=FALSE--------------------------------------------------------------
+structure(list(Model = c(
+  "Petal.Length + (1 | Species)",
+  "Petal.Length + (Petal.Length | Species)", 
+  "Petal.Length + Petal.Width + (Petal.Length | Species)",
+  "Petal.Length * Petal.Width + (Petal.Length | Species)", 
+  "1 + (1 | Species)"),
+  BF = c(8.24027869011648e+24, 4.7677519818206e+23, 
+         1.52492156042604e+22, 5.93045520305254e+20, 1)),
+  class = c("bayesfactor_models", "see_bayesfactor_models", "data.frame"),
+  row.names = c(NA, -5L),
+  denominator = 5L,
+  BF_method = "BIC approximation", unsupported_models = FALSE)
 
-bayesfactor_models(m1, m2, m3, m4, denominator = m0)
+## ---- eval=FALSE--------------------------------------------------------------
+#  iris_model <- stan_glm(Sepal.Length ~ Species + Petal.Length,
+#                         data = iris,
+#                         prior = normal(0, c(2, 1.2, 1.2), autoscale = FALSE))
 
-## ----inclusion_brms, message=FALSE, warning=FALSE, eval=TRUE-------------
+## ---- echo=FALSE--------------------------------------------------------------
+iris_model <- stan_glm(Sepal.Length ~ Species + Petal.Length,
+                       data = iris,
+                       prior = normal(0, c(2, 1.2, 1.2), autoscale = FALSE),
+                       refresh = 0)
+
+## -----------------------------------------------------------------------------
+botanist_hypotheses <- c(
+  "Petal.Length > 0",
+  "(Speciesversicolor > 0) & (Speciesvirginica > 0)"
+)
+
+## ---- eval=FALSE--------------------------------------------------------------
+#  botanist_BFs <- bayesfactor_restricted(iris_model, hypothesis = botanist_hypotheses)
+#  botanist_BFs
+
+## ---- echo=FALSE--------------------------------------------------------------
+
+model_prior <- bayestestR:::.update_to_priors.stanreg(iris_model)
+
+botanist_BFs <- bayesfactor_restricted(iris_model, prior = model_prior, 
+                                       hypothesis = botanist_hypotheses)
+print(botanist_BFs)
+
+## ----plot_iris, echo=FALSE----------------------------------------------------
+ggplot(iris, aes(Petal.Length, Sepal.Length, color = Species)) + 
+  geom_point() + 
+  scale_color_flat() + 
+  theme(legend.position = c(0.2, 0.8))
+
+## ----inclusion_brms-----------------------------------------------------------
 bayesfactor_inclusion(comparison)
 
-## ----inclusion_brms2, message=FALSE, warning=FALSE, eval=TRUE------------
+## ----inclusion_brms2----------------------------------------------------------
 bayesfactor_inclusion(comparison, match_models = TRUE)
 
-## ----JASP_all, message=FALSE, warning=FALSE, eval=TRUE-------------------
+## ----JASP_all-----------------------------------------------------------------
 library(BayesFactor)
+data(ToothGrowth)
 ToothGrowth$dose <- as.factor(ToothGrowth$dose)
-BF_ToothGrowth <- anovaBF(len ~ dose*supp, ToothGrowth)
+
+BF_ToothGrowth <- anovaBF(len ~ dose*supp, ToothGrowth, progress = FALSE)
 
 bayesfactor_inclusion(BF_ToothGrowth)
 
-## ----JASP_all_fig, echo=FALSE, message=FALSE, warning=FALSE--------------
+## ----JASP_all_fig, echo=FALSE-------------------------------------------------
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP1.PNG")
 
-## ----JASP_matched, message=FALSE, warning=FALSE, eval=TRUE---------------
+## ----JASP_matched-------------------------------------------------------------
 bayesfactor_inclusion(BF_ToothGrowth, match_models = TRUE)
 
-## ----JASP_matched_fig, echo=FALSE, message=FALSE, warning=FALSE----------
+## ----JASP_matched_fig, echo=FALSE---------------------------------------------
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP2.PNG")
 
-## ----JASP_Nuisance, message=FALSE, warning=FALSE, eval=TRUE--------------
+## ----JASP_Nuisance------------------------------------------------------------
 BF_ToothGrowth_against_dose <- BF_ToothGrowth[3:4]/BF_ToothGrowth[2] # OR: 
 # update(bayesfactor_models(BF_ToothGrowth),
 #        subset = c(4, 5),
@@ -232,108 +280,149 @@ BF_ToothGrowth_against_dose
 
 bayesfactor_inclusion(BF_ToothGrowth_against_dose)
 
-## ----JASP_Nuisance_fig, echo=FALSE, message=FALSE, warning=FALSE---------
+## ----JASP_Nuisance_fig, echo=FALSE--------------------------------------------
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP3.PNG")
 
-## ----plot_iris, echo=FALSE, message=FALSE, warning=FALSE-----------------
-ggplot(iris, aes(Petal.Length, Sepal.Length, color = Species)) + 
-  geom_point() + 
-  scale_color_flat() + 
-  theme(legend.position = c(0.2, 0.8))
-
-## ---- message=FALSE, warning=FALSE, eval = FALSE-------------------------
-#  iris_model <- stan_glm(Sepal.Length ~ Species + Petal.Length,
-#                         data = iris)
-
-## ---- echo=FALSE, message=FALSE, warning=FALSE---------------------------
-iris_model <- stan_glm(Sepal.Length ~ Species + Petal.Length,
-                       data = iris, refresh = 0)
-
-model_prior <- bayestestR:::.update_to_priors.stanreg(iris_model)
-priors <- insight::get_parameters(model_prior)
-priors$`(Intercept)` <- NULL
-
-ggplot(stack(priors), aes(values, fill = ind)) + 
-  geom_density(color = NA) + 
-  geom_vline(xintercept = 0, size = 1, linetype = "dashed") + 
-  facet_grid(~ind) + 
-  scale_fill_flat() + 
-  theme(legend.position = "none")
-
-# describe_posterior(iris_model)
-
-## ------------------------------------------------------------------------
-botanist_hypotheses <- c(
-  "Petal.Length > 0",
-  "(Speciesversicolor > 0) & (Speciesvirginica > 0)"
-)
-
-## ------------------------------------------------------------------------
-botanist_BFs <- bayesfactor_restricted(iris_model, hypothesis = botanist_hypotheses)
-botanist_BFs
-
-## ---- eval=FALSE---------------------------------------------------------
-#  library(bayestestR)
-#  library(rstanarm)
-#  library(emmeans)
-#  library(ggplot2)
+## ---- eval=FALSE--------------------------------------------------------------
+#  mod <- stan_glm(mpg ~ wt + am,
+#                  data = mtcars,
+#                  prior = normal(0, c(10,10), autoscale = FALSE),
+#                  diagnostic_file = file.path(tempdir(), "df1.csv"))
 #  
+#  mod_carb <- stan_glm(mpg ~ wt + am + carb,
+#                       data = mtcars,
+#                       prior = normal(0, c(10,10,20), autoscale = FALSE),
+#                       diagnostic_file = file.path(tempdir(), "df0.csv"))
+#  
+#  bayesfactor_models(mod_carb, denominator = mod)
+
+## ---- echo=FALSE--------------------------------------------------------------
+mod <- stan_glm(mpg ~ wt + am,            
+                data = mtcars,
+                prior = normal(0, c(10,10), autoscale = FALSE),
+                diagnostic_file = file.path(tempdir(), "df1.csv"),
+                refresh = 0)
+
+mod_carb <- stan_glm(mpg ~ wt + am + carb,            
+                     data = mtcars,
+                     prior = normal(0, c(10,10,20), autoscale = FALSE),
+                     diagnostic_file = file.path(tempdir(), "df0.csv"),
+                     refresh = 0)
+
+BF_carb <- bayesfactor_models(mod_carb, denominator = mod, verbose = FALSE)
+BF <- BF_carb$BF[1]
+print(BF_carb)
+
+
+## -----------------------------------------------------------------------------
+hdi(mod_carb, ci = .95)
+
+## -----------------------------------------------------------------------------
+BMA_draws <- weighted_posteriors(mod, mod_carb)
+
+BMA_hdi <- hdi(BMA_draws, ci = .95)
+BMA_hdi
+
+plot(BMA_hdi)
+
+## ---- echo=FALSE--------------------------------------------------------------
+set.seed(1)
+
+## -----------------------------------------------------------------------------
+library(emmeans)
+
+groups <- emmeans(model, ~ group)
+group_diff <- pairs(groups)
+
+(groups_all <- rbind(groups, group_diff))
+
+# pass the original model via prior
+bayesfactor_parameters(groups_all, prior = model)
+
+## ---- echo=FALSE--------------------------------------------------------------
+set.seed(1)
+
+## -----------------------------------------------------------------------------
+library(modelbased)
+
+estimate_contrasts(model, test = "bf")
+
+## ---- eval=FALSE--------------------------------------------------------------
 #  contrasts(iris$Species) <- contr.sum
 #  
 #  fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
-#                      prior = normal(0,0.1), # just to drive the point home
+#                      prior = normal(0, c(1, 1), autoscale = FALSE),
+#                      prior_PD = TRUE, # sample priors
 #                      family = gaussian())
-#  c_sum <- pairs(emmeans(fit_sum, ~ Species))
-#  c_sum
+#  
+#  pairs_sum <- pairs(emmeans(fit_sum, ~ Species))
+#  pairs_sum
 
-## ---- warning=FALSE, echo=FALSE------------------------------------------
+## ---- echo=FALSE--------------------------------------------------------------
 contrasts(iris$Species) <- contr.sum
-set.seed(5)
+
 fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
-                    # just to drive the point home, we'll use ultra-narrow priors
-                    # (probably should not be used)
-                    prior = normal(0,0.1),
+                    prior = normal(0, c(1, 1), autoscale = FALSE),
+                    prior_PD = TRUE, # sample priors
                     family = gaussian(),
                     refresh = 0)
-c_sum <- pairs(emmeans(fit_sum, ~ Species))
-c_sum
 
-## ---- message=FALSE, echo=FALSE------------------------------------------
-plot(bayesfactor_parameters(c_sum, fit_sum)) +
-  coord_cartesian(xlim = c(-2,1))
+pairs_sum <- pairs(emmeans(fit_sum, ~ Species))
 
-## ------------------------------------------------------------------------
+em_pairs_samples <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(pairs_sum, names = FALSE)))
+
+print(pairs_sum)
+
+ggplot(stack(em_pairs_samples), aes(x = values, fill = ind)) + 
+  geom_density(size = 1) + 
+  facet_grid(ind ~ .) + 
+  labs(x = "prior difference values") + 
+  theme(legend.position = "none")
+
+## -----------------------------------------------------------------------------
 contrasts(iris$Species) <- contr.bayes
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  options(contrasts = c('contr.bayes', 'contr.poly'))
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
+#  contrasts(iris$Species) <- contr.bayes
+#  
 #  fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
-#                        prior = normal(0,0.1),
+#                        prior = normal(0, c(1, 1), autoscale = FALSE),
+#                        prior_PD = TRUE, # sample priors
 #                        family = gaussian())
-#  c_bayes <- pairs(emmeans(fit_bayes, ~ Species))
-#  c_bayes
+#  
+#  pairs_bayes <- pairs(emmeans(fit_bayes, ~ Species))
+#  pairs_bayes
 
-## ---- warning=FALSE, echo=FALSE------------------------------------------
-set.seed(5)
+## ---- echo=FALSE--------------------------------------------------------------
+contrasts(iris$Species) <- contr.bayes
+
 fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
-                      prior = normal(0,0.1), # just to drive the point home
+                      prior = normal(0, c(1, 1), autoscale = FALSE),
+                      prior_PD = TRUE, # sample priors
                       family = gaussian(),
                       refresh = 0)
-c_bayes <- pairs(emmeans(fit_bayes, ~ Species))
-c_bayes
 
-## ---- message=FALSE, echo=FALSE------------------------------------------
-plot(bayesfactor_parameters(c_bayes, fit_bayes)) +
-  coord_cartesian(xlim = c(-2,1))
+pairs_bayes <- pairs(emmeans(fit_bayes, ~ Species))
 
-## ------------------------------------------------------------------------
+em_pairs_samples <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(pairs_bayes, names = FALSE)))
+
+print(pairs_bayes)
+
+ggplot(stack(em_pairs_samples), aes(x = values, fill = ind)) + 
+  geom_density(size = 1) + 
+  facet_grid(ind ~ .) + 
+  labs(x = "prior difference values") + 
+  theme(legend.position = "none")
+
+## -----------------------------------------------------------------------------
 hyp <- c(
   # comparing 2 levels
-  "setosa > versicolor",
-  "setosa > virginica",
-  "versicolor > virginica",
+  "setosa < versicolor",
+  "setosa < virginica",
+  "versicolor < virginica",
   
   # comparing 3 (or more) levels
   "setosa    < virginica  & virginica  < versicolor",
@@ -341,15 +430,49 @@ hyp <- c(
   "setosa    < versicolor & versicolor < virginica"
 )
 
-## ------------------------------------------------------------------------
-em_sum <- emmeans(fit_sum, ~Species)
-em_sum # the posterior marginal means
+## ---- eval=FALSE--------------------------------------------------------------
+#  contrasts(iris$Species) <- contr.sum
+#  
+#  fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
+#                      prior = normal(0, c(1, 1), autoscale = FALSE),
+#                      family = gaussian())
+#  
+#  em_sum <- emmeans(fit_sum, ~ Species) # the posterior marginal means
+#  
+#  bayesfactor_restricted(em_sum, fit_sum, hypothesis = hyp)
+
+## ---- echo=FALSE--------------------------------------------------------------
+contrasts(iris$Species) <- contr.sum
+
+fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
+                    prior = normal(0, c(1, 1), autoscale = FALSE),
+                    family = gaussian(),
+                    refresh = 0)
+
+em_sum <- emmeans(fit_sum, ~ Species) # the posterior marginal means
   
 bayesfactor_restricted(em_sum, fit_sum, hypothesis = hyp)
 
-## ------------------------------------------------------------------------
-em_bayes <- emmeans(fit_bayes, ~Species)
-em_bayes # the posterior marginal means
+## ---- eval=FALSE--------------------------------------------------------------
+#  contrasts(iris$Species) <- contr.bayes
+#  
+#  fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
+#                        prior = normal(0, c(1, 1), autoscale = FALSE),
+#                        family = gaussian())
+#  
+#  em_bayes <- emmeans(fit_sum, ~ Species) # the posterior marginal means
+#  
+#  bayesfactor_restricted(em_bayes, fit_sum, hypothesis = hyp)
+
+## ---- echo=FALSE--------------------------------------------------------------
+contrasts(iris$Species) <- contr.bayes
+
+fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
+                      prior = normal(0, c(1, 1), autoscale = FALSE),
+                      family = gaussian(),
+                      refresh = 0)
+
+em_bayes <- emmeans(fit_bayes, ~ Species) # the posterior marginal means
   
 bayesfactor_restricted(em_bayes, fit_bayes, hypothesis = hyp)
 

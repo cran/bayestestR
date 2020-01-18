@@ -15,23 +15,34 @@ equivalence_test(x, ...)
 
 \method{equivalence_test}{default}(x, ...)
 
-\method{equivalence_test}{numeric}(x, range = "default", ci = 0.89,
-  verbose = TRUE, ...)
+\method{equivalence_test}{numeric}(x, range = "default", ci = 0.89, verbose = TRUE, ...)
 
-\method{equivalence_test}{data.frame}(x, range = "default", ci = 0.89,
-  verbose = TRUE, ...)
+\method{equivalence_test}{data.frame}(x, range = "default", ci = 0.89, verbose = TRUE, ...)
 
-\method{equivalence_test}{emmGrid}(x, range = "default", ci = 0.89,
-  verbose = TRUE, ...)
+\method{equivalence_test}{emmGrid}(x, range = "default", ci = 0.89, verbose = TRUE, ...)
 
-\method{equivalence_test}{BFBayesFactor}(x, range = "default",
-  ci = 0.89, verbose = TRUE, ...)
+\method{equivalence_test}{BFBayesFactor}(x, range = "default", ci = 0.89, verbose = TRUE, ...)
 
-\method{equivalence_test}{stanreg}(x, range = "default", ci = 0.89,
-  parameters = NULL, verbose = TRUE, ...)
+\method{equivalence_test}{stanreg}(
+  x,
+  range = "default",
+  ci = 0.89,
+  effects = c("fixed", "random", "all"),
+  parameters = NULL,
+  verbose = TRUE,
+  ...
+)
 
-\method{equivalence_test}{brmsfit}(x, range = "default", ci = 0.89,
-  parameters = NULL, verbose = TRUE, ...)
+\method{equivalence_test}{brmsfit}(
+  x,
+  range = "default",
+  ci = 0.89,
+  effects = c("fixed", "random", "all"),
+  component = c("conditional", "zi", "zero_inflated", "all"),
+  parameters = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution. Can also be a \code{stanreg} or \code{brmsfit} model.}
@@ -44,11 +55,18 @@ equivalence_test(x, ...)
 
 \item{verbose}{Toggle off warnings.}
 
+\item{effects}{Should results for fixed effects, random effects or both be returned?
+Only applies to mixed models. May be abbreviated.}
+
 \item{parameters}{Regular expression pattern that describes the parameters that
 should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
+
+\item{component}{Should results for all parameters, parameters for the conditional model
+or the zero-inflated part of the model be returned? May be abbreviated. Only
+applies to \pkg{brms}-models.}
 }
 \value{
 A data frame with following columns:

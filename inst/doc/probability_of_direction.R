@@ -1,4 +1,4 @@
-## ----message=FALSE, warning=FALSE, include=FALSE-------------------------
+## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
 library(knitr)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")
@@ -30,7 +30,7 @@ read.csv("https://raw.github.com/easystats/easystats/master/publications/makowsk
   xlab("Probability of Direction (pd)") +
   ylab("Frequentist p-value")
 
-## ----message=FALSE, warning=FALSE, fig.align='center'--------------------
+## ----message=FALSE, warning=FALSE, fig.align='center'-------------------------
 library(bayestestR)
 library(logspline)
 library(KernSmooth)
@@ -57,7 +57,7 @@ library(GGally)
 GGally::ggpairs(data) +
   theme_classic()
 
-## ----message=FALSE, warning=FALSE----------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 data <- data.frame()
 for(i in 1:25){
   the_mean <- runif(1, 0, 4)
@@ -80,7 +80,7 @@ for(i in 1:25){
 }
 data <- as.data.frame(sapply(data, as.numeric))
 
-## ----message=FALSE, warning=FALSE, fig.align='center'--------------------
+## ----message=FALSE, warning=FALSE, fig.align='center'-------------------------
 library(tidyr)
 library(dplyr)
 

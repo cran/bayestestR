@@ -2,24 +2,49 @@
 % Please edit documentation in R/bayesfactor_restricted.R
 \name{bayesfactor_restricted}
 \alias{bayesfactor_restricted}
+\alias{bf_restricted}
 \alias{bayesfactor_restricted.stanreg}
 \alias{bayesfactor_restricted.brmsfit}
 \alias{bayesfactor_restricted.emmGrid}
 \title{Bayes Factors (BF) for Order Restricted Models}
 \usage{
-bayesfactor_restricted(posterior, hypothesis, prior = NULL,
-  verbose = TRUE, ...)
+bayesfactor_restricted(
+  posterior,
+  hypothesis,
+  prior = NULL,
+  verbose = TRUE,
+  ...
+)
 
-\method{bayesfactor_restricted}{stanreg}(posterior, hypothesis,
-  prior = NULL, verbose = TRUE, effects = c("fixed", "random",
-  "all"), ...)
+bf_restricted(posterior, hypothesis, prior = NULL, verbose = TRUE, ...)
 
-\method{bayesfactor_restricted}{brmsfit}(posterior, hypothesis,
-  prior = NULL, verbose = TRUE, effects = c("fixed", "random",
-  "all"), ...)
+\method{bayesfactor_restricted}{stanreg}(
+  posterior,
+  hypothesis,
+  prior = NULL,
+  verbose = TRUE,
+  effects = c("fixed", "random", "all"),
+  component = c("conditional", "zi", "zero_inflated", "all"),
+  ...
+)
 
-\method{bayesfactor_restricted}{emmGrid}(posterior, hypothesis,
-  prior = NULL, verbose = TRUE, ...)
+\method{bayesfactor_restricted}{brmsfit}(
+  posterior,
+  hypothesis,
+  prior = NULL,
+  verbose = TRUE,
+  effects = c("fixed", "random", "all"),
+  component = c("conditional", "zi", "zero_inflated", "all"),
+  ...
+)
+
+\method{bayesfactor_restricted}{emmGrid}(
+  posterior,
+  hypothesis,
+  prior = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{posterior}{A \code{stanreg} / \code{brmsfit} object, \code{emmGrid} or a data frame - representing a posterior distribution(s) from (see Details).}
@@ -34,6 +59,10 @@ bayesfactor_restricted(posterior, hypothesis, prior = NULL,
 
 \item{effects}{Should results for fixed effects, random effects or both be returned?
 Only applies to mixed models. May be abbreviated.}
+
+\item{component}{Should results for all parameters, parameters for the conditional model
+or the zero-inflated part of the model be returned? May be abbreviated. Only
+applies to \pkg{brms}-models.}
 }
 \value{
 A data frame containing the Bayes factor representing evidence \emph{against} the un-restricted model.
@@ -42,22 +71,25 @@ A data frame containing the Bayes factor representing evidence \emph{against} th
 This method computes Bayes factors for comparing a model with an order restrictions on its parameters
 with the fully unrestricted model. \emph{Note that this method should only be used for confirmatory analyses}.
 \cr \cr
-\strong{For info on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
+The \code{bf_*} function is an alias of the main function.
 \cr \cr
-For more info, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
+\strong{For more info, in particular on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
 }
 \details{
 This method is used to compute Bayes factors for order-restricted models vs un-restricted
 models by setting an order restriction on the prior and posterior distributions
 (\cite{Morey & Wagenmakers, 2013}).
-
-(Though it is possible to use \code{bayesfactor_restricted} to test interval restrictions,
-it is more suitable for testing order restrictions (see examples)).
-
-When \code{posterior} is a model (\code{stanreg}, \code{brmsfit}), posterior and prior samples are
-extracted for each parameter, and Savage-Dickey Bayes factors are computed for each parameter.
-
-\strong{NOTE:} For \code{brmsfit} models, the model must have been fitted with \emph{custom (non-default)} priors. See example below.
+\cr\cr
+(Though it is possible to use \code{bayesfactor_restricted()} to test interval restrictions,
+it is more suitable for testing order restrictions; see examples).
+\cr\cr
+For the computation of Bayes factors, the model priors must be proper priors (at the very least
+they should be \emph{not flat}, and it is preferable that they be \emph{informative}); As the priors for
+the alternative get wider, the likelihood of the null value(s) increases, to the extreme that for completely
+flat priors the null is infinitely more favorable than the alternative (this is called \emph{the Jeffreys-Lindley-Bartlett
+paradox}). Thus, you should only ever try (or want) to compute a Bayes factor when you have an informed prior.
+\cr\cr
+(Note that by default, \code{brms::brm()} uses flat priors for fixed-effects.)
 
 \subsection{Setting the correct \code{prior}}{
 It is important to provide the correct \code{prior} for meaningful results.
@@ -133,7 +165,7 @@ bayesfactor_restricted(em_condition, prior = fit_model, hypothesis = hyps)
 # >                          Hypothesis P(Prior) P(Posterior) Bayes Factor
 # >  lemon < control & control < sulfur     0.17         0.75         4.49
 # > ---
-# > Bayes factors for the restricted movel vs. the un-restricted model.
+# > Bayes factors for the restricted model vs. the un-restricted model.
 }
 
 }

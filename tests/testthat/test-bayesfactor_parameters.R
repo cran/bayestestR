@@ -17,8 +17,8 @@ test_that("bayesfactor_parameters numeric", {
   bfsd <- bayestestR::bayesfactor_parameters(Xposterior, prior = Xprior, null = 0, direction = -1)
   testthat::expect_equal(log(bfsd$BF), -2.5, tolerance = 0.1)
 
-  bfsd <- bayestestR::bayesfactor_parameters(Xposterior, prior = Xprior, hypothesis = 1, direction = 0)
-  testthat::expect_equal(log(bfsd$BF), 3.68, tolerance = 0.1)
+  bfsd <- bayestestR::bayesfactor_parameters(Xposterior, prior = Xprior, null = 1, direction = 0)
+  testthat::expect_equal(log(bfsd$BF), -0.84, tolerance = 0.1)
 
   testthat::expect_warning(bfsd <- bayestestR::bayesfactor_parameters(Xposterior))
   testthat::expect_equal(log(bfsd$BF), 0, tolerance = 0.1)
@@ -56,6 +56,9 @@ test_that("bayesfactor_parameters RSTANARM", {
   model_p <- update(model, prior_PD = TRUE, refresh = 0)
   bfsd <- bayestestR::bayesfactor_parameters(model, model_p)
   testthat::expect_equal(log(bfsd$BF), c(-2.69, -0.14), tolerance = 0.2)
+
+  model_flat <- stan_glm(extra ~ group, data = sleep, prior = NULL, refresh = 0)
+  testthat::expect_error(bayesfactor_parameters(model_flat))
 })
 
 test_that("bayesfactor_parameters BRMS", {

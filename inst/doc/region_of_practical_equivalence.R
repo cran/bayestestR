@@ -1,4 +1,4 @@
-## ----message=FALSE, warning=FALSE, include=FALSE-------------------------
+## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
 library(knitr)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")
@@ -6,7 +6,7 @@ options(digits=2)
 
 set.seed(333)
 
-## ----message=FALSE, warning=FALSE, eval=FALSE----------------------------
+## ----message=FALSE, warning=FALSE, eval=FALSE---------------------------------
 #  library(rstanarm)
 #  library(bayestestR)
 #  library(see)
@@ -14,7 +14,7 @@ set.seed(333)
 #  data <- iris  # Use the iris data
 #  model <- stan_glm(Sepal.Length ~ Sepal.Width, data=data)  # Fit model
 
-## ----echo=FALSE, message=FALSE, warning=FALSE, comment=">"---------------
+## ----echo=FALSE, message=FALSE, warning=FALSE, comment=">"--------------------
 library(rstanarm)
 library(bayestestR)
 library(see)
@@ -23,7 +23,7 @@ set.seed(333)
 data <- iris  # Use the iris data
 model <- stan_glm(Sepal.Length ~ Sepal.Width, data=data, refresh = 0)
 
-## ----echo=TRUE, message=FALSE, warning=FALSE, comment=">"----------------
+## ----echo=TRUE, message=FALSE, warning=FALSE, comment=">"---------------------
 # Compute indices
 pd <- p_direction(model)
 percentage_in_rope <- rope(model, ci=1)
@@ -36,16 +36,16 @@ pd
 plot(percentage_in_rope)
 percentage_in_rope
 
-## ----message=FALSE, warning=FALSE, eval=FALSE----------------------------
+## ----message=FALSE, warning=FALSE, eval=FALSE---------------------------------
 #  data$Sepal.Width_scaled <- data$Sepal.Width / 100  # Divide predictor by 100
 #  model <- stan_glm(Sepal.Length ~ Sepal.Width_scaled, data=data)  # Fit model
 
-## ----echo=FALSE, message=FALSE, warning=FALSE, comment=">"---------------
+## ----echo=FALSE, message=FALSE, warning=FALSE, comment=">"--------------------
 set.seed(333)
 data$Sepal.Width_scaled <- data$Sepal.Width / 100
 model <- stan_glm(Sepal.Length ~ Sepal.Width_scaled, data=data, refresh = 0)
 
-## ----echo=TRUE, message=FALSE, warning=FALSE, comment=">"----------------
+## ----echo=TRUE, message=FALSE, warning=FALSE, comment=">"---------------------
 # Compute indices
 pd <- p_direction(model)
 percentage_in_rope <- rope(model, ci=1)
