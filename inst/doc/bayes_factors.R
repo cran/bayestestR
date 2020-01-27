@@ -1,22 +1,34 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-library(knitr)
-library(bayestestR)
-library(rstanarm)
-library(BayesFactor)
-library(emmeans)
-
-library(ggplot2)
-library(see)
-
-options(knitr.kable.NA = '',
-        digits = 2)
-opts_chunk$set(echo = TRUE,
-               comment = ">",
-               message = FALSE,
-               warning = FALSE,
-               dpi = 150)
-theme_set(theme_modern())
-set.seed(4)
+if (!(requireNamespace("rstanarm", quietly = TRUE) &&
+      requireNamespace("BayesFactor", quietly = TRUE) &&
+      requireNamespace("emmeans", quietly = TRUE) &&
+      requireNamespace("logspline", quietly = TRUE) &&
+      requireNamespace("lme4", quietly = TRUE) &&
+      requireNamespace("ggplot2", quietly = TRUE) &&
+      requireNamespace("see", quietly = TRUE)
+      )) {
+  knitr::opts_chunk$set(eval = FALSE)
+} else {
+  library(knitr)
+  library(insight)
+  library(bayestestR)
+  library(rstanarm)
+  library(BayesFactor)
+  library(emmeans)
+  
+  library(ggplot2)
+  library(see)
+  
+  options(knitr.kable.NA = '',
+          digits = 2)
+  opts_chunk$set(echo = TRUE,
+                 comment = ">",
+                 message = FALSE,
+                 warning = FALSE,
+                 dpi = 150)
+  theme_set(theme_modern())
+  set.seed(4)
+}
 
 ## ----deathsticks_fig, echo=FALSE, fig.cap="Bayesian analysis of the Students' (1908) Sleep data set.", fig.align='center', out.width="80%"----
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/deathsticks.jpg")

@@ -1,7 +1,16 @@
 ## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
-library(bayestestR)
+if (!(requireNamespace("see", quietly = TRUE) &&
+      requireNamespace("dplyr", quietly = TRUE) &&
+      requireNamespace("ggplot2", quietly = TRUE) &&
+      requireNamespace("performance", quietly = TRUE) &&
+      requireNamespace("BayesFactor", quietly = TRUE) &&
+      requireNamespace("rstanarm", quietly = TRUE))) {
+  knitr::opts_chunk$set(eval = FALSE)
+}
+
 data(iris)
 library(knitr)
+library(bayestestR)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")
 knitr::opts_chunk$set(dpi=150)
@@ -9,7 +18,7 @@ options(digits=2)
 
 set.seed(333)
 
-## ----message=FALSE, warning=FALSE, eval=TRUE----------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 result <- cor.test(iris$Sepal.Width, iris$Sepal.Length)
 result
 
@@ -27,19 +36,19 @@ structure(list(Parameter = "rho", Median = -0.114149129692488,
     ROPE_Percentage = 42.0949171581017, BF = 0.509017511647702, 
     Prior_Distribution = "cauchy", Prior_Location = 0, Prior_Scale = 0.333333333333333), row.names = 1L, class = "data.frame")
 
-## ----message=FALSE, warning=FALSE, eval=TRUE----------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 bayesfactor(result)
 
 ## ----echo=FALSE, fig.cap="Wagenmakers' pizza poking analogy. From the great 'www.bayesianspectacles.org' blog.", fig.align='center', out.width="80%"----
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/LetsPokeAPizza.jpg")
 
-## ----message=FALSE, warning=FALSE, eval=TRUE----------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 library(see)
 
 plot(bayesfactor(result)) +
   scale_fill_pizza()
 
-## ----message=FALSE, warning=FALSE, eval=TRUE----------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 library(dplyr)
 library(ggplot2)
 

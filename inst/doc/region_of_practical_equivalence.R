@@ -1,4 +1,9 @@
 ## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
+if (!(requireNamespace("rstanarm", quietly = TRUE) &&
+      requireNamespace("see", quietly = TRUE))) {
+  knitr::opts_chunk$set(eval = FALSE)
+}
+
 library(knitr)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")

@@ -1,4 +1,8 @@
 ## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
+if (!requireNamespace("rstanarm", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE)
+}
+
 library(knitr)
 options(knitr.kable.NA = '')
 knitr::opts_chunk$set(comment=">")
@@ -7,7 +11,7 @@ options(digits=2)
 ## ----echo=FALSE, fig.cap="Accurate depiction of a regular Bayesian user estimating a credible interval.", fig.align='center', out.width="50%"----
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/bayesianMaster.jpg")
 
-## ----eval=FALSE, message=FALSE, warning=FALSE, eval=FALSE---------------------
+## ----eval=FALSE, message=FALSE, warning=FALSE---------------------------------
 #  install.packages("devtools")
 #  devtools::install_github("easystats/easystats")
 
