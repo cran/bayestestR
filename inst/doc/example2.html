@@ -752,15 +752,15 @@ body {
 &gt; # Indices of model performance
 &gt; 
 &gt;  ELPD ELPD_SE LOOIC LOOIC_SE WAIC    R2 RMSE LOGLOSS SCORE_LOG SCORE_SPHERICAL
-&gt;   -66     3.1   133      6.1  133 0.099 0.48      NA      -106            0.01
+&gt;   -66     3.1   133      6.1  133 0.097 0.48      NA      -106            0.01
 </code></pre>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">describe_posterior</span>(model, <span class="dt">test =</span> <span class="kw">c</span>(<span class="st">&quot;pd&quot;</span>, <span class="st">&quot;ROPE&quot;</span>, <span class="st">&quot;BF&quot;</span>))</a></code></pre></div>
 <pre><code>&gt; # Description of Posterior Distributions
 &gt; 
-&gt; Parameter   | Median | CI | CI_low | CI_high |    pd | ROPE_CI | ROPE_low | ROPE_high | ROPE_Percentage |    BF |  Rhat |  ESS
-&gt; ------------------------------------------------------------------------------------------------------------------------------
-&gt; (Intercept) | -6.116 | 89 | -9.590 |  -3.020 | 0.999 |      89 |   -0.181 |     0.181 |               0 | 8.498 | 0.999 | 2689
-&gt; Sepal.Width |  2.131 | 89 |  0.986 |   3.262 | 0.999 |      89 |   -0.181 |     0.181 |               0 | 9.132 | 0.999 | 2712
+&gt; Parameter   | Median | CI | CI_low | CI_high |    pd | ROPE_CI | ROPE_low | ROPE_high | ROPE_Percentage |     BF |  Rhat |  ESS
+&gt; -------------------------------------------------------------------------------------------------------------------------------
+&gt; (Intercept) | -6.169 | 89 | -9.519 |  -3.028 | 0.999 |      89 |   -0.181 |     0.181 |               0 | 10.831 | 0.999 | 2747
+&gt; Sepal.Width |  2.148 | 89 |  1.100 |   3.342 | 1.000 |      89 |   -0.181 |     0.181 |               0 | 10.209 | 0.999 | 2770
 </code></pre>
 <h3 id="visualise-the-indices">Visualise the indices</h3>
 <p>TO DO.</p>

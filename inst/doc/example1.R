@@ -7,8 +7,8 @@ options(digits=2)
 
 set.seed(333)
 
-if (!requireNamespace("rstanarm", quietly = TRUE) &&
-    !requireNamespace("dplyr", quietly = TRUE) &&
+if (!requireNamespace("rstanarm", quietly = TRUE) ||
+    !requireNamespace("dplyr", quietly = TRUE) ||
     !requireNamespace("ggplot2", quietly = TRUE)) {
   knitr::opts_chunk$set(eval = FALSE)
 }
@@ -145,7 +145,7 @@ n_positive / nrow(posteriors) * 100
 ## ----message=FALSE, warning=FALSE---------------------------------------------
 p_direction(posteriors$feedsunflower)
 
-## ----message=FALSE, warning=FALSE---------------------------------------------
+## ----message=FALSE, warning=FALSE, eval=TRUE----------------------------------
 pd <- 97.82
 onesided_p <- 1 - pd / 100  
 twosided_p <- onesided_p * 2

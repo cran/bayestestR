@@ -1,6 +1,5 @@
 ## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
-if (!(requireNamespace("rstanarm", quietly = TRUE) &&
-      requireNamespace("see", quietly = TRUE))) {
+if (!requireNamespace("rstanarm", quietly = TRUE) || !requireNamespace("see", quietly = TRUE)) {
   knitr::opts_chunk$set(eval = FALSE)
 }
 

@@ -1,10 +1,10 @@
 ## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
-if (!(requireNamespace("see", quietly = TRUE) &&
-      requireNamespace("dplyr", quietly = TRUE) &&
-      requireNamespace("ggplot2", quietly = TRUE) &&
-      requireNamespace("performance", quietly = TRUE) &&
-      requireNamespace("BayesFactor", quietly = TRUE) &&
-      requireNamespace("rstanarm", quietly = TRUE))) {
+if (!requireNamespace("see", quietly = TRUE) ||
+      !requireNamespace("dplyr", quietly = TRUE) ||
+      !requireNamespace("ggplot2", quietly = TRUE) ||
+      !requireNamespace("performance", quietly = TRUE) ||
+      !requireNamespace("BayesFactor", quietly = TRUE) ||
+      !requireNamespace("rstanarm", quietly = TRUE)) {
   knitr::opts_chunk$set(eval = FALSE)
 }
 
