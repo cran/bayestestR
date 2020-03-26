@@ -97,7 +97,7 @@
 #' equivalence_test(model)
 #' equivalence_test(model, ci = c(.50, .99))
 #'
-#' ibrary(BayesFactor)
+#' library(BayesFactor)
 #' bf <- ttestBF(x = rnorm(100, 1, 1))
 #' equivalence_test(bf)
 #' equivalence_test(bf, ci = c(.50, .99))
@@ -276,6 +276,14 @@ equivalence_test.sim <- equivalence_test.sim.merMod
 #' @export
 equivalence_test.mcmc <- function(x, range = "default", ci = .89, parameters = NULL, verbose = TRUE, ...) {
   out <- .equivalence_test_models(as.data.frame(x), range, ci, effects = "fixed", component = "conditional", parameters, verbose = FALSE)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  out
+}
+
+
+#' @export
+equivalence_test.bcplm <- function(x, range = "default", ci = .89, parameters = NULL, verbose = TRUE, ...) {
+  out <- .equivalence_test_models(insight::get_parameters(x), range, ci, effects = "fixed", component = "conditional", parameters, verbose = FALSE)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }

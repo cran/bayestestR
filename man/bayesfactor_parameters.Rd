@@ -165,7 +165,7 @@ density ratio is computed, which is also an approximation of a Bayes factor comp
 the marginal likelihoods of the model against a model in which the tested parameter
 has been restricted to the point null (Wagenmakers et al., 2010; Heck, 2019).
 \cr \cr
-Note that the \code{logspline} package is used for estimating densities and probabilies,
+Note that the \code{logspline} package is used for estimating densities and probabilities,
 and must be installed for the function to work.
 \cr \cr
 \code{bayesfactor_pointnull()} and \code{bayesfactor_rope()} are wrappers around
@@ -225,7 +225,7 @@ bayesfactor_parameters(posterior, prior)
 \dontrun{
 # rstanarm models
 # ---------------
-if (require("rstanarm") &6 require("emmeans")) {
+if (require("rstanarm") && require("emmeans")) {
   contrasts(sleep$group) <- contr.bayes # see vingette
   stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
   bayesfactor_parameters(stan_model)

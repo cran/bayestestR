@@ -4,8 +4,8 @@
 #' Weighting is done by comparing posterior model probabilities, via \code{\link{bayesfactor_models}}.
 #'
 #' @param missing An optional numeric value to use if a model does not contain a parameter that appears in other models. Defaults to 0.
+#' @param prior_odds Optional vector of prior odds for the models compared to the first model (or the denominator, for \code{BFBayesFactor} objects).
 #' @inheritParams bayesfactor_models
-#' @inheritParams bayesfactor_inclusion
 #' @inheritParams bayesfactor_parameters
 #'
 #' @details
@@ -22,54 +22,52 @@
 #' \cr\cr
 #' This function is similar in function to \code{brms::\link[brms]{posterior_average}}.
 #'
-#' @return A data frame with posterior distributions (weighted accross models) .
+#' @return A data frame with posterior distributions (weighted across models) .
 #'
 #' @seealso \code{\link{bayesfactor_inclusion}} for Bayesian model averaging.
 #'
 #' @examples
 #' \donttest{
-#' library(rstanarm)
-#' library(see)
+#' if (require("rstanarm") && require("see")) {
+#'   stan_m0 <- stan_glm(extra ~ 1, data = sleep,
+#'                       family = gaussian(),
+#'                       refresh=0,
+#'                       diagnostic_file = file.path(tempdir(), "df0.csv"))
 #'
-#' stan_m0 <- stan_glm(extra ~ 1, data = sleep,
-#'                     family = gaussian(),
-#'                     refresh=0,
-#'                     diagnostic_file = file.path(tempdir(), "df0.csv"))
-#'
-#' stan_m1 <- stan_glm(extra ~ group, data = sleep,
-#'                     family = gaussian(),
-#'                     refresh=0,
-#'                     diagnostic_file = file.path(tempdir(), "df1.csv"))
+#'   stan_m1 <- stan_glm(extra ~ group, data = sleep,
+#'                       family = gaussian(),
+#'                       refresh=0,
+#'                       diagnostic_file = file.path(tempdir(), "df1.csv"))
 #'
 #'
-#' res <- weighted_posteriors(stan_m0, stan_m1)
+#'   res <- weighted_posteriors(stan_m0, stan_m1)
 #'
-#' plot(eti(res))
-#'
-#' # With BayesFactor and brms
-#' library(BayesFactor)
-#' library(brms)
-#'
-#' BFmods <- anovaBF(extra ~ group + ID, sleep, whichRandom = "ID")
-#'
-#' res <- weighted_posteriors(BFmods)[1:3]
-#' plot(eti(res))
-#'
-#' # Compare to brms::posterior_average
-#' fit1 <- brm(rating ~ treat + period + carry,
-#'             data = inhaler,
-#'             save_all_pars = TRUE)
-#' fit2 <- brm(rating ~ period + carry,
-#'             data = inhaler,
-#'             save_all_pars = TRUE)
-#'
-#' res_BT <- weighted_posteriors(fit1, fit2)
-#' res_brms <- brms::posterior_average(fit1, fit2, weights = "marglik", missing = 0)[, 1:4]
-#'
-#' plot(eti(res_BT))
-#' plot(eti(res_brms))
+#'   plot(eti(res))
 #' }
 #'
+#' # With BayesFactor and brms
+#' if (require("BayesFactor") && require("brms")) {
+#'   BFmods <- anovaBF(extra ~ group + ID, sleep, whichRandom = "ID")
+#'
+#'   res <- weighted_posteriors(BFmods)[1:3]
+#'   plot(eti(res))
+#'
+#'   # Compare to brms::posterior_average
+#'   fit1 <- brm(rating ~ treat + period + carry,
+#'               data = inhaler,
+#'               save_all_pars = TRUE)
+#'   fit2 <- brm(rating ~ period + carry,
+#'               data = inhaler,
+#'               save_all_pars = TRUE)
+#'
+#'   res_BT <- weighted_posteriors(fit1, fit2)
+#'   res_brms <- brms::posterior_average(fit1, fit2,
+#'                                       weights = "marglik", missing = 0)[, 1:4]
+#'
+#'   plot(eti(res_BT))
+#'   plot(eti(res_brms))
+#' }
+#' }
 #' @references
 #' \itemize{
 #'   \item Clyde, M., Desimone, H., & Parmigiani, G. (1996). Prediction via orthogonalized model mixing. Journal of the American Statistical Association, 91(435), 1197-1208.
@@ -100,7 +98,6 @@ weighted_posteriors.stanreg <- function(..., prior_odds = NULL, missing = 0, ver
   # Compute posterior model probabilities
   prior_odds <- c(1, prior_odds)
   posterior_odds <- prior_odds * BFMods$BF
-  priorProbs <- prior_odds / sum(prior_odds)
   postProbs <- posterior_odds / sum(posterior_odds)
 
   # Compute weighted number of samples
@@ -113,7 +110,9 @@ weighted_posteriors.stanreg <- function(..., prior_odds = NULL, missing = 0, ver
                    component = component,
                    parameters = parameters)
 
-  .weighted_posteriors(params, weighted_samps, missing)
+  res <- .weighted_posteriors(params, weighted_samps, missing)
+  attr(res, "weights") <- data.frame(Model = BFMods$Model, weights = weighted_samps)
+  return(res)
 }
 
 #' @export
@@ -131,7 +130,6 @@ weighted_posteriors.BFBayesFactor <- function(..., prior_odds = NULL, missing = 
   # Compute posterior model probabilities
   prior_odds <- c(1, prior_odds)
   posterior_odds <- prior_odds * BFMods$BF
-  priorProbs <- prior_odds / sum(prior_odds)
   postProbs <- posterior_odds / sum(posterior_odds)
 
   # Compute weighted number of samples
@@ -139,38 +137,49 @@ weighted_posteriors.BFBayesFactor <- function(..., prior_odds = NULL, missing = 
   weighted_samps <- round(nsamples * postProbs)
 
   # extract parameters
-  params <- lapply(seq_len(length(Mods@numerator)), function(mi){
-    BayesFactor::posterior(Mods, iterations = nsamples, index = mi, progress = FALSE)
-  })
-
-  mod_0 <- try(BayesFactor::posterior(1/Mods[1], iterations = nsamples, progress = FALSE),
-               silent = TRUE)
-  if (inherits(mod_0, "try-error")) {
-    if (!grepl("Sampling from intercept-only", mod_0)) stop(mod_0)
-    warning("Cannot sample from BFBayesFactor model with intercept only (model prob = ",
-            round(postProbs[1],2),
-            "). Ommiting the intercept model.")
-    postProbs <- postProbs[-1] / sum(postProbs[-1])
-    weighted_samps <- round(nsamples * postProbs)
-  } else {
-    mod_0 <- list(params[[1]])
-    params <- c(mod_0,params)
+  intercept_only <- which(BFMods$Model == "1")
+  params <- vector(mode = "list", length = nrow(BFMods))
+  for (m in seq_along(params)) {
+    if (length(intercept_only) && m == intercept_only) {
+      warning(
+        "Cannot sample from BFBayesFactor model with intercept only (model prob = ",
+        round(postProbs[m], 3) * 100, "%).\n",
+        "Ommiting the intercept model.",
+        call. = FALSE
+      )
+      next
+    } else if (m == 1) {
+      # If the model is the "den" model
+      params[[m]] <- BayesFactor::posterior(1 / Mods[1], iterations = nsamples, progress = FALSE)
+    } else {
+      params[[m]] <- BayesFactor::posterior(
+        Mods[m - 1], iterations = nsamples, progress = FALSE
+      )
+    }
   }
 
   params <- lapply(params, as.data.frame)
 
-  .weighted_posteriors(params, weighted_samps, missing)
+  res <- .weighted_posteriors(params, weighted_samps, missing)
+  attr(res, "weights") <- data.frame(Model = BFMods$Model, weights = weighted_samps)
+  return(res)
 }
 
 .weighted_posteriors <- function(params, weighted_samps, missing) {
   par_names <- unique(unlist(sapply(params, colnames), recursive = TRUE))
 
+  # remove empty (0 sample) models
+  params <- params[weighted_samps != 0]
+  weighted_samps <- weighted_samps[weighted_samps != 0]
+
   for (m in seq_along(weighted_samps)) {
     temp_params <- params[[m]]
-    temp_params <- temp_params[sample(nrow(temp_params),size = weighted_samps[m]), ,drop = FALSE]
+    i <- sample(nrow(temp_params),size = weighted_samps[m])
+    temp_params <- temp_params[i, ,drop = FALSE]
 
     # If any parameters not estimated in the model, they are assumed to be 0 (the default value of `missing`)
-    temp_params[, setdiff(par_names, colnames(temp_params))] <- missing
+    missing_pars <- setdiff(par_names, colnames(temp_params))
+    temp_params[, missing_pars] <- missing
 
     params[[m]] <- temp_params
   }
