@@ -1,4 +1,17 @@
-# bayestestR 0.5.x
+# bayestestR 0.5.4
+
+## Changes to functions
+
+- `describe_posterior()` now also works on `effectsize::standardize_posteriors()`.
+- `p_significance()` now also works on `parameters::simulate_model()`.
+- `rope_range()` supports more (frequentis) models.
+
+## Bug fixes
+
+- Fixed issue with `plot()` `data.frame`-methods of `p_direction()` and `equivalence_test()`.
+- Fix check issues for forthcoming insight-update.
+
+# bayestestR 0.5.3
 
 ## General
 
@@ -10,6 +23,7 @@
 
 ## Bug fixes
 
+- Fixed bug in `weighted_posteriors()` to properly weight Intercept-only `BFBayesFactor` models.
 - Fixed bug in `weighted_posteriors()` when models have very low posterior probability ( #286 ).
 - Fixed bug in `describe_posterior()`, `rope()` and `equivalence_test()` for *brmsfit* models with monotonic effect.
 - Fixed issues related to latest changes in `as.data.frame.brmsfit()` from the *brms* package.

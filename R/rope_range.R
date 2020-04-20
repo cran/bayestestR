@@ -12,6 +12,7 @@
 #'     \item For \strong{linear models (lm)}, this can be generalised to \ifelse{html}{\out{-0.1 * SD<sub>y</sub>, 0.1 * SD<sub>y</sub>}}{\eqn{[-0.1*SD_{y}, 0.1*SD_{y}]}}.
 #'     \item For \strong{logistic models}, the parameters expressed in log odds ratio can be converted to standardized difference through the formula \ifelse{html}{\out{&pi;/&radic;(3)}}{\eqn{\pi/\sqrt{3}}}, resulting in a range of \code{-0.18} to \code{0.18}.
 #'     \item For other models with \strong{binary outcome}, it is strongly recommended to manually specify the rope argument. Currently, the same default is applied that for logistic models.
+#'     \item For models from \strong{count data}, the residual variance is used. This is a rather experimental threshold and is probably often similar to \code{-0.1, 0.1}, but should be used with care!
 #'     \item For \strong{t-tests}, the standard deviation of the response is used, similarly to linear models (see above).
 #'     \item For \strong{correlations}, \code{-0.05, 0.05} is used, i.e., half the value of a negligible correlation as suggested by Cohen's (1988) rules of thumb.
 #'     \item For all other models, \code{-0.1, 0.1} is used to determine the ROPE limits, but it is strongly advised to specify it manually.
@@ -79,13 +80,54 @@ rope_range.BFBayesFactor <- rope_range.brmsfit
 rope_range.lm <- rope_range.brmsfit
 
 #' @export
+rope_range.glm <- rope_range.brmsfit
+
+#' @export
 rope_range.merMod <- rope_range.brmsfit
+
+#' @export
+rope_range.glmmTMB <- rope_range.brmsfit
+
+#' @export
+rope_range.mixed <- rope_range.brmsfit
+
+#' @export
+rope_range.MixMod <- rope_range.brmsfit
+
+#' @export
+rope_range.wbm <- rope_range.brmsfit
+
+#' @export
+rope_range.feis <- rope_range.brmsfit
+
+#' @export
+rope_range.gee <- rope_range.brmsfit
+
+#' @export
+rope_range.lme <- rope_range.brmsfit
+
+#' @export
+rope_range.felm <- rope_range.brmsfit
+
+#' @export
+rope_range.hurdle <- rope_range.brmsfit
+
+#' @export
+rope_range.zeroinfl <- rope_range.brmsfit
 
 #' @export
 rope_range.default <- function(x, ...) {
   c(-.1, .1)
 }
 
+
+
+
+# helper ------------------
+
+
+#' @importFrom stats sigma
+#' @importFrom insight n_obs find_parameters
 .rope_range <- function(x, information, response) {
   negligible_value <- tryCatch(
     {
@@ -93,9 +135,18 @@ rope_range.default <- function(x, ...) {
       if (information$is_linear) {
         0.1 * stats::sd(response)
 
-        # General Linear Models
+        # Logistic Regression Models
       } else if (information$is_binomial) {
         0.1 * pi / sqrt(3)
+
+        # Count Models
+      } else if (information$is_count) {
+        sig <- stats::sigma(x)
+        if (!is.null(sig) && length(sig) > 0 && !is.na(sig)) {
+          0.1 * sig
+        } else {
+          0.1
+        }
 
         # T-tests
       } else if (information$is_ttest) {

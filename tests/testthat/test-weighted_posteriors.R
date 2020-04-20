@@ -1,28 +1,53 @@
-if (requireNamespace("BayesFactor", quietly = TRUE)) {
-  test_that("weighted_posteriors for BayesFactor", {
+if (require("BayesFactor", quietly = TRUE)) {
+  set.seed(123)
 
-    library(BayesFactor)
+  test_that("weighted_posteriors for BayesFactor", {
     # compute Bayes Factor for 31 different regression models
     null_den <- regressionBF(mpg ~ cyl + disp + hp + drat + wt,
                              data = mtcars, progress = FALSE)
-    no_null <- null_den[-1]/null_den[1]
-    null_not_den <- c(no_null, 1/null_den[1])
+    wBF <- weighted_posteriors(null_den)
 
-    testthat::expect_warning(weighted_posteriors(null_not_den))
-    testthat::expect_warning(weighted_posteriors(null_den))
-    testthat::expect_is(weighted_posteriors(no_null), "data.frame")
+    testthat::expect_is(wBF, "data.frame")
+    testthat::expect_equal(attr(wBF, "weights")$weights,
+                           c(0, 13, 9, 0, 0, 55, 11, 4, 4, 1246, 6, 2, 38, 4, 946, 12, 3,
+                             3, 209, 3, 491, 174, 4, 134, 7, 293, 1, 123, 35, 92, 51, 27))
+  })
+
+  test_that("weighted_posteriors for BayesFactor (intercept)", {
+    dat <- data.frame(x1 = rnorm(10),
+                      x2 = rnorm(10),
+                      y = rnorm(10))
+    BFmods <- regressionBF(y ~ x1 + x2, data = dat, progress = FALSE)
+
+    res <- weighted_posteriors(BFmods)
+    testthat::expect_equal(attr(res,"weights")$weights,c(1545, 805, 1020, 630))
+
+    wHDI <- hdi(res[c("x1","x2")])
+    testthat::expect_equal(wHDI$CI_low, c(-0.425,  -0.172), tol = 1e-3)
+    testthat::expect_equal(wHDI$CI_high, c(0.371, 0.579), tol = 1e-3)
+
+  })
+
+  test_that("weighted_posteriors for nonlinear BayesFactor", {
+    data(sleep)
+
+    BFS <- ttestBF(x = sleep$extra[sleep$group == 1],
+                   y = sleep$extra[sleep$group == 2],
+                   nullInterval = c(-Inf,0),
+                   paired = TRUE)
+
+    res <- weighted_posteriors(BFS)
+
+    testthat::expect_equal(attributes(res)$weights$weights, c(113, 3876, 11))
   })
 }
 
 
-if (requireNamespace("brms", quietly = TRUE)) {
-  context("weighted_posteriors")
-
+if (require("brms", quietly = TRUE)) {
   test_that("weighted_posteriors vs posterior_average", {
     testthat::skip_on_cran()
     testthat::skip_on_travis()
 
-    library(brms)
     fit1 <- brm(rating ~ treat + period + carry,
                 data = inhaler,
                 refresh = 0,
