@@ -40,9 +40,10 @@ should be returned.}
 
 \item{component}{Should all parameters, parameters for the
  conditional model, the zero-inflated part of the model, the dispersion
- term or the instrumental variables be returned? Applies to models
- with zero-inflated and/or dispersion formula, or to models with instrumental
- variable (so called fixed-effects regressions). May be abbreviated. Note that the
+ term, the instrumental variables or marginal effects be returned? Applies
+ to models with zero-inflated and/or dispersion formula, or to models with
+ instrumental variables (so called fixed-effects regressions), or models
+ with marginal effects from \pkg{mfx}. May be abbreviated. Note that the
 \emph{conditional} component is also called \emph{count} or \emph{mean}
 component, depending on the model.}
 }
@@ -60,7 +61,7 @@ Extract diagnostic metrics (Effective Sample Size (\code{ESS}), \code{Rhat} and 
 \dontrun{
 # rstanarm models
 # -----------------------------------------------
-if (require("rstanarm", quietly = TRUE) {
+if (require("rstanarm", quietly = TRUE)) {
   model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
   diagnostic_posterior(model)
 }

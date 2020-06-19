@@ -647,8 +647,8 @@ body {
 <h2 id="a-simple-example">A simple example</h2>
 <h3 id="bayestestr-installation">BayestestR Installation</h3>
 <p>You can install <code>bayestestR</code> along with the whole <a href="https://github.com/easystats/easystats"><strong>easystats</strong></a> suite by running the following:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)</a>
-<a class="sourceLine" id="cb1-2" title="2">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;easystats/easystats&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a>devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;easystats/easystats&quot;</span>)</span></code></pre></div>
 <!-- Now that it's done, we can *load* the packages we need, in this case [`report`](https://github.com/easystats/report), which combines `bayestestR` and other packages together. -->
 
 <!-- ```{r message=FALSE, warning=FALSE} -->
@@ -658,12 +658,12 @@ body {
 <!-- ``` -->
 
 <p>Let’s also install and load the <a href="https://mc-stan.org/rstanarm/"><code>rstanarm</code></a>, that allows fitting Bayesian models, as well as <a href="https://github.com/easystats/bayestestR"><code>bayestestR</code></a>, to describe them.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">install.packages</span>(<span class="st">&quot;rstanarm&quot;</span>)</a>
-<a class="sourceLine" id="cb2-2" title="2"><span class="kw">library</span>(rstanarm)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">install.packages</span>(<span class="st">&quot;rstanarm&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">library</span>(rstanarm)</span></code></pre></div>
 <h3 id="traditional-linear-regression">Traditional linear regression</h3>
 <p>Let’s start by fitting a simple frequentist linear regression (the <code>lm()</code> function stands for <em>linear model</em>) between two numeric variables, <code>Sepal.Length</code> and <code>Petal.Length</code> from the famous <a href="https://en.wikipedia.org/wiki/Iris_flower_data_set"><code>iris</code></a> dataset, included by default in R.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">model &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris)</a>
-<a class="sourceLine" id="cb3-2" title="2"><span class="kw">summary</span>(model)</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>model &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">summary</span>(model)</span></code></pre></div>
 <pre><code>
 Call:
 lm(formula = Sepal.Length ~ Petal.Length, data = iris)
@@ -735,8 +735,8 @@ F-statistic:  469 on 1 and 148 DF,  p-value: &lt;2e-16
 
 <!-- ``` -->
 
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">model &lt;-<span class="st"> </span><span class="kw">stan_glm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris)</a>
-<a class="sourceLine" id="cb5-2" title="2"><span class="kw">describe_posterior</span>(model)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>model &lt;-<span class="st"> </span><span class="kw">stan_glm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Petal.Length, <span class="dt">data=</span>iris)</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">describe_posterior</span>(model)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">

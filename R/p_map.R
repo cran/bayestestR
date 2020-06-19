@@ -117,10 +117,7 @@ p_map.data.frame <- function(x, precision = 2^10, method = "kernel", ...) {
 
 #' @export
 p_map.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
-  }
-  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+  xdf <- .clean_emmeans_draws(x)
   out <- p_map(xdf, precision = precision, method = method, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
@@ -216,6 +213,8 @@ p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("f
   out
 }
 
+#' @export
+p_map.stanfit <- p_map.stanreg
 
 
 
@@ -238,6 +237,7 @@ p_map.brmsfit <- function(x, precision = 2^10, method = "kernel", effects = c("f
 
 
 
+
 #' @export
 p_map.BFBayesFactor <- function(x, precision = 2^10, method = "kernel", ...) {
   out <- p_map(insight::get_parameters(x), precision = precision, method = method, ...)
@@ -251,6 +251,15 @@ p_map.BFBayesFactor <- function(x, precision = 2^10, method = "kernel", ...) {
 p_map.MCMCglmm <- function(x, precision = 2^10, method = "kernel", ...) {
   nF <- x$Fixed$nfl
   out <- p_map(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), precision = precision, method = method, ...)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  out
+}
+
+
+
+#' @export
+p_map.bayesQR <- function(x, precision = 2^10, method = "kernel", ...) {
+  out <- p_map(insight::get_parameters(x), precision = precision, method = method, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }

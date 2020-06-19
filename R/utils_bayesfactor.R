@@ -85,17 +85,6 @@
   model_prior
 }
 
-#' @keywords internal
-.format_big_small <- function(BF, digits = 2) {
-  BFx <- as.character(round(BF, digits = digits))
-  big_ind <- abs(BF) >= (10 * 10^digits) | abs(BF) < 1 / (10^digits)
-  big_ind <- sapply(big_ind, isTRUE)
-  if (isTRUE(any(big_ind))) {
-    BFx[big_ind] <- formatC(BF, format = "e", digits = digits)[big_ind]
-  }
-  BFx
-}
-
 
 # clean priors and posteriors ---------------------------------------------
 
@@ -141,21 +130,22 @@
       "Please provide the original model to get meaningful results."
     )
   } else if (!inherits(prior, "emmGrid")) { # then is it a model
-    if (!is.null(posterior@misc$orig.tran) ||
-        !is.null(posterior@misc$tran)) {
-      stop("Cannot reconstruct priors for \"transformed\" emmGrid objects.\n",
-           "See function details.\n",
-           call. = FALSE)
-    }
-
     prior <- .update_to_priors(prior, verbose = verbose)
     prior <- emmeans::ref_grid(prior)
     prior <- prior@post.beta
+
+    if (!isTRUE(all.equal(colnames(prior), colnames(posterior@post.beta)))) {
+      stop(
+        "Unable to reconstruct prior estimates.\n",
+        "Perhaps the emmGrid object has been transformed? See function details.\n",
+        call. = FALSE
+      )
+    }
     prior <- stats::update(posterior, post.beta = prior)
   }
 
-  prior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(prior, names = FALSE)))
-  posterior <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(posterior, names = FALSE)))
+  prior <- .clean_emmeans_draws(prior)
+  posterior <- .clean_emmeans_draws(posterior)
 
   list(posterior = posterior,
        prior = prior)
@@ -213,7 +203,8 @@
 #' @importFrom stats median mad approx
 #' @importFrom utils stack
 #' @keywords internal
-.make_BF_plot_data <- function(posterior, prior, direction, null) {
+.make_BF_plot_data <- function(posterior, prior, direction, null,
+                               extend_scale = 0.05, precision = 2^8, ...) {
   if (!requireNamespace("logspline")) {
     stop("Package \"logspline\" needed for this function to work. Please install it.")
   }
@@ -227,9 +218,6 @@
       # 1. estimate density
       x <- data$values
 
-      extend_scale <- 0.05
-      precision <- 2^8
-
       x_range <- range(x)
       x_rangex <- stats::median(x) + 7 * stats::mad(x) * c(-1, 1)
       x_range <- c(
@@ -242,7 +230,7 @@
       x_range[2] <- x_range[2] + extension_scale
 
       x_axis <- seq(x_range[1], x_range[2], length.out = precision)
-      f_x <- logspline::logspline(x)
+      f_x <- .logspline(x, ...)
       y <- logspline::dlogspline(x_axis, f_x)
       d_points <- data.frame(x = x_axis, y = y)
 
@@ -267,7 +255,7 @@
       list(d_points, d_null)
     })
 
-    # 4a. orgenize
+    # 4a. organize
     point0 <- lapply(samples, function(.) as.data.frame(.[[2]]))
     point0 <- do.call("rbind", point0)
 
@@ -321,3 +309,21 @@ as.double.bayesfactor_parameters <- as.numeric.bayesfactor_inclusion
 
 #' @export
 as.double.bayesfactor_restricted <- as.numeric.bayesfactor_inclusion
+
+
+
+# logspline ---------------------------------------------------------------
+
+#' @keywords internal
+.logspline <- function(x, ...) {
+  if (!requireNamespace("logspline")) {
+    stop("Package \"logspline\" needed for this function to work. Please install it.")
+  }
+
+  arg_names <- names(formals(logspline::logspline, envir = parent.frame()))
+  in_args <- list(...)
+
+  in_args <- in_args[names(in_args) %in% arg_names]
+  in_args <- c(list(x = x), in_args)
+  suppressWarnings(do.call(logspline::logspline, in_args))
+}

@@ -28,11 +28,15 @@
 #' @param prior An object representing a prior distribution (see 'Details').
 #' @param direction Test type (see 'Details'). One of \code{0}, \code{"two-sided"} (default, two tailed),
 #' \code{-1}, \code{"left"} (left tailed) or \code{1}, \code{"right"} (right tailed).
-#' @param null Value of the null, either a scaler (for point-null) or a a range
+#' @param null Value of the null, either a scalar (for point-null) or a range
 #' (for a interval-null).
+#' @param ... Arguments passed to and from other methods.
+#'   (Can be used to pass arguments to internal \code{\link[logspline]{logspline}}.)
 #' @inheritParams hdi
 #'
 #' @return A data frame containing the Bayes factor representing evidence \emph{against} the null.
+#'
+#' @note There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
 #' @details This method is used to compute Bayes factors based on prior and posterior distributions.
 #' \cr\cr
@@ -51,11 +55,11 @@
 #'   \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
 #'   \item When \code{posterior} is a \code{stanreg} or \code{brmsfit} model: \itemize{
 #'     \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
-#'     \item \code{prior} can also be a model equvilant to \code{posterior} but with samples from the priors \emph{only}.
+#'     \item \code{prior} can also be a model equivalent to \code{posterior} but with samples from the priors \emph{only}.
 #'   }
 #'   \item When \code{posterior} is an \code{emmGrid} object: \itemize{
 #'     \item \code{prior} should be the \code{stanreg} or \code{brmsfit} model used to create the \code{emmGrid} objects.
-#'     \item \code{prior} can also be an \code{emmGrid} object equvilant to \code{posterior} but created with a model of priors samples \emph{only}.
+#'     \item \code{prior} can also be an \code{emmGrid} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}.
 #'     \item \strong{Note:} When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
 #'   }
 #' }}
@@ -67,7 +71,7 @@
 #' of the null (point or interval).
 #' }
 #' \subsection{Interpreting Bayes Factors}{
-#' A Bayes factor greater than 1 can be interpereted as evidence against the null,
+#' A Bayes factor greater than 1 can be interpreted as evidence against the null,
 #' at which one convention is that a Bayes factor greater than 3 can be considered
 #' as "substantial" evidence against the null (and vice versa, a Bayes factor
 #' smaller than 1/3 indicates substantial evidence in favor of the null-model)
@@ -295,7 +299,8 @@ bayesfactor_parameters.data.frame <- function(posterior,
       posterior[[par]],
       prior[[par]],
       direction = direction,
-      null = null
+      null = null,
+      ...
     )
   }
 
@@ -313,7 +318,7 @@ bayesfactor_parameters.data.frame <- function(posterior,
 
   attr(bf_val, "hypothesis") <- null # don't change the name of this attribute - it is used only internally for "see" and printing
   attr(bf_val, "direction") <- direction
-  attr(bf_val, "plot_data") <- .make_BF_plot_data(posterior, prior, direction, null)
+  attr(bf_val, "plot_data") <- .make_BF_plot_data(posterior, prior, direction, null, ...)
 
   bf_val
 }
@@ -322,7 +327,7 @@ bayesfactor_parameters.data.frame <- function(posterior,
 
 #' @keywords internal
 #' @importFrom insight print_color
-.bayesfactor_parameters <- function(posterior, prior, direction = 0, null = 0) {
+.bayesfactor_parameters <- function(posterior, prior, direction = 0, null = 0, ...) {
   if (isTRUE(all.equal(posterior, prior))) {
     return(1)
   }
@@ -334,7 +339,7 @@ bayesfactor_parameters.data.frame <- function(posterior,
 
   if (length(null) == 1) {
     relative_density <- function(samples) {
-      f_samples <- suppressWarnings(logspline::logspline(samples))
+      f_samples <- .logspline(samples, ...)
       d_samples <- logspline::dlogspline(null, f_samples)
 
       if (direction < 0) {
@@ -354,8 +359,8 @@ bayesfactor_parameters.data.frame <- function(posterior,
     null <- sort(null)
     null[is.infinite(null)] <- 1.797693e+308 * sign(null[is.infinite(null)])
 
-    f_prior <- logspline::logspline(prior)
-    f_posterior <- logspline::logspline(posterior)
+    f_prior <- .logspline(prior, ...)
+    f_posterior <- .logspline(posterior, ...)
 
     h0_prior <- diff(logspline::plogspline(null, f_prior))
     h0_post <- diff(logspline::plogspline(null, f_posterior))

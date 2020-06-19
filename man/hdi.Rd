@@ -5,6 +5,7 @@
 \alias{hdi.numeric}
 \alias{hdi.data.frame}
 \alias{hdi.MCMCglmm}
+\alias{hdi.bayesQR}
 \alias{hdi.sim.merMod}
 \alias{hdi.sim}
 \alias{hdi.emmGrid}
@@ -20,6 +21,8 @@ hdi(x, ...)
 \method{hdi}{data.frame}(x, ci = 0.89, verbose = TRUE, ...)
 
 \method{hdi}{MCMCglmm}(x, ci = 0.89, verbose = TRUE, ...)
+
+\method{hdi}{bayesQR}(x, ci = 0.89, verbose = TRUE, ...)
 
 \method{hdi}{sim.merMod}(
   x,
@@ -122,6 +125,9 @@ to the transformed lower and higher bounds of the original distribution.
 On the contrary, applying transformations to the distribution will change
 the resulting HDI.
 }
+\note{
+There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
+}
 \examples{
 library(bayestestR)
 
@@ -152,7 +158,6 @@ bf <- ttestBF(x = rnorm(100, 1, 1))
 hdi(bf)
 hdi(bf, ci = c(.80, .90, .95))
 }
-
 }
 \references{
 \itemize{

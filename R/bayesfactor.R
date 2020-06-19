@@ -16,6 +16,7 @@
 #'
 #' @return Some type of Bayes factor, depending on the input. See \code{\link{bayesfactor_parameters}}, \code{\link{bayesfactor_models}} or \code{\link{bayesfactor_inclusion}}
 #'
+#' @note There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
 #' @examples
 #' library(bayestestR)
@@ -57,6 +58,7 @@ bayesfactor <-
            match_models = FALSE,
            prior_odds = NULL) {
     mods <- list(...)
+    effects <- match.arg(effects)
 
     if (length(mods) > 1) {
       bayesfactor_models(..., denominator = denominator)

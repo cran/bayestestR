@@ -25,6 +25,8 @@
 #'   an "uncertainty" or "compatibility" interval, the latter being defined as
 #'   \dQuote{Given any value in the interval and the background assumptions,
 #'   the data should not seem very surprising} (\cite{Gelman & Greenland 2019}).
+#'   \cr \cr
+#'   There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
 #' @references Gelman A, Greenland S. Are confidence intervals better termed "uncertainty intervals"? BMJ 2019;l5381. \doi{10.1136/bmj.l5381}
 #'
@@ -124,7 +126,7 @@ ci.sim <- function(x, ci = .89, method = "ETI", parameters = NULL, verbose = TRU
 #' @rdname ci
 #' @export
 ci.stanreg <- function(x, ci = .89, method = "ETI", effects = c("fixed", "random", "all"),
-                       parameters = NULL, verbose = TRUE,  BF = 1,...) {
+                       parameters = NULL, verbose = TRUE,  BF = 1, ...) {
   .ci_bayesian(x, ci = ci, method = method, effects = effects, parameters = parameters, verbose = verbose, BF = BF, ...)
 }
 
@@ -136,6 +138,10 @@ ci.brmsfit <- function(x, ci = .89, method = "ETI", effects = c("fixed", "random
                        parameters = NULL, verbose = TRUE, BF = 1, ...) {
   .ci_bayesian(x, ci = ci, method = method, effects = effects, component = component, parameters = parameters, verbose = verbose, BF = BF, ...)
 }
+
+
+#' @export
+ci.stanfit <- ci.stanreg
 
 
 #' @rdname ci

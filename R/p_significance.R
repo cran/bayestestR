@@ -17,6 +17,8 @@
 #'   range of the probability distribution \code{x}, \code{p_significance()}
 #'   will be less than 0.5, which indicates no clear practical significance.
 #'
+#' @note There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
+#'
 #' @examples
 #' library(bayestestR)
 #'
@@ -153,13 +155,16 @@ p_significance.bcplm <- function(x, threshold = "default", ...) {
 }
 
 
+#' @export
+p_significance.bayesQR <- function(x, threshold = "default", ...) {
+  p_significance(insight::get_parameters(x), threshold = threshold, ...)
+}
+
+
 #' @rdname p_significance
 #' @export
 p_significance.emmGrid <- function(x, threshold = "default", ...) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
-  }
-  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+  xdf <- .clean_emmeans_draws(x)
   out <- p_significance(xdf, threshold = threshold, ...)
 
   attr(out, "object_name") <- .safe_deparse(substitute(x))
@@ -191,6 +196,9 @@ p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed"
 
   out
 }
+
+#' @export
+p_significance.stanfit <- p_significance.stanreg
 
 
 

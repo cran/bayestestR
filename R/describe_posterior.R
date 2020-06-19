@@ -131,7 +131,7 @@ describe_posterior <- function(posteriors, centrality = "median", dispersion = F
     }
 
     ## TODO no BF for arm::sim
-    if (inherits(x, c("sim", "sim.merMod", "mcmc"))) test <- setdiff(test, "bf")
+    if (inherits(x, c("sim", "sim.merMod", "mcmc", "stanfit"))) test <- setdiff(test, "bf")
 
     # MAP-based p-value
 
@@ -314,7 +314,9 @@ describe_posterior <- function(posteriors, centrality = "median", dispersion = F
 #' @param bf_prior Distribution representing a prior for the computation of Bayes factors / SI. Used if the input is a posterior, otherwise (in the case of models) ignored.
 #' @export
 describe_posterior.numeric <- function(posteriors, centrality = "median", dispersion = FALSE, ci = 0.89, ci_method = "hdi", test = c("p_direction", "rope"), rope_range = "default", rope_ci = 0.89, bf_prior = NULL, BF = 1, ...) {
-  .describe_posterior(posteriors, centrality = centrality, dispersion = dispersion, ci = ci, ci_method = ci_method, test = test, rope_range = rope_range, rope_ci = rope_ci, bf_prior = bf_prior, BF = BF, ...)
+  out <- .describe_posterior(posteriors, centrality = centrality, dispersion = dispersion, ci = ci, ci_method = ci_method, test = test, rope_range = rope_range, rope_ci = rope_ci, bf_prior = bf_prior, BF = BF, ...)
+  class(out) <- unique(c("describe_posterior", "see_describe_posterior", class(out)))
+  out
 }
 
 
@@ -388,16 +390,15 @@ describe_posterior.sim <- describe_posterior.numeric
 
 #' @export
 describe_posterior.emmGrid <- function(posteriors, centrality = "median", dispersion = FALSE, ci = 0.89, ci_method = "hdi", test = c("p_direction", "rope"), rope_range = "default", rope_ci = 0.89, bf_prior = NULL, BF = 1, ...) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
-  }
-
-  if (any(c("all", "bf", "bayesfactor", "bayes_factor") %in% tolower(test)) | "si" %in% tolower(ci_method)) {
+  if (any(c("all", "bf", "bayesfactor", "bayes_factor") %in% tolower(test)) ||
+      "si" %in% tolower(ci_method)) {
     samps <- .clean_priors_and_posteriors(posteriors, bf_prior)
     bf_prior <- samps$prior
+    posteriors <- samps$posterior
+  } else {
+    posteriors <- .clean_emmeans_draws(posteriors)
   }
 
-  posteriors <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(posteriors, names = FALSE)))
 
   out <- .describe_posterior(
     posteriors,
@@ -435,23 +436,15 @@ describe_posterior.stanreg <- function(posteriors, centrality = "median", disper
 
   out <- .describe_posterior(posteriors, centrality = centrality, dispersion = dispersion, ci = ci, ci_method = ci_method, test = test, rope_range = rope_range, rope_ci = rope_ci, bf_prior = bf_prior, BF = BF, effects = effects, parameters = parameters, ...)
 
-  if (!is.null(diagnostic)) {
-    model_algorithm <- insight::find_algorithm(posteriors)
-
-    if (model_algorithm$algorithm %in% c("fullrank", "meanfield")) {
-      insight::print_color("Model diagnostic not available for stanreg-models fitted with 'fullrank' or 'meanfield'-algorithm.\n", "red")
-    } else {
-      diagnostic <-
-        diagnostic_posterior(
-          posteriors,
-          diagnostic,
-          effects = effects,
-          parameters = parameters,
-          ...
-        )
-      out <- .merge_and_sort(out, diagnostic, by = "Parameter", all = TRUE)
-    }
-  }
+  diagnostic <-
+    diagnostic_posterior(
+      posteriors,
+      diagnostic,
+      effects = effects,
+      parameters = parameters,
+      ...
+    )
+  out <- .merge_and_sort(out, diagnostic, by = "Parameter", all = TRUE)
 
   if (isTRUE(priors)) {
     priors_data <- describe_prior(posteriors, ...)
@@ -474,23 +467,15 @@ describe_posterior.stanmvreg <- function(posteriors, centrality = "median", disp
   out <- .describe_posterior(posteriors, centrality = centrality, dispersion = dispersion, ci = ci, ci_method = ci_method, test = test, rope_range = rope_range, rope_ci = rope_ci, bf_prior = bf_prior, effects = effects, parameters = parameters, ...)
   out$Response <- gsub("^(.*)\\|(.*)", "\\1", out$Parameter)
 
-  if (!is.null(diagnostic)) {
-    model_algorithm <- insight::find_algorithm(posteriors)
-
-    if (model_algorithm$algorithm %in% c("fullrank", "meanfield")) {
-      insight::print_color("Model diagnostic not available for stanreg-models fitted with 'fullrank' or 'meanfield'-algorithm.\n", "red")
-    } else {
-      diagnostic <-
-        diagnostic_posterior(
-          posteriors,
-          diagnostic,
-          effects = effects,
-          parameters = parameters,
-          ...
-        )
-      out <- .merge_and_sort(out, diagnostic, by = c("Parameter", "Response"), all = TRUE)
-    }
-  }
+  diagnostic <-
+    diagnostic_posterior(
+      posteriors,
+      diagnostic,
+      effects = effects,
+      parameters = parameters,
+      ...
+    )
+  out <- .merge_and_sort(out, diagnostic, by = c("Parameter", "Response"), all = TRUE)
 
   if (isTRUE(priors)) {
     priors_data <- describe_prior(posteriors, ...)
@@ -501,6 +486,30 @@ describe_posterior.stanmvreg <- function(posteriors, centrality = "median", disp
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }
+
+
+
+#' @inheritParams insight::get_parameters
+#' @inheritParams diagnostic_posterior
+#' @export
+describe_posterior.stanfit <- function(posteriors, centrality = "median", dispersion = FALSE, ci = 0.89, ci_method = "hdi", test = c("p_direction", "rope"), rope_range = "default", rope_ci = 0.89, diagnostic = c("ESS", "Rhat"), effects = c("fixed", "random", "all"), parameters = NULL, ...) {
+  out <- .describe_posterior(posteriors, centrality = centrality, dispersion = dispersion, ci = ci, ci_method = ci_method, test = test, rope_range = rope_range, rope_ci = rope_ci, effects = effects, parameters = parameters, ...)
+
+  diagnostic <-
+    diagnostic_posterior(
+      posteriors,
+      diagnostic,
+      effects = effects,
+      parameters = parameters,
+      ...
+    )
+  out <- .merge_and_sort(out, diagnostic, by = "Parameter", all = TRUE)
+
+  attr(out, "ci_method") <- ci_method
+  class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
+  out
+}
+
 
 
 #' @inheritParams describe_posterior.stanreg
@@ -534,6 +543,14 @@ describe_posterior.bcplm <- function(posteriors, centrality = "median", dispersi
     out <- .merge_and_sort(out, priors_data, by = "Parameter", all = TRUE)
   }
 
+  attr(out, "ci_method") <- ci_method
+  class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
+  out
+}
+
+#' @export
+describe_posterior.bayesQR <- function(posteriors, centrality = "median", dispersion = FALSE, ci = 0.89, ci_method = "hdi", test = c("p_direction", "rope"), rope_range = "default", rope_ci = 0.89, parameters = NULL, ...) {
+  out <- .describe_posterior(insight::get_parameters(posteriors), centrality = centrality, dispersion = dispersion, ci = ci, ci_method = ci_method, test = test, rope_range = rope_range, rope_ci = rope_ci, effects = "fixed", parameters = parameters, ...)
   attr(out, "ci_method") <- ci_method
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
@@ -628,7 +645,7 @@ describe_posterior.BFBayesFactor <- function(posteriors, centrality = "median", 
 
 
 
-
+#' @keywords internal
 .check_test_values <- function(test) {
   match.arg(tolower(test), c(
     "pd", "p_direction", "pdir", "mpe", "ps", "psig", "p_significance",

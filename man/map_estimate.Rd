@@ -3,13 +3,18 @@
 \name{map_estimate}
 \alias{map_estimate}
 \alias{map_estimate.numeric}
+\alias{map_estimate.bayesQR}
 \alias{map_estimate.stanreg}
 \alias{map_estimate.brmsfit}
+\alias{map_estimate.data.frame}
+\alias{map_estimate.emmGrid}
 \title{Maximum A Posteriori probability estimate (MAP)}
 \usage{
 map_estimate(x, precision = 2^10, method = "kernel", ...)
 
 \method{map_estimate}{numeric}(x, precision = 2^10, method = "kernel", ...)
+
+\method{map_estimate}{bayesQR}(x, precision = 2^10, method = "kernel", ...)
 
 \method{map_estimate}{stanreg}(
   x,
@@ -29,13 +34,17 @@ map_estimate(x, precision = 2^10, method = "kernel", ...)
   parameters = NULL,
   ...
 )
+
+\method{map_estimate}{data.frame}(x, precision = 2^10, method = "kernel", ...)
+
+\method{map_estimate}{emmGrid}(x, precision = 2^10, method = "kernel", ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
 vectors. Can also be a Bayesian model (\code{stanreg}, \code{brmsfit},
 \code{MCMCglmm}, \code{mcmc} or \code{bcplm}) or a \code{BayesFactor} model.}
 
-\item{precision}{Number of points of density data. See the \code{n} parameter in \link[=density]{density}.}
+\item{precision}{Number of points of density data. See the \code{n} parameter in \code{density}.}
 
 \item{method}{Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.}
 

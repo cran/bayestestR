@@ -50,7 +50,7 @@
 #'
 #' @references \itemize{
 #'   \item Kruschke, J. K. (2018). Rejecting or accepting parameter values in Bayesian estimation. Advances in Methods and Practices in Psychological Science, 1(2), 270-280. \doi{10.1177/2515245918771304}
-#'   \item Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press
+#'   \item Kruschke, J. K. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press
 #'   \item Piironen, J., & Vehtari, A. (2017). Comparison of Bayesian predictive methods for model selection. Statistics and Computing, 27(3), 711–735. \doi{10.1007/s11222-016-9649-y}
 #' }
 #'
@@ -65,7 +65,8 @@
 #'   }
 #'
 #' @note There is a \code{print()}-method with a \code{digits}-argument to control
-#'   the amount of digits in the output, and there is a \code{plot()}-method
+#'   the amount of digits in the output, and there is a
+#'   \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method}
 #'   to visualize the results from the equivalence-test (for models only).
 #'
 #' @examples
@@ -178,10 +179,7 @@ equivalence_test.data.frame <- function(x, range = "default", ci = .89, verbose 
 #' @rdname equivalence_test
 #' @export
 equivalence_test.emmGrid <- function(x, range = "default", ci = .89, verbose = TRUE, ...) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
-  }
-  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+  xdf <- .clean_emmeans_draws(x)
 
   out <- equivalence_test(xdf, range = range, ci = ci, verbose = verbose, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
@@ -247,6 +245,10 @@ equivalence_test.stanreg <- function(x, range = "default", ci = .89, effects = c
 }
 
 
+#' @export
+equivalence_test.stanfit <- equivalence_test.stanreg
+
+
 #' @rdname equivalence_test
 #' @export
 equivalence_test.brmsfit <- function(x, range = "default", ci = .89, effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, verbose = TRUE, ...) {
@@ -260,6 +262,7 @@ equivalence_test.brmsfit <- function(x, range = "default", ci = .89, effects = c
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
+
 
 
 #' @export

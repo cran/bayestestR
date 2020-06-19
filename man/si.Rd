@@ -49,7 +49,8 @@ or a data frame - representing a posterior distribution(s) from (see 'Details').
 
 \item{verbose}{Toggle off warnings.}
 
-\item{...}{Arguments passed to and from other methods.}
+\item{...}{Arguments passed to and from other methods.
+(Can be used to pass arguments to internal \code{\link[logspline]{logspline}}.)}
 
 \item{effects}{Should results for fixed effects, random effects or both be returned?
 Only applies to mixed models. May be abbreviated.}
@@ -85,6 +86,9 @@ This method is used to compute support intervals based on prior and posterior di
 For the computation of support intervals, the model priors must be proper priors (at the very least
 they should be \emph{not flat}, and it is preferable that they be \emph{informative} - note
 that by default, \code{brms::brm()} uses flat priors for fixed-effects; see example below).
+}
+\note{
+There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 
 \subsection{Setting the correct \code{prior}}{
 It is important to provide the correct \code{prior} for meaningful results.

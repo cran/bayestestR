@@ -9,6 +9,8 @@
 #'
 #' @references \href{https://easystats.github.io/bayestestR/articles/indicesEstimationComparison.html}{Vignette In-Depth 1: Comparison of Point-Estimates}
 #'
+#' @note There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
+#'
 #' @examples
 #' library(bayestestR)
 #'
@@ -130,6 +132,9 @@ point_estimate.bcplm <- function(x, centrality = "all", dispersion = FALSE, ...)
   point_estimate(insight::get_parameters(x), centrality = centrality, dispersion = dispersion, ...)
 }
 
+#' @export
+point_estimate.bayesQR <- point_estimate.bcplm
+
 
 #' @export
 point_estimate.MCMCglmm <- function(x, centrality = "all", dispersion = FALSE, ...) {
@@ -140,10 +145,7 @@ point_estimate.MCMCglmm <- function(x, centrality = "all", dispersion = FALSE, .
 
 #' @export
 point_estimate.emmGrid <- function(x, centrality = "all", dispersion = FALSE, ...) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
-  }
-  xdf <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(x, names = FALSE)))
+  xdf <- .clean_emmeans_draws(x)
 
   out <- point_estimate(xdf, centrality = centrality, dispersion = dispersion, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
@@ -181,6 +183,10 @@ point_estimate.stanreg <- function(x, centrality = "all", dispersion = FALSE, ef
 
   out
 }
+
+#' @export
+point_estimate.stanfit <- point_estimate.stanreg
+
 
 #' @rdname point_estimate
 #' @export

@@ -354,15 +354,16 @@ bayesfactor_parameters(groups_all, prior = model)
 ## ---- echo=FALSE--------------------------------------------------------------
 set.seed(1)
 
-## -----------------------------------------------------------------------------
-library(modelbased)
-
-estimate_contrasts(model, test = "bf")
+## ---- eval=FALSE--------------------------------------------------------------
+#  library(modelbased)
+#  
+#  estimate_contrasts(model, test = "bf")
 
 ## ---- eval=FALSE--------------------------------------------------------------
-#  contrasts(iris$Species) <- contr.sum
+#  df <- iris
+#  contrasts(df$Species) <- contr.sum
 #  
-#  fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
+#  fit_sum <- stan_glm(Sepal.Length ~ Species, data = df,
 #                      prior = normal(0, c(1, 1), autoscale = FALSE),
 #                      prior_PD = TRUE, # sample priors
 #                      family = gaussian())
@@ -370,10 +371,11 @@ estimate_contrasts(model, test = "bf")
 #  pairs_sum <- pairs(emmeans(fit_sum, ~ Species))
 #  pairs_sum
 
-## ---- echo=FALSE--------------------------------------------------------------
-contrasts(iris$Species) <- contr.sum
+## ----echo=FALSE, message=FALSE, warning=FALSE---------------------------------
+df <- iris
+contrasts(df$Species)[, ] <- contr.sum(3)
 
-fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
+fit_sum <- stan_glm(Sepal.Length ~ Species, data = df,
                     prior = normal(0, c(1, 1), autoscale = FALSE),
                     prior_PD = TRUE, # sample priors
                     family = gaussian(),
@@ -391,16 +393,14 @@ ggplot(stack(em_pairs_samples), aes(x = values, fill = ind)) +
   labs(x = "prior difference values") + 
   theme(legend.position = "none")
 
-## -----------------------------------------------------------------------------
-contrasts(iris$Species) <- contr.bayes
+## ---- eval=FALSE--------------------------------------------------------------
+#  contrasts(df$Species) <- contr.bayes
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  options(contrasts = c('contr.bayes', 'contr.poly'))
 
 ## ---- eval=FALSE--------------------------------------------------------------
-#  contrasts(iris$Species) <- contr.bayes
-#  
-#  fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
+#  fit_bayes <- stan_glm(Sepal.Length ~ Species, data = df,
 #                        prior = normal(0, c(1, 1), autoscale = FALSE),
 #                        prior_PD = TRUE, # sample priors
 #                        family = gaussian())
@@ -409,9 +409,9 @@ contrasts(iris$Species) <- contr.bayes
 #  pairs_bayes
 
 ## ---- echo=FALSE--------------------------------------------------------------
-contrasts(iris$Species) <- contr.bayes
+contrasts(df$Species)[, ] <- contr.bayes(3)
 
-fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
+fit_bayes <- stan_glm(Sepal.Length ~ Species, data = df,
                       prior = normal(0, c(1, 1), autoscale = FALSE),
                       prior_PD = TRUE, # sample priors
                       family = gaussian(),
@@ -443,9 +443,9 @@ hyp <- c(
 )
 
 ## ---- eval=FALSE--------------------------------------------------------------
-#  contrasts(iris$Species) <- contr.sum
+#  contrasts(df$Species) <- contr.sum
 #  
-#  fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
+#  fit_sum <- stan_glm(Sepal.Length ~ Species, data = df,
 #                      prior = normal(0, c(1, 1), autoscale = FALSE),
 #                      family = gaussian())
 #  
@@ -454,9 +454,9 @@ hyp <- c(
 #  bayesfactor_restricted(em_sum, fit_sum, hypothesis = hyp)
 
 ## ---- echo=FALSE--------------------------------------------------------------
-contrasts(iris$Species) <- contr.sum
+contrasts(df$Species)[, ] <- contr.sum(3)
 
-fit_sum <- stan_glm(Sepal.Length ~ Species, data = iris,
+fit_sum <- stan_glm(Sepal.Length ~ Species, data = df,
                     prior = normal(0, c(1, 1), autoscale = FALSE),
                     family = gaussian(),
                     refresh = 0)
@@ -466,9 +466,9 @@ em_sum <- emmeans(fit_sum, ~ Species) # the posterior marginal means
 bayesfactor_restricted(em_sum, fit_sum, hypothesis = hyp)
 
 ## ---- eval=FALSE--------------------------------------------------------------
-#  contrasts(iris$Species) <- contr.bayes
+#  contrasts(df$Species) <- contr.bayes
 #  
-#  fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
+#  fit_bayes <- stan_glm(Sepal.Length ~ Species, data = df,
 #                        prior = normal(0, c(1, 1), autoscale = FALSE),
 #                        family = gaussian())
 #  
@@ -477,9 +477,9 @@ bayesfactor_restricted(em_sum, fit_sum, hypothesis = hyp)
 #  bayesfactor_restricted(em_bayes, fit_sum, hypothesis = hyp)
 
 ## ---- echo=FALSE--------------------------------------------------------------
-contrasts(iris$Species) <- contr.bayes
+contrasts(df$Species)[, ] <- contr.bayes(3)
 
-fit_bayes <- stan_glm(Sepal.Length ~ Species, data = iris,
+fit_bayes <- stan_glm(Sepal.Length ~ Species, data = df,
                       prior = normal(0, c(1, 1), autoscale = FALSE),
                       family = gaussian(),
                       refresh = 0)

@@ -127,7 +127,8 @@ Using the \link[=rope]{ROPE} and the \link[=hdi]{HDI}, \cite{Kruschke (2018)}
 }
 \note{
 There is a \code{print()}-method with a \code{digits}-argument to control
-  the amount of digits in the output, and there is a \code{plot()}-method
+  the amount of digits in the output, and there is a
+  \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method}
   to visualize the results from the equivalence-test (for models only).
 }
 \examples{
@@ -169,7 +170,7 @@ equivalence_test(bf, ci = c(.50, .99))
 \references{
 \itemize{
   \item Kruschke, J. K. (2018). Rejecting or accepting parameter values in Bayesian estimation. Advances in Methods and Practices in Psychological Science, 1(2), 270-280. \doi{10.1177/2515245918771304}
-  \item Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press
+  \item Kruschke, J. K. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press
   \item Piironen, J., & Vehtari, A. (2017). Comparison of Bayesian predictive methods for model selection. Statistics and Computing, 27(3), 711–735. \doi{10.1007/s11222-016-9649-y}
 }
 }
