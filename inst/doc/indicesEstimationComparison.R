@@ -16,6 +16,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(see)
+library(parameters)
 
 df <- read.csv("https://raw.github.com/easystats/circus/master/data/bayesSim_study1.csv")
 
@@ -61,17 +62,17 @@ df %>%
   xlab("Sample size") +
   facet_wrap(~ outcome_type * true_effect, scales="free")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
-df %>%
-  select(sample_size, error, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
-  gather(estimate, value, -sample_size, -error, -true_effect, -outcome_type) %>%
-  glm(true_effect ~ outcome_type / estimate / value, data=., family="binomial") %>%
-  broom::tidy() %>%
-  select(term, estimate, p=p.value) %>%
-  filter(stringr::str_detect(term, 'outcome_type'),
-         stringr::str_detect(term, ':value')) %>%
-  arrange(desc(estimate)) %>% 
-  knitr::kable(digits=2) 
+## ---- message=FALSE, warning=FALSE, eval=FALSE--------------------------------
+#  df %>%
+#    select(sample_size, error, true_effect, outcome_type, Coefficient, Median, Mean, MAP) %>%
+#    tidyr::pivot_longer(c(-sample_size, -error, -true_effect, -outcome_type), names_to="estimate") %>%
+#    glm(true_effect ~ outcome_type / estimate / value, data=., family="binomial") %>%
+#    parameters::parameters(df_method="wald") %>%
+#    select(Parameter, Coefficient, p) %>%
+#    filter(stringr::str_detect(Parameter, 'outcome_type'),
+#           stringr::str_detect(Parameter, ':value')) %>%
+#    arrange(desc(Coefficient)) %>%
+#    knitr::kable(digits=2)
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
 df <- read.csv("https://raw.github.com/easystats/circus/master/data/bayesSim_study2.csv")

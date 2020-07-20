@@ -131,7 +131,7 @@ rope_range
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
 rope_value <- rope_range(model)
-rope_range
+rope_value
 
 ## ----message=FALSE, warning=FALSE---------------------------------------------
 rope(posteriors$feedsunflower, range = rope_range, ci=0.89)
