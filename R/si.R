@@ -146,7 +146,7 @@ si.stanreg <- function(posterior, prior = NULL,
     BF = BF, verbose = verbose, ...
   )
 
-  out <- .prepare_output(temp, cleaned_parameters)
+  out <- .prepare_output(temp, cleaned_parameters, inherits(posterior, "stanmvreg"))
 
   attr(out, "object_name") <- .safe_deparse(substitute(posterior))
   class(out) <- class(temp)
@@ -178,6 +178,10 @@ si.emmGrid <- function(posterior, prior = NULL,
   attr(out, "object_name") <- .safe_deparse(substitute(posterior))
   out
 }
+
+#' @export
+si.emm_list <- si.emmGrid
+
 
 #' @rdname si
 #' @export

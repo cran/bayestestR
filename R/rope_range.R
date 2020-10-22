@@ -74,7 +74,27 @@ rope_range.brmsfit <- function(x, ...) {
 rope_range.stanreg <- rope_range.brmsfit
 
 #' @export
-rope_range.BFBayesFactor <- rope_range.brmsfit
+#' @importFrom stats sd
+rope_range.BFBayesFactor <- function(x, ...){
+  fac <- 1
+  if (inherits(x@numerator[[1]], "BFlinearModel")) {
+
+    response <- tryCatch(
+      {
+        insight::get_response(x)
+      },
+      error = function(e) {
+        NULL
+      }
+    )
+
+    if (!is.null(response)) {
+      fac <- stats::sd(response, na.rm = TRUE)
+    }
+  }
+
+  fac * c(-0.1, 0.1)
+}
 
 #' @export
 rope_range.lm <- rope_range.brmsfit
@@ -132,20 +152,28 @@ rope_range.default <- function(x, ...) {
   c(-.1, .1)
 }
 
+#' @export
+rope_range.mlm <- function(x, ...) {
+  response <- insight::get_response(x)
+  information <- insight::model_info(x)
+
+  lapply(response, function(i) .rope_range(x, information, i))
+}
+
 
 
 
 # helper ------------------
 
 
-#' @importFrom stats sigma
+#' @importFrom stats sigma sd
 #' @importFrom insight n_obs find_parameters
 .rope_range <- function(x, information, response) {
   negligible_value <- tryCatch(
     {
       # Linear Models
       if (information$is_linear) {
-        0.1 * stats::sd(response)
+        0.1 * stats::sd(response, na.rm = TRUE)
 
         # Logistic Regression Models
       } else if (information$is_binomial) {

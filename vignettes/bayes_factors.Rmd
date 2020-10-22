@@ -114,7 +114,7 @@ ggplot(sleep, aes(x = group, y = extra, fill= group)) +
   theme_classic()
 ```
 
-The **bloxplot** suggests that the second group has a higher number of hours of extra sleep. *By how much?* Let's fit a simple [Bayesian linear model](https://easystats.github.io/bayestestR/articles/example1_GLM.html), with a prior of $b_{group} \sim N(0, 3)$:
+The **bloxplot** suggests that the second group has a higher number of hours of extra sleep. *By how much?* Let's fit a simple [Bayesian linear model](https://easystats.github.io/bayestestR/articles/example1.html), with a prior of $b_{group} \sim N(0, 3)$:
 
 ```{r rstanarm_model, eval = FALSE}
 library(rstanarm)
@@ -131,7 +131,7 @@ model <- stan_glm(extra ~ group, data = sleep,
 
 ### Testing against a null-*region*
 
-One way of operationlizing the null-hypothesis is by setting a null region, such that an effect that falls within this interval would be practically equivalent to the the null [@kruschke2010believe]. In our case, that means defining a range of effects we would consider equal to the drug having no effect at all. We can then compute the prior probability of the drug's effect falling *within this null-region*, and the prior probability of the drug's effect falling *outside the null-region* to get our *prior odds*. Say any effect smaller than an hour of extra sleep is practically equivalent to being no effect at all, we would define our prior odds as:
+One way of operationlizing the null-hypothesis is by setting a null region, such that an effect that falls within this interval would be practically equivalent to the null [@kruschke2010believe]. In our case, that means defining a range of effects we would consider equal to the drug having no effect at all. We can then compute the prior probability of the drug's effect falling *within this null-region*, and the prior probability of the drug's effect falling *outside the null-region* to get our *prior odds*. Say any effect smaller than an hour of extra sleep is practically equivalent to being no effect at all, we would define our prior odds as:
 
 $$
 \frac
@@ -175,7 +175,7 @@ $$
 
 ```{r rstanarm_fit, echo=FALSE}
 
-model_prior <- bayestestR:::.update_to_priors.stanreg(model)
+model_prior <- unupdate(model)
 posterior <- insight::get_parameters(model)$group2
 prior <- insight::get_parameters(model_prior)$group2
 
@@ -202,8 +202,6 @@ We can see that the center of the posterior distribution has shifted away from 0
 
 Let's compute the Bayes factor as the change from the prior odds to the posterior odds: $BF_{10} = Odds_{posterior} / Odds_{prior} = 0.9$! This BF indicates that the data provide 1/0.9 = 1.1 times more evidence for the effect of the drug being practically nothing than it does for the drug having some clinically significant effect. Thus, although the center of distribution has shifted away from 0, and the posterior distribution seems to favor a non-null effect of the drug, it seems that given the observed data, the probability mass has *overall* shifted closer to the null interval, making the values in the null interval more probable! [see *Non-overlapping Hypotheses* in @morey2011bayesinterval]
 
-Note that **interpretation guides** for Bayes factors can be found [**here**](https://easystats.github.io/report/articles/interpret_metrics.html#bayes-factor-bf).  
-  
 All of this can be achieved with the function `bayesfactor_parameters()`, which computes a Bayes factor for each of the model's parameters:
 
 ```{r, eval=FALSE}
@@ -222,9 +220,16 @@ library(see)
 plot(My_first_BF)
 ```
 
+Note that **interpretation guides** for Bayes factors can be found in the `effectsize` package:
+
+```{r, eval=require(effectsize)}
+effectsize::interpret_bf(My_first_BF$BF[2], include_value = TRUE)
+```
+
+
 ### Testing against the *point*-null (0)
 
-**What if we don't know what region would be practically equivalent to 0?** Or if we just want the null to be exactly zero? Not a problem - as the width of null region shrinks to a point, the change from the prior probability to the posterior probability of the null can be estimated by comparing the the density of the null value between the two distributions.^[Note that as the width of null interval shrinks to zero, the prior probability and posterior probability of the alternative tends towards 1.00.] This ratio is called the **Savage-Dickey ratio**, and has the added benefit of also being an approximation of a Bayes factor comparing the estimated model against the a model in which the parameter of interest has been restricted to a point-null:
+**What if we don't know what region would be practically equivalent to 0?** Or if we just want the null to be exactly zero? Not a problem - as the width of null region shrinks to a point, the change from the prior probability to the posterior probability of the null can be estimated by comparing the density of the null value between the two distributions.^[Note that as the width of null interval shrinks to zero, the prior probability and posterior probability of the alternative tends towards 1.00.] This ratio is called the **Savage-Dickey ratio**, and has the added benefit of also being an approximation of a Bayes factor comparing the estimated model against the a model in which the parameter of interest has been restricted to a point-null:
 
 > "[...] the Bayes factor for $H_0$ versus $H_1$ could be obtained by analytically integrating out the model parameter $\theta$. However, the Bayes factor may likewise be obtained by only considering $H_1$, and dividing the height of the posterior for $\theta$ by the height of the prior for $\theta$, at the point of interest." [@wagenmakers2010bayesian]
 
@@ -272,7 +277,7 @@ print(test_group2_right)
 plot(test_group2_right)
 ```
 
-As we can see, given that we have an *a priori* assumption about the direction of the effect (*that the effect is positive*), **the presence of an effect is 2.8 times more likely than the absence of an effect**, given the observed data (or that the data are 2.8 time more probable under $H_1$ than $H_0$). This indicates that, given the observed data, and a priori hypothesis, the posterior mass has shifted away from the null value, giving some evidence against the null (note that a Bayes factor of 2.8 is still considered quite [weak evidence](https://easystats.github.io/report/articles/interpret_metrics.html#bayes-factor-bf)).
+As we can see, given that we have an *a priori* assumption about the direction of the effect (*that the effect is positive*), **the presence of an effect is 2.8 times more likely than the absence of an effect**, given the observed data (or that the data are 2.8 time more probable under $H_1$ than $H_0$). This indicates that, given the observed data, and a priori hypothesis, the posterior mass has shifted away from the null value, giving some evidence against the null (note that a Bayes factor of 2.8 is still considered quite [weak evidence](https://easystats.github.io/effectsize/reference/interpret_bf.html)).
 
 **NOTE**: See the *Testing Contrasts* appendix below.
 
@@ -319,7 +324,7 @@ Thus, the choice of BF (the level of support the interval should indicate) depen
 
 Bayes factors can also be used to compare statistical models, for which they answer the question:
 
-> **Under which model are the the observed data more probable?**
+> **Under which model are the observed data more probable?**
 
 In other words, which model is more likely to have produced the observed data? This is usually done by comparing the marginal likelihoods of two models. In such a case, the Bayes factor is a measure of the *relative* evidence of one of the compared models over the other.
 
@@ -329,7 +334,7 @@ Let's use Bayes factors for model comparison to find a model that best describes
 
 **Note: In order to compute Bayes factors for Bayesian models, non-default arguments must be added upon fitting:**
   
-  - `brmsfit` models **must** have been fitted with `save_all_pars = TRUE`
+  - `brmsfit` models **must** have been fitted with `save_pars = save_pars(all = TRUE)`
   - `stanreg` models **must** have been fitted with a defined `diagnostic_file`.
   
 Let's first fit 5 Bayesian regressions with `brms` to predict `Sepal.Length`:
@@ -338,15 +343,15 @@ Let's first fit 5 Bayesian regressions with `brms` to predict `Sepal.Length`:
 library(brms)
 
 m0 <- brm(Sepal.Length ~ 1, # intercept only model
-          data = iris, save_all_pars = TRUE)
+          data = iris, save_pars = save_pars(all = TRUE))
 m1 <- brm(Sepal.Length ~ Petal.Length,
-          data = iris, save_all_pars = TRUE)
+          data = iris, save_pars = save_pars(all = TRUE))
 m2 <- brm(Sepal.Length ~ Species,
-          data = iris, save_all_pars = TRUE)
+          data = iris, save_pars = save_pars(all = TRUE))
 m3 <- brm(Sepal.Length ~ Species + Petal.Length,
-          data = iris, save_all_pars = TRUE)
+          data = iris, save_pars = save_pars(all = TRUE))
 m4 <- brm(Sepal.Length ~ Species * Petal.Length,
-          data = iris, save_all_pars = TRUE)
+          data = iris, save_pars = save_pars(all = TRUE))
 ```
 
 We can now compare these models with the `bayesfactor_models()` function, using the `denominator` argument to specify which model all models will be compared against (in this case, the intercept-only model):
@@ -396,7 +401,7 @@ update(comparison, reference = 2)
 
 Notice that in the Bayesian framework the compared models *do not* need to be nested models, as happened here when we compared the `Petal.Length`-only model to the `Species`-only model (something that cannot be done in the frequentists framework, where compared models must be nested in one another).
 
-**NOTE:** In order to correctly and precisely estimate Bayes Factors, you always need the 4 P's: **P**roper **P**riors ^[[Robert, 2016](https://doi.org/10.1016/j.jmp.2015.08.002); [Kass & Raftery, 1993](https://doi.org/10.1080/01621459.1995.10476572); [Fernández, Ley, & Steel, 2001](https://doi.org/10.1016/S0304-4076(00)00076-2)], and a **P**lentiful **P**osterior ^[[Gronau, Wagenmakers, Heck, & Matzke, 2019](https://doi.org/10.1007/s11336-018-9648-3)].
+**NOTE:** In order to correctly and precisely estimate Bayes Factors, you always need the 4 P's: **P**roper **P**riors ^[[Robert, 2016](https://doi.org/10.1016/j.jmp.2015.08.002); [Kass & Raftery, 1993](https://doi.org/10.1080/01621459.1995.10476572); [Fernández, Ley, & Steel, 2001](https://doi.org/10.1016/S0304-4076(00)00076-2)], and a **P**lentiful **P**osterior ^[[Gronau, Singmann, & Wagenmakers, 2017](https://arxiv.org/abs/1710.08162)].
 
 ### For Frequentist models via the BIC approximation 
 
@@ -471,7 +476,7 @@ botanist_BFs
 
 ```{r, echo=FALSE}
 
-model_prior <- bayestestR:::.update_to_priors.stanreg(iris_model)
+model_prior <- unupdate(iris_model)
 
 botanist_BFs <- bayesfactor_restricted(iris_model, prior = model_prior, 
                                        hypothesis = botanist_hypotheses)
@@ -730,7 +735,7 @@ ggplot(stack(em_pairs_samples), aes(x = values, fill = ind)) +
 We can see that the though the prior estimate for all 3 pairwise contrasts is ~0, the scale / HDI is much more narrow for the prior of the `setosa - versicolor` contrast!
 
 ***What happened???***  
-This is caused by an inherent bias in the priors introduced by the *effects* coding (it's even worse with the default treatment coding, because the prior for the intercept is usually drastically different from the effect's parameters). **And since it affects the priors, this bias will also bias the the Bayes factors over / understating evidence for some contrasts over others!**
+This is caused by an inherent bias in the priors introduced by the *effects* coding (it's even worse with the default treatment coding, because the prior for the intercept is usually drastically different from the effect's parameters). **And since it affects the priors, this bias will also bias the Bayes factors over / understating evidence for some contrasts over others!**
 
 The solution is to use *orthonormal* factor coding, a-la `contr.bayes`, which can either specify this factor coding per-factor:
 

@@ -72,7 +72,7 @@ prior_odds <- (1 - pnull) / pnull
 
 ## ----rstanarm_fit, echo=FALSE-------------------------------------------------
 
-model_prior <- bayestestR:::.update_to_priors.stanreg(model)
+model_prior <- unupdate(model)
 posterior <- insight::get_parameters(model)$group2
 prior <- insight::get_parameters(model_prior)$group2
 
@@ -104,6 +104,9 @@ print(My_first_BF)
 ## -----------------------------------------------------------------------------
 library(see)
 plot(My_first_BF)
+
+## ---- eval=require(effectsize)------------------------------------------------
+effectsize::interpret_bf(My_first_BF$BF[2], include_value = TRUE)
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  My_second_BF <- bayesfactor_parameters(model, null = 0)
@@ -157,15 +160,15 @@ plot(my_first_si)
 #  library(brms)
 #  
 #  m0 <- brm(Sepal.Length ~ 1, # intercept only model
-#            data = iris, save_all_pars = TRUE)
+#            data = iris, save_pars = save_pars(all = TRUE))
 #  m1 <- brm(Sepal.Length ~ Petal.Length,
-#            data = iris, save_all_pars = TRUE)
+#            data = iris, save_pars = save_pars(all = TRUE))
 #  m2 <- brm(Sepal.Length ~ Species,
-#            data = iris, save_all_pars = TRUE)
+#            data = iris, save_pars = save_pars(all = TRUE))
 #  m3 <- brm(Sepal.Length ~ Species + Petal.Length,
-#            data = iris, save_all_pars = TRUE)
+#            data = iris, save_pars = save_pars(all = TRUE))
 #  m4 <- brm(Sepal.Length ~ Species * Petal.Length,
-#            data = iris, save_all_pars = TRUE)
+#            data = iris, save_pars = save_pars(all = TRUE))
 
 ## ----brms_models_disp, eval=FALSE---------------------------------------------
 #  library(bayestestR)
@@ -246,7 +249,7 @@ botanist_hypotheses <- c(
 
 ## ---- echo=FALSE--------------------------------------------------------------
 
-model_prior <- bayestestR:::.update_to_priors.stanreg(iris_model)
+model_prior <- unupdate(iris_model)
 
 botanist_BFs <- bayesfactor_restricted(iris_model, prior = model_prior, 
                                        hypothesis = botanist_hypotheses)

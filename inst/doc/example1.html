@@ -895,13 +895,13 @@ body {
 <div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">describe_posterior</span>(model, <span class="dt">test =</span> <span class="kw">c</span>(<span class="st">&quot;p_direction&quot;</span>,<span class="st">&quot;rope&quot;</span>,<span class="st">&quot;bayesfactor&quot;</span>))</span></code></pre></div>
 <pre><code>&gt; # Description of Posterior Distributions
 &gt; 
-&gt; Parameter     |  Median |             89% CI |    pd |        89% ROPE | % in ROPE |        BF |  Rhat |      ESS
-&gt; -----------------------------------------------------------------------------------------------------------------
-&gt; (Intercept)   | 276.623 | [247.290, 304.532] | 1.000 | [-6.175, 6.175] |         0 | 2.196e+15 | 1.002 | 2793.265
-&gt; feedsunflower |  52.731 | [ 11.675,  90.840] | 0.984 | [-6.175, 6.175] |         0 |     0.806 | 1.000 | 2859.924
+&gt; Parameter     |  Median |             89% CI |      pd |        89% ROPE | % in ROPE |        BF |  Rhat |      ESS
+&gt; -------------------------------------------------------------------------------------------------------------------
+&gt; (Intercept)   | 276.623 | [247.290, 304.532] | 100.00% | [-6.175, 6.175] |         0 | 2.196e+15 | 1.002 | 2793.265
+&gt; feedsunflower |  52.731 | [ 11.675,  90.840] |  98.38% | [-6.175, 6.175] |         0 |     0.806 | 1.000 | 2859.924
 </code></pre>
 <p><strong>Tada!</strong> There we have it! The <strong>median</strong>, the <strong>CI</strong>, the <strong>pd</strong> and the <strong>ROPE percentage</strong>!</p>
-<p>Understanding and describing posterior distributions is just one aspect of Bayesian modelling… <strong>Are you ready for more?</strong> <a href="https://easystats.github.io/bayestestR/articles/example2_GLM.html"><strong>Click here</strong></a> to see the next example.</p>
+<p>Understanding and describing posterior distributions is just one aspect of Bayesian modelling… <strong>Are you ready for more?</strong> <a href="https://easystats.github.io/bayestestR/articles/example2.html"><strong>Click here</strong></a> to see the next example.</p>
 <h2 id="references">References</h2>
 <div id="refs" class="references">
 

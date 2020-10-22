@@ -145,15 +145,15 @@ point_estimate.MCMCglmm <- function(x, centrality = "all", dispersion = FALSE, .
 
 #' @export
 point_estimate.emmGrid <- function(x, centrality = "all", dispersion = FALSE, ...) {
-  xdf <- .clean_emmeans_draws(x)
+  xdf <- insight::get_parameters(x)
 
   out <- point_estimate(xdf, centrality = centrality, dispersion = dispersion, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
-  attr(out, "centrality") <- centrality
-  class(out) <- unique(c("point_estimate", "see_point_estimate", class(out)))
-
   out
 }
+
+#' @export
+point_estimate.emm_list <- point_estimate.emmGrid
 
 
 
@@ -174,7 +174,8 @@ point_estimate.stanreg <- function(x, centrality = "all", dispersion = FALSE, ef
 
   out <- .prepare_output(
     point_estimate(insight::get_parameters(x, effects = effects, parameters = parameters), centrality = centrality, dispersion = dispersion, ...),
-    insight::clean_parameters(x)
+    insight::clean_parameters(x),
+    inherits(x, "stanmvreg")
   )
 
   attr(out, "object_name") <- .safe_deparse(substitute(x))

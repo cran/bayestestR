@@ -2,12 +2,15 @@
 % Please edit documentation in R/update.bayesfactor_models.R
 \name{update.bayesfactor_models}
 \alias{update.bayesfactor_models}
-\title{Update bayesfactor_models}
+\alias{as.matrix.bayesfactor_models}
+\title{Methods for \code{bayesfactor_models}}
 \usage{
 \method{update}{bayesfactor_models}(object, subset = NULL, reference = NULL, ...)
+
+\method{as.matrix}{bayesfactor_models}(x, ...)
 }
 \arguments{
-\item{object}{A \code{\link{bayesfactor_models}} object.}
+\item{object, x}{A \code{\link{bayesfactor_models}} object.}
 
 \item{subset}{Vector of model indices to keep or remove.}
 
@@ -16,7 +19,7 @@
 \item{...}{Currently not used.}
 }
 \description{
-Update bayesfactor_models
+Methods for \code{bayesfactor_models}
 }
 \examples{
 \dontrun{
@@ -32,5 +35,6 @@ m <- bayesfactor_models(lmer1, lmer2, lmer3, denominator = 1)
 m
 
 update(m, reference = "bottom")
+as.matrix(m)
 }
 }

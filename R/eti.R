@@ -130,13 +130,15 @@ eti.sim <- function(x, ci = .89, parameters = NULL, verbose = TRUE, ...) {
 #' @rdname eti
 #' @export
 eti.emmGrid <- function(x, ci = .89, verbose = TRUE, ...) {
-  xdf <- .clean_emmeans_draws(x)
+  xdf <- insight::get_parameters(x)
 
-  dat <- .compute_interval_dataframe(x = xdf, ci = ci, verbose = verbose, fun = "eti")
+  dat <- eti(xdf, ci = ci, verbose = verbose, ...)
   attr(dat, "object_name") <- .safe_deparse(substitute(x))
   dat
 }
 
+#' @export
+eti.emm_list <- eti.emmGrid
 
 #' @rdname eti
 #' @export
@@ -146,7 +148,8 @@ eti.stanreg <- function(x, ci = .89, effects = c("fixed", "random", "all"),
 
   out <- .prepare_output(
     eti(insight::get_parameters(x, effects = effects, parameters = parameters), ci = ci, verbose = verbose, ...),
-    insight::clean_parameters(x)
+    insight::clean_parameters(x),
+    inherits(x, "stanmvreg")
   )
 
   class(out) <- unique(c("bayestestR_eti", "see_eti", class(out)))

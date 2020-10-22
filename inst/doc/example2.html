@@ -679,7 +679,7 @@ body {
 </blockquote>
 <p>That’s one of the reason why the Bayesian framework is sometimes considered as superior to the frequentist framework. Remember from your stats lessons, that the <strong><em>p</em>-value can only be used to reject <em>h0</em></strong>, but not <em>accept</em> it. With the <strong>Bayes factor</strong>, you can measure <strong>evidence against - and in favour of - the null</strong>.</p>
 <p>BFs representing evidence for the alternative against the null can be reversed using (BF_{01}=1/BF_{10}) (the <em>01</em> and <em>10</em> correspond to <em>h0</em> against <em>h1</em> and <em>h1</em> against <em>h0</em>, respectively) to provide evidence of the null againtt the alternative. This improves human readability in cases where the BF of the alternative against the null is smaller than 1 (i.e., in support of the null).</p>
-<p>In our case, <code>BF = 1/0.51 = 2</code>, indicates that the data are <strong>2 times more probable under the null compared to the alternative hypothesis</strong>, which, though favouring the null, is considered only <a href="https://easystats.github.io/report/articles/interpret_metrics.html#bayes-factor-bf">anecdotal evidence against the null</a>.</p>
+<p>In our case, <code>BF = 1/0.51 = 2</code>, indicates that the data are <strong>2 times more probable under the null compared to the alternative hypothesis</strong>, which, though favouring the null, is considered only <a href="https://easystats.github.io/effectsize/reference/interpret_bf.html">anecdotal evidence against the null</a>.</p>
 <p>We can thus conclude that there is <strong>anecdotal evidence in favour of an absence of correlation between the two variables (r<sub>median</sub> = 0.11, BF = 0.51)</strong>, which is a much more informative statement that what we can do with frequentist statistics.</p>
 <p><strong>And that’s not all!</strong></p>
 <h3 id="visualise-the-bayes-factor">Visualise the Bayes factor</h3>
@@ -727,9 +727,9 @@ body {
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>result &lt;-<span class="st"> </span>BayesFactor<span class="op">::</span><span class="kw">ttestBF</span>(<span class="dt">formula =</span> Sepal.Width <span class="op">~</span><span class="st"> </span>Species, <span class="dt">data =</span> data)</span>
 <span id="cb10-2"><a href="#cb10-2"></a><span class="kw">describe_posterior</span>(result)</span></code></pre></div>
 <pre><code>&gt;    Parameter Median CI CI_low CI_high pd ROPE_CI ROPE_low ROPE_high
-&gt; 1 Difference  -0.19 89  -0.29  -0.089  1      89     -0.1       0.1
+&gt; 1 Difference   0.19 89   0.09     0.3  1      89   -0.033     0.033
 &gt;   ROPE_Percentage BF Prior_Distribution Prior_Location Prior_Scale
-&gt; 1           0.028 18             cauchy              0        0.71
+&gt; 1               0 18             cauchy              0        0.71
 </code></pre>
 <p>From the indices, we can say that the difference of <code>Sepal.Width</code> between <em>virginica</em> and <em>versicolor</em> has a probability of <strong>100% of being negative</strong> [<em>from the pd and the sign of the median</em>] (median = -0.19, 89% CI [-0.29, -0.092]). The data provides a <strong>strong evidence against the null hypothesis</strong> (BF = 18).</p>
 <p>Keep that in mind as we will see another way of investigating this question.</p>
@@ -741,7 +741,7 @@ body {
 <span id="cb12-2"><a href="#cb12-2"></a></span>
 <span id="cb12-3"><a href="#cb12-3"></a>model &lt;-<span class="st"> </span><span class="kw">stan_glm</span>(Species <span class="op">~</span><span class="st"> </span>Sepal.Width, <span class="dt">data =</span> data, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)</span></code></pre></div>
 <h3 id="visualise-the-model">Visualise the model</h3>
-<p>Using the <a href="https://github.com/easystats/estimate"><code>estimate</code></a> package. <strong>Wait until estimate is on CRAN</strong>.</p>
+<p>Using the <a href="https://github.com/easystats/modelbased"><code>modelbased</code></a> package.</p>
 <h3 id="performance-and-parameters">Performance and Parameters</h3>
 <p>TO DO.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">library</span>(performance)</span>
@@ -753,15 +753,15 @@ body {
 &gt; 
 &gt;   ELPD | ELPD_SE |  LOOIC | LOOIC_SE |   WAIC |   R2 | RMSE | LOGLOSS | SCORE_LOG | SCORE_SPHERICAL
 &gt; ---------------------------------------------------------------------------------------------------
-&gt; -66.34 |    3.06 | 132.68 |     6.11 | 132.67 | 0.10 | 0.48 |         |   -107.76 |            0.01
+&gt; -66.36 |    3.09 | 132.72 |     6.17 | 132.71 | 0.10 | 0.48 |         |   -105.92 |            0.01
 </code></pre>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">describe_posterior</span>(model, <span class="dt">test =</span> <span class="kw">c</span>(<span class="st">&quot;pd&quot;</span>, <span class="st">&quot;ROPE&quot;</span>, <span class="st">&quot;BF&quot;</span>))</span></code></pre></div>
 <pre><code>&gt; # Description of Posterior Distributions
 &gt; 
-&gt; Parameter   | Median |           89% CI |    pd |        89% ROPE | % in ROPE |     BF |  Rhat |      ESS
-&gt; ---------------------------------------------------------------------------------------------------------
-&gt; (Intercept) | -6.120 | [-9.232, -2.702] | 0.999 | [-0.181, 0.181] |         0 | 11.835 | 1.000 | 2936.697
-&gt; Sepal.Width |  2.141 | [ 0.988,  3.239] | 1.000 | [-0.181, 0.181] |         0 | 15.112 | 1.000 | 2982.859
+&gt; Parameter   | Median |           89% CI |     pd |        89% ROPE | % in ROPE |     BF |  Rhat |      ESS
+&gt; ----------------------------------------------------------------------------------------------------------
+&gt; (Intercept) | -6.202 | [-9.804, -3.034] | 99.83% | [-0.181, 0.181] |         0 | 11.764 | 0.999 | 2667.369
+&gt; Sepal.Width |  2.161 | [ 0.981,  3.313] | 99.85% | [-0.181, 0.181] |         0 |  9.367 | 0.999 | 2663.864
 </code></pre>
 <h3 id="visualise-the-indices">Visualise the indices</h3>
 <p>TO DO.</p>

@@ -235,7 +235,7 @@ bayesfactor_parameters.stanreg <- function(posterior,
     direction = direction, null = null, ...
   )
 
-  bf_val <- .prepare_output(temp, cleaned_parameters)
+  bf_val <- .prepare_output(temp, cleaned_parameters, inherits(posterior, "stanmvreg"))
 
   class(bf_val) <- class(temp)
   attr(bf_val, "hypothesis") <- attr(temp, "hypothesis") # don't change the name of this attribute - it is used only internally for "see" and printing
@@ -271,6 +271,9 @@ bayesfactor_parameters.emmGrid <- function(posterior,
     direction = direction, null = null, ...
   )
 }
+
+#' @export
+bayesfactor_parameters.emm_list <- bayesfactor_parameters.emmGrid
 
 
 #' @rdname bayesfactor_parameters

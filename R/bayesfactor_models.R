@@ -21,21 +21,27 @@
 #' \itemize{
 #'   \item For \code{brmsfit} or \code{stanreg} models, Bayes factors are computed using the \CRANpkg{bridgesampling} package.
 #'   \itemize{
-#'     \item \code{brmsfit} models must have been fitted with \code{save_all_pars = TRUE}.
+#'     \item \code{brmsfit} models must have been fitted with \code{save_pars = save_pars(all = TRUE)}.
 #'     \item \code{stanreg} models must have been fitted with a defined \code{diagnostic_file}.
 #'   }
-#'   \item For \code{BFBayesFactor}, \code{bayesfactor_models()} is mostly a wraparoud \code{BayesFactor::extractBF()}.
+#'   \item For \code{BFBayesFactor}, \code{bayesfactor_models()} is mostly a wraparound \code{BayesFactor::extractBF()}.
 #'   \item For all other model types (supported by \CRANpkg{insight}), BIC approximations are used to compute Bayes factors.
 #' }
-#' In order to correctly and precisely estimate Bayes factors, a rule of thumb are
-#' the 4 P's: \strong{P}roper \strong{P}riors and \strong{P}lentiful \strong{P}osterior
-#' (i.e. probably at leat 40,000 samples instead of the default of 4,000).
+#' In order to correctly and precisely estimate Bayes factors, a rule of thumb
+#' are the 4 P's: \strong{P}roper \strong{P}riors and \strong{P}lentiful
+#' \strong{P}osteriors. How many? The number of posterior samples needed for
+#' testing is substantially larger than for estimation (the default of 4000
+#' samples may not be enough in many cases). A conservative rule of thumb is to
+#' obtain 10 times more samples than would be required for estimation
+#' (\cite{Gronau, Singmann, & Wagenmakers, 2017}). If less than 40,000 samples
+#' are detected, \code{bayesfactor_models()} gives a warning.
 #' \cr \cr
-#' A Bayes factor greater than 1 can be interpereted as evidence against the compared-to
-#' model (the denominator). One convention is that a Bayes factor greater than 3 can be considered
-#' as "substantial" evidence against the denominator model (and vice versa, a Bayes factor
-#' smaller than 1/3 indicates substantial evidence in favor of the denominator model)
-#' (\cite{Wetzels et al. 2011}).
+#' A Bayes factor greater than 1 can be interpreted as evidence against the
+#' compared-to model (the denominator). One convention is that a Bayes factor
+#' greater than 3 can be considered as "substantial" evidence against the
+#' denominator model (and vice versa, a Bayes factor smaller than 1/3 indicates
+#' substantial evidence in favor of the denominator model) (\cite{Wetzels et al.
+#' 2011}).
 #' \cr \cr
 #' See also \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
 #'
@@ -91,14 +97,14 @@
 #'
 #' # brms models
 #' # --------------------
-#' # (note the save_all_pars MUST be set to TRUE in order to work)
+#' # (note the save_pars MUST be set to save_pars(all = TRUE) in order to work)
 #' if (require("brms")) {
 #'   brm1 <- brm(Sepal.Length ~ 1, data = iris, save_all_pars = TRUE)
 #'   brm2 <- brm(Sepal.Length ~ Species, data = iris, save_all_pars = TRUE)
 #'   brm3 <- brm(
 #'     Sepal.Length ~ Species + Petal.Length,
 #'     data = iris,
-#'     save_all_pars = TRUE
+#'     save_pars = save_pars(all = TRUE)
 #'   )
 #'
 #'   bayesfactor_models(brm1, brm2, brm3, denominator = 1)
@@ -119,7 +125,7 @@
 #' }
 #' @references
 #' \itemize{
-#'   \item Gronau, Q. F., Wagenmakers, E. J., Heck, D. W., and Matzke, D. (2019). A simple method for comparing complex models: Bayesian model comparison for hierarchical multinomial processing tree models using Warp-III bridge sampling. Psychometrika, 84(1), 261-284.
+#'   \item Gronau, Q. F., Singmann, H., & Wagenmakers, E. J. (2017). Bridgesampling: An R package for estimating normalizing constants. arXiv preprint arXiv:1710.08162.
 #'   \item Kass, R. E., and Raftery, A. E. (1995). Bayes Factors. Journal of the American Statistical Association, 90(430), 773-795.
 #'   \item Robert, C. P. (2016). The expected demise of the Bayes factor. Journal of Mathematical Psychology, 72, 33–37.
 #'   \item Wagenmakers, E. J. (2007). A practical solution to the pervasive problems of p values. Psychonomic bulletin & review, 14(5), 779-804.
@@ -215,7 +221,8 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
   if (any(n_samps < 4e4)) {
     warning(
       "Bayes factors might not be precise.\n",
-      "For precise Bayes factors, it is recommended sampling at least 40,000 posterior samples."
+      "For precise Bayes factors, it is recommended sampling at least 40,000 posterior samples.",
+      call. = FALSE
     )
   }
 

@@ -117,11 +117,15 @@ p_map.data.frame <- function(x, precision = 2^10, method = "kernel", ...) {
 
 #' @export
 p_map.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
-  xdf <- .clean_emmeans_draws(x)
+  xdf <- insight::get_parameters(x)
+
   out <- p_map(xdf, precision = precision, method = method, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
+
+#' @export
+p_map.emm_list <- p_map.emmGrid
 
 
 
@@ -205,7 +209,8 @@ p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("f
 
   out <- .prepare_output(
     p_map(insight::get_parameters(x, effects = effects, parameters = parameters), precision = precision, method = method),
-    insight::clean_parameters(x)
+    insight::clean_parameters(x),
+    inherits(x, "stanmvreg")
   )
 
   class(out) <- unique(c("p_map", class(out)))

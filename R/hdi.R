@@ -186,11 +186,15 @@ hdi.sim <- function(x, ci = .89, parameters = NULL, verbose = TRUE, ...) {
 #' @rdname hdi
 #' @export
 hdi.emmGrid <- function(x, ci = .89, verbose = TRUE, ...) {
-  xdf <- .clean_emmeans_draws(x)
+  xdf <- insight::get_parameters(x)
+
   out <- hdi(xdf, ci = ci, verbose = verbose, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }
+
+#' @export
+hdi.emm_list <- hdi.emmGrid
 
 
 
@@ -202,7 +206,8 @@ hdi.stanreg <- function(x, ci = .89, effects = c("fixed", "random", "all"), para
 
   out <- .prepare_output(
     hdi(insight::get_parameters(x, effects = effects, parameters = parameters), ci = ci, verbose = verbose, ...),
-    insight::clean_parameters(x)
+    insight::clean_parameters(x),
+    inherits(x, "stanmvreg")
   )
 
   attr(out, "object_name") <- .safe_deparse(substitute(x))

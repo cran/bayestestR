@@ -1,8 +1,8 @@
 if (require("rstanarm") &&
     require("BayesFactor") &&
+    require("bayestestR") &&
     require("testthat") &&
     require("brms")) {
-  context("bayesfactor_models + bayesfactor_inclusion")
 
   # bayesfactor_models BIC --------------------------------------------------
 
@@ -39,14 +39,14 @@ if (require("rstanarm") &&
   })
 
   test_that("bayesfactor_models BIC (unsupported / diff nobs)", {
-    testthat::skip("Skipping rigor bayesfactor_models BIC testing")
+    testthat::skip_on_cran()
     set.seed(444)
 
     fit1 <- lm(Sepal.Length ~ Sepal.Width + Petal.Length, iris)
     fit2a <- lm(Sepal.Length ~ Sepal.Width, iris[-1, ]) # different number of objects
     fit2b <- lm(Sepal.Length ~ Sepal.Width, iris) # not supported
     class(fit2b) <- "NOTLM"
-    logLik.NOTLM <- function(...){
+    logLik.NOTLM <<- function(...){
       stats:::logLik.lm(...)
     }
 
