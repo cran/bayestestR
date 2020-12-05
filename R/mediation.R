@@ -91,8 +91,10 @@
 #'
 #' # Fit Bayesian mediation model in rstanarm
 #' m3 <- stan_mvmer(
-#'   list(job_seek ~ treat + econ_hard + sex + age + (1 | occp),
-#'        depress2 ~ treat + job_seek + econ_hard + sex + age + (1 | occp)),
+#'   list(
+#'     job_seek ~ treat + econ_hard + sex + age + (1 | occp),
+#'     depress2 ~ treat + job_seek + econ_hard + sex + age + (1 | occp)
+#'   ),
 #'   data = jobs,
 #'   cores = 4,
 #'   refresh = 0
@@ -315,15 +317,17 @@ as.data.frame.bayestestR_mediation <- function(x, ...) {
 
 # S3 ---------------------------------
 
-#' @importFrom insight format_table format_ci print_color format_value
+#' @importFrom insight export_table format_ci print_color format_value
 #' @export
 print.bayestestR_mediation <- function(x, digits = 3, ...) {
   insight::print_color("# Causal Mediation Analysis for Stan Model\n\n", "blue")
 
-  cat(sprintf("  Treatment: %s\n  Mediator : %s\n  Response : %s\n\n",
-            attr(x, "treatment", exact = TRUE),
-            attr(x, "mediator", exact = TRUE),
-            attr(x, "response", exact = TRUE)))
+  cat(sprintf(
+    "  Treatment: %s\n  Mediator : %s\n  Response : %s\n\n",
+    attr(x, "treatment", exact = TRUE),
+    attr(x, "mediator", exact = TRUE),
+    attr(x, "response", exact = TRUE)
+  ))
 
   prop_mediated <- prop_mediated_ori <- x[nrow(x), ]
   x <- x[-nrow(x), ]
@@ -332,16 +336,19 @@ print.bayestestR_mediation <- function(x, digits = 3, ...) {
   x <- .remove_column(x, c("CI_low", "CI_high"))
   colnames(x)[ncol(x)] <- sprintf("%.5g%% %s", 100 * attributes(x)$ci, attributes(x)$ci_method)
 
-  cat(insight::format_table(x, digits = digits))
+  cat(insight::export_table(x, digits = digits))
   cat("\n")
 
   prop_mediated[] <- lapply(prop_mediated, function(i) insight::format_value(i, as_percent = TRUE))
   insight::print_color(
-    sprintf("Proportion mediated: %s [%s, %s]\n",
-            prop_mediated$Estimate, prop_mediated$CI_low, prop_mediated$CI_high),
-    "red")
+    sprintf(
+      "Proportion mediated: %s [%s, %s]\n",
+      prop_mediated$Estimate, prop_mediated$CI_low, prop_mediated$CI_high
+    ),
+    "red"
+  )
 
-  if (any(prop_mediated_ori$Estimate < 0) ) {
+  if (any(prop_mediated_ori$Estimate < 0)) {
     message("\nDirect and indirect effects have opposite directions. The proportion mediated is not meaningful.")
   }
 }

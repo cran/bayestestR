@@ -1,39 +1,28 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-if (!requireNamespace("rstanarm", quietly = TRUE) ||
-      !requireNamespace("BayesFactor", quietly = TRUE) ||
-      !requireNamespace("emmeans", quietly = TRUE) ||
-      !requireNamespace("logspline", quietly = TRUE) ||
-      !requireNamespace("lme4", quietly = TRUE) ||
-      !requireNamespace("ggplot2", quietly = TRUE) ||
-      !requireNamespace("see", quietly = TRUE)
-      ) {
+library(knitr)
+options(knitr.kable.NA = '', digits = 2)
+knitr::opts_chunk$set(echo = TRUE,
+                      comment = ">",
+                      message = FALSE,
+                      warning = FALSE,
+                      dpi = 150)
+
+pkgs <- c("rstanarm", "BayesFactor", "emmeans", "logspline", "lme4", "ggplot2",
+          "see", "insight", "emmeans", "knitr", "effectsize", "bayestestR")
+if (!all(sapply(pkgs, require, quietly = TRUE, character.only = TRUE))) {
   knitr::opts_chunk$set(eval = FALSE)
-} else {
-  library(knitr)
-  library(insight)
-  library(bayestestR)
-  library(rstanarm)
-  library(BayesFactor)
-  library(emmeans)
-  
-  library(ggplot2)
-  library(see)
-  
-  options(knitr.kable.NA = '',
-          digits = 2)
-  opts_chunk$set(echo = TRUE,
-                 comment = ">",
-                 message = FALSE,
-                 warning = FALSE,
-                 dpi = 150)
-  theme_set(theme_modern())
-  set.seed(4)
 }
+
+set.seed(4)
+
+if (require(ggplot2))
+  theme_set(theme_modern())
 
 ## ----deathsticks_fig, echo=FALSE, fig.cap="Bayesian analysis of the Students' (1908) Sleep data set.", fig.align='center', out.width="80%"----
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/deathsticks.jpg")
 
 ## ----sleep_boxplot, echo=FALSE------------------------------------------------
+library(ggplot2)
 ggplot(sleep, aes(x = group, y = extra, fill= group)) +
   geom_boxplot() +
   theme_classic()
@@ -64,6 +53,7 @@ ggplot(mapping = aes(x_vals, d_vals, fill = in_null, group = range_groups)) +
   geom_area(color = "black", size = 1) +
   scale_fill_flat(name = "", labels = c("Alternative", "Null")) + 
   labs(x = "Drug effect", y = "Density") + 
+  coord_cartesian(ylim = c(0, 0.45)) +
   theme_modern() + 
   theme(legend.position = c(0.2, 0.8))
 
@@ -71,7 +61,7 @@ pnull <- diff(pnorm(null, sd = 2.5))
 prior_odds <- (1 - pnull) / pnull
 
 ## ----rstanarm_fit, echo=FALSE-------------------------------------------------
-
+library(bayestestR)
 model_prior <- unupdate(model)
 posterior <- insight::get_parameters(model)$group2
 prior <- insight::get_parameters(model_prior)$group2
@@ -84,6 +74,7 @@ ggplot(mapping = aes(x_vals, d_vals_post, fill = in_null, group = range_groups))
   geom_area(color = "black", size = 1) +
   scale_fill_flat(name = "", labels = c("Alternative", "Null")) + 
   labs(x = "Drug effect", y = "Density") + 
+  coord_cartesian(ylim = c(0, 0.45)) +
   theme_modern() + 
   theme(legend.position = c(0.2, 0.8))
 
@@ -105,7 +96,7 @@ print(My_first_BF)
 library(see)
 plot(My_first_BF)
 
-## ---- eval=require(effectsize)------------------------------------------------
+## -----------------------------------------------------------------------------
 effectsize::interpret_bf(My_first_BF$BF[2], include_value = TRUE)
 
 ## ---- eval=FALSE--------------------------------------------------------------
@@ -200,6 +191,9 @@ update(comparison, reference = 3)
 
 ## ----update_models2-----------------------------------------------------------
 update(comparison, reference = 2)
+
+## -----------------------------------------------------------------------------
+as.matrix(comparison)
 
 ## ----lme4_models, eval=FALSE--------------------------------------------------
 #  library(lme4)

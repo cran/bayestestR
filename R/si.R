@@ -18,23 +18,6 @@
 #' they should be \emph{not flat}, and it is preferable that they be \emph{informative} - note
 #' that by default, \code{brms::brm()} uses flat priors for fixed-effects; see example below).
 #'
-#' @note There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
-#'
-#' \subsection{Setting the correct \code{prior}}{
-#' It is important to provide the correct \code{prior} for meaningful results.
-#' \itemize{
-#'   \item When \code{posterior} is a numerical vector, \code{prior} should also be a numerical vector.
-#'   \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
-#'   \item When \code{posterior} is a \code{stanreg} or \code{brmsfit} model: \itemize{
-#'     \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
-#'     \item \code{prior} can also be a model equvilant to \code{posterior} but with samples from the priors \emph{only}.
-#'   }
-#'   \item When \code{posterior} is an \code{emmGrid} object: \itemize{
-#'     \item \code{prior} should be the \code{stanreg} or \code{brmsfit} model used to create the \code{emmGrid} objects.
-#'     \item \code{prior} can also be an \code{emmGrid} object equvilant to \code{posterior} but created with a model of priors samples \emph{only}.
-#'   }
-#' }}
-#'
 #' \subsection{Choosing a value of \code{BF}}{
 #' The choice of \code{BF} (the level of support) depends on what we want our interval to represent:
 #' \itemize{
@@ -45,6 +28,10 @@
 #'   the alternative. E.g., if an SI (BF = 1/3) excludes 0, the Bayes factor against the point-null will be larger than 3.
 #' }
 #' }
+#'
+#' @inheritSection bayesfactor_parameters Setting the correct \code{prior}
+#'
+#' @note There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
 #' @return
 #' A data frame containing the lower and upper bounds of the SI.
@@ -99,7 +86,6 @@ si <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) {
 #' @rdname si
 #' @export
 si.numeric <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) {
-
   if (is.null(prior)) {
     prior <- posterior
     if (verbose) {
@@ -136,9 +122,10 @@ si.stanreg <- function(posterior, prior = NULL,
   component <- match.arg(component)
 
   samps <- .clean_priors_and_posteriors(posterior, prior,
-                                        verbose = verbose,
-                                        effects = effects, component = component,
-                                        parameters = parameters)
+    verbose = verbose,
+    effects = effects, component = component,
+    parameters = parameters
+  )
 
   # Get SIs
   temp <- si.data.frame(
@@ -165,9 +152,9 @@ si.brmsfit <- si.stanreg
 #' @export
 si.emmGrid <- function(posterior, prior = NULL,
                        BF = 1, verbose = TRUE, ...) {
-
   samps <- .clean_priors_and_posteriors(posterior, prior,
-                                        verbose = verbose)
+    verbose = verbose
+  )
 
   # Get SIs
   out <- si.data.frame(
@@ -185,7 +172,7 @@ si.emm_list <- si.emmGrid
 
 #' @rdname si
 #' @export
-si.data.frame <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...){
+si.data.frame <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) {
   if (length(BF) > 1) {
     SIs <- lapply(BF, function(i) {
       si(posterior, prior = prior, BF = i, verbose = verbose, ...)
@@ -209,26 +196,27 @@ si.data.frame <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...){
   sis <- matrix(NA, nrow = ncol(posterior), ncol = 2)
   for (par in seq_along(posterior)) {
     sis[par, ] <- .si(posterior[[par]],
-                      prior[[par]],
-                      BF = BF, ...)
+      prior[[par]],
+      BF = BF, ...
+    )
   }
 
   out <- data.frame(
     Parameter = colnames(posterior),
     CI = BF,
-    CI_low = sis[,1],
-    CI_high = sis[,2],
+    CI_low = sis[, 1],
+    CI_high = sis[, 2],
     stringsAsFactors = FALSE
   )
   class(out) <- unique(c("bayestestR_si", "see_si", "bayestestR_ci", "see_ci", class(out)))
-  attr(out, "plot_data") <- .make_BF_plot_data(posterior,prior,0,0, ...)$plot_data
+  attr(out, "plot_data") <- .make_BF_plot_data(posterior, prior, 0, 0, ...)$plot_data
 
   out
 }
 
 
 #' @export
-si.stanfit <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, effects = c("fixed", "random", "all"), ...){
+si.stanfit <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, effects = c("fixed", "random", "all"), ...) {
   si(insight::get_parameters(posterior, effects = effects))
 }
 
@@ -241,7 +229,7 @@ si.stanfit <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, effects 
   }
 
   if (isTRUE(all.equal(prior, posterior))) {
-    return(c(NA,NA))
+    return(c(NA, NA))
   }
 
   x <- c(prior, posterior)
@@ -267,14 +255,14 @@ si.stanfit <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, effects 
   crit <- relative_d >= BF
 
   cp <- rle(c(stats::na.omit(crit)))
-  if (length(cp$lengths) > 3)
+  if (length(cp$lengths) > 3) {
     warning("More than 1 SI detected. Plot the result to investigate.", call. = FALSE)
+  }
 
   x_supported <- stats::na.omit(x_axis[crit])
   if (length(x_supported) < 2) {
-    return(c(NA,NA))
+    return(c(NA, NA))
   } else {
     range(x_supported)
   }
-
 }

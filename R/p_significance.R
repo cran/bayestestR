@@ -31,7 +31,6 @@
 #' # -----------------------------------------------
 #' df <- data.frame(replicate(4, rnorm(100)))
 #' p_significance(df)
-#'
 #' \dontrun{
 #' # rstanarm models
 #' # -----------------------------------------------
@@ -104,18 +103,24 @@ p_significance.parameters_simulate_model <- function(x, threshold = "default", .
   obj_name <- attr(x, "object_name")
   if (!is.null(obj_name)) {
     # first try, parent frame
-    model <- tryCatch({
-      get(obj_name, envir = parent.frame())
-    },
-    error = function(e) { NULL }
+    model <- tryCatch(
+      {
+        get(obj_name, envir = parent.frame())
+      },
+      error = function(e) {
+        NULL
+      }
     )
 
     if (is.null(model)) {
       # second try, global env
-      model <- tryCatch({
-        get(obj_name, envir = globalenv())
-      },
-      error = function(e) { NULL }
+      model <- tryCatch(
+        {
+          get(obj_name, envir = globalenv())
+        },
+        error = function(e) {
+          NULL
+        }
       )
     }
   }
@@ -151,6 +156,12 @@ p_significance.mcmc <- function(x, threshold = "default", ...) {
 
 #' @export
 p_significance.bcplm <- function(x, threshold = "default", ...) {
+  p_significance(insight::get_parameters(x), threshold = threshold, ...)
+}
+
+
+#' @export
+p_significance.mcmc.list <- function(x, threshold = "default", ...) {
   p_significance(insight::get_parameters(x), threshold = threshold, ...)
 }
 
@@ -255,7 +266,7 @@ as.double.p_significance <- as.numeric.p_significance
   if (length(threshold) > 1) {
     if (length(unique(abs(threshold))) == 1) { # If symmetric range
       threshold <- abs(threshold[2])
-    } else{
+    } else {
       stop("`threshold` should be 'default' or a numeric value (e.g., 0.1).")
     }
   }

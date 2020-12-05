@@ -25,7 +25,8 @@
 #'
 #' if (require("rstanarm")) {
 #'   model <- stan_glm(
-#'     mpg ~ wt + gear, data = mtcars,
+#'     mpg ~ wt + gear,
+#'     data = mtcars,
 #'     chains = 2,
 #'     iter = 200,
 #'     refresh = 0
@@ -155,6 +156,10 @@ mhdior.BFBayesFactor <- function(x, range = "default", precision = .1, ...) {
 
 #' @export
 mhdior.bcplm <- mhdior.BFBayesFactor
+
+
+#' @export
+mhdior.mcmc.list <- mhdior.BFBayesFactor
 
 
 

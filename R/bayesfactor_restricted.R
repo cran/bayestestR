@@ -18,36 +18,10 @@
 #' \cr\cr
 #' (Though it is possible to use \code{bayesfactor_restricted()} to test interval restrictions,
 #' it is more suitable for testing order restrictions; see examples).
-#' \cr\cr
-#' For the computation of Bayes factors, the model priors must be proper priors (at the very least
-#' they should be \emph{not flat}, and it is preferable that they be \emph{informative}); As the priors for
-#' the alternative get wider, the likelihood of the null value(s) increases, to the extreme that for completely
-#' flat priors the null is infinitely more favorable than the alternative (this is called \emph{the Jeffreys-Lindley-Bartlett
-#' paradox}). Thus, you should only ever try (or want) to compute a Bayes factor when you have an informed prior.
-#' \cr\cr
-#' (Note that by default, \code{brms::brm()} uses flat priors for fixed-effects.)
 #'
-#' \subsection{Setting the correct \code{prior}}{
-#' It is important to provide the correct \code{prior} for meaningful results.
-#' \itemize{
-#'   \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
-#'   \item When \code{posterior} is a \code{stanreg} or \code{brmsfit} model: \itemize{
-#'     \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
-#'     \item \code{prior} can also be a model equvilant to \code{posterior} but with samples from the priors \emph{only}.
-#'   }
-#'   \item When \code{posterior} is an \code{emmGrid} object: \itemize{
-#'     \item \code{prior} should be the \code{stanreg} or \code{brmsfit} model used to create the \code{emmGrid} objects.
-#'     \item \code{prior} can also be an \code{emmGrid} object equvilant to \code{posterior} but created with a model of priors samples \emph{only}.
-#'     \item \strong{Note:} When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
-#'   }
-#' }}
-#' \subsection{Interpreting Bayes Factors}{
-#' A Bayes factor greater than 1 can be interpereted as evidence against the null,
-#' at which one convention is that a Bayes factor greater than 3 can be considered
-#' as "substantial" evidence against the null (and vice versa, a Bayes factor
-#' smaller than 1/3 indicates substantial evidence in favor of the null-hypothesis)
-#' (\cite{Wetzels et al. 2011}).
-#' }
+#' @inheritSection bayesfactor_parameters Setting the correct \code{prior}
+#'
+#' @inheritSection bayesfactor_parameters Interpreting Bayes Factors
 #'
 #' @return A data frame containing the Bayes factor representing evidence \emph{against} the un-restricted model.
 #'
@@ -85,9 +59,9 @@
 #'   )
 #'   bayesfactor_restricted(fit_stan, hypothesis = hyps)
 #'
-#' # emmGrid objects
-#' # ---------------
-#' # replicating http://bayesfactor.blogspot.com/2015/01/multiple-comparisons-with-bayesfactor-2.html
+#'   # emmGrid objects
+#'   # ---------------
+#'   # replicating http://bayesfactor.blogspot.com/2015/01/multiple-comparisons-with-bayesfactor-2.html
 #'   disgust_data <- read.table(url("http://www.learnbayes.org/disgust_example.txt"), header = TRUE)
 #'
 #'   contrasts(disgust_data$condition) <- contr.bayes # see vignette
@@ -97,12 +71,12 @@
 #'   hyps <- c("lemon < control & control < sulfur")
 #'
 #'   bayesfactor_restricted(em_condition, prior = fit_model, hypothesis = hyps)
-#' # > # Bayes Factor (Order-Restriction)
-#' # >
-#' # >                          Hypothesis P(Prior) P(Posterior) Bayes Factor
-#' # >  lemon < control & control < sulfur     0.17         0.75         4.49
-#' # > ---
-#' # > Bayes factors for the restricted model vs. the un-restricted model.
+#'   # > # Bayes Factor (Order-Restriction)
+#'   # >
+#'   # >                          Hypothesis P(Prior) P(Posterior) Bayes Factor
+#'   # >  lemon < control & control < sulfur     0.17         0.75         4.49
+#'   # > ---
+#'   # > Bayes factors for the restricted model vs. the un-restricted model.
 #' }
 #' }
 #' @references
@@ -132,8 +106,9 @@ bayesfactor_restricted.stanreg <- function(posterior, hypothesis, prior = NULL,
   component <- match.arg(component)
 
   samps <- .clean_priors_and_posteriors(posterior, prior,
-                                        effects, component,
-                                        verbose = verbose)
+    effects, component,
+    verbose = verbose
+  )
 
   # Get savage-dickey BFs
   bayesfactor_restricted.data.frame(
@@ -152,7 +127,8 @@ bayesfactor_restricted.emmGrid <- function(posterior, hypothesis, prior = NULL,
                                            verbose = TRUE,
                                            ...) {
   samps <- .clean_priors_and_posteriors(posterior, prior,
-                                        verbose = verbose)
+    verbose = verbose
+  )
 
   bayesfactor_restricted.data.frame(
     posterior = samps$posterior, prior = samps$prior,

@@ -29,36 +29,24 @@ This vignette can be referred to by citing the following:
 ---
 
 ```{r setup, include=FALSE}
-if (!requireNamespace("rstanarm", quietly = TRUE) ||
-      !requireNamespace("BayesFactor", quietly = TRUE) ||
-      !requireNamespace("emmeans", quietly = TRUE) ||
-      !requireNamespace("logspline", quietly = TRUE) ||
-      !requireNamespace("lme4", quietly = TRUE) ||
-      !requireNamespace("ggplot2", quietly = TRUE) ||
-      !requireNamespace("see", quietly = TRUE)
-      ) {
+library(knitr)
+options(knitr.kable.NA = '', digits = 2)
+knitr::opts_chunk$set(echo = TRUE,
+                      comment = ">",
+                      message = FALSE,
+                      warning = FALSE,
+                      dpi = 150)
+
+pkgs <- c("rstanarm", "BayesFactor", "emmeans", "logspline", "lme4", "ggplot2",
+          "see", "insight", "emmeans", "knitr", "effectsize", "bayestestR")
+if (!all(sapply(pkgs, require, quietly = TRUE, character.only = TRUE))) {
   knitr::opts_chunk$set(eval = FALSE)
-} else {
-  library(knitr)
-  library(insight)
-  library(bayestestR)
-  library(rstanarm)
-  library(BayesFactor)
-  library(emmeans)
-  
-  library(ggplot2)
-  library(see)
-  
-  options(knitr.kable.NA = '',
-          digits = 2)
-  opts_chunk$set(echo = TRUE,
-                 comment = ">",
-                 message = FALSE,
-                 warning = FALSE,
-                 dpi = 150)
-  theme_set(theme_modern())
-  set.seed(4)
 }
+
+set.seed(4)
+
+if (require(ggplot2))
+  theme_set(theme_modern())
 ```
 
 The adoption of the Bayesian framework for applied statistics, especially in the social and psychological sciences, seems to be developing in two distinct directions. One of the key topics marking their separation is their opinion about **the Bayes factor**. In short, some authors (e.g., the "Amsterdam school", led by [Wagenmakers](https://www.bayesianspectacles.org/)) advocate its use and emphasize its qualities as a statistical index, while others point to its limits and prefer, instead, the precise description of posterior distributions (using [CIs](https://easystats.github.io/bayestestR/reference/hdi.html), [ROPEs](https://easystats.github.io/bayestestR/reference/rope.html), etc.). 
@@ -109,6 +97,7 @@ Let's use the Students' (1908) Sleep data set (`data("sleep")`), in which **peop
 *given the observed data, has the hypothesis that the drug (the effect of `group`) **has no effect** on the numbers of hours of **extra sleep** (variable `extra`) become more of less credible?*
 
 ```{r sleep_boxplot, echo=FALSE}
+library(ggplot2)
 ggplot(sleep, aes(x = group, y = extra, fill= group)) +
   geom_boxplot() +
   theme_classic()
@@ -156,6 +145,7 @@ ggplot(mapping = aes(x_vals, d_vals, fill = in_null, group = range_groups)) +
   geom_area(color = "black", size = 1) +
   scale_fill_flat(name = "", labels = c("Alternative", "Null")) + 
   labs(x = "Drug effect", y = "Density") + 
+  coord_cartesian(ylim = c(0, 0.45)) +
   theme_modern() + 
   theme(legend.position = c(0.2, 0.8))
 
@@ -174,7 +164,7 @@ $$
 $$
 
 ```{r rstanarm_fit, echo=FALSE}
-
+library(bayestestR)
 model_prior <- unupdate(model)
 posterior <- insight::get_parameters(model)$group2
 prior <- insight::get_parameters(model_prior)$group2
@@ -187,6 +177,7 @@ ggplot(mapping = aes(x_vals, d_vals_post, fill = in_null, group = range_groups))
   geom_area(color = "black", size = 1) +
   scale_fill_flat(name = "", labels = c("Alternative", "Null")) + 
   labs(x = "Drug effect", y = "Density") + 
+  coord_cartesian(ylim = c(0, 0.45)) +
   theme_modern() + 
   theme(legend.position = c(0.2, 0.8))
 
@@ -222,7 +213,7 @@ plot(My_first_BF)
 
 Note that **interpretation guides** for Bayes factors can be found in the `effectsize` package:
 
-```{r, eval=require(effectsize)}
+```{r}
 effectsize::interpret_bf(My_first_BF$BF[2], include_value = TRUE)
 ```
 
@@ -400,6 +391,12 @@ update(comparison, reference = 2)
 ```
 
 Notice that in the Bayesian framework the compared models *do not* need to be nested models, as happened here when we compared the `Petal.Length`-only model to the `Species`-only model (something that cannot be done in the frequentists framework, where compared models must be nested in one another).
+
+We can also get a matrix of Bayes factors of all the pair-wise model comparisons:
+
+```{r}
+as.matrix(comparison)
+```
 
 **NOTE:** In order to correctly and precisely estimate Bayes Factors, you always need the 4 P's: **P**roper **P**riors ^[[Robert, 2016](https://doi.org/10.1016/j.jmp.2015.08.002); [Kass & Raftery, 1993](https://doi.org/10.1080/01621459.1995.10476572); [Fernández, Ley, & Steel, 2001](https://doi.org/10.1016/S0304-4076(00)00076-2)], and a **P**lentiful **P**osterior ^[[Gronau, Singmann, & Wagenmakers, 2017](https://arxiv.org/abs/1710.08162)].
 

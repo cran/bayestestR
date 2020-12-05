@@ -1,9 +1,9 @@
-#' @importFrom insight format_table format_ci
+#' @importFrom insight export_table format_ci
 #' @export
 print.describe_posterior <- function(x, digits = 3, ...) {
   orig_x <- x
   if ("data_plot" %in% class(x)) {
-    cat(insight::format_table(as.data.frame(x), digits = digits))
+    cat(insight::export_table(as.data.frame(x), digits = digits))
   } else {
     insight::print_color("# Description of Posterior Distributions\n\n", "blue")
 
@@ -12,10 +12,10 @@ print.describe_posterior <- function(x, digits = 3, ...) {
 
       ci <- unique(x$CI)
       if (length(ci) > 1) {
-        x$CI <- insight::format_ci(x$CI_low, x$CI_high, ci = round(x$CI,3)/100, digits = digits, width = "auto")
+        x$CI <- insight::format_ci(x$CI_low, x$CI_high, ci = round(x$CI, 3) / 100, digits = digits, width = "auto")
 
         if (is_SI) {
-          x$CI <- paste0("BF = ",gsub("% CI", " SI", x$CI))
+          x$CI <- paste0("BF = ", gsub("% CI", " SI", x$CI))
           colnames(x)[colnames(x) == "CI"] <- "SI"
         }
       } else {

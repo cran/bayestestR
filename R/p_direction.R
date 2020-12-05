@@ -69,7 +69,6 @@
 #' df <- data.frame(replicate(4, rnorm(100)))
 #' p_direction(df)
 #' p_direction(df, method = "kernel")
-#'
 #' \dontrun{
 #' # rstanarm models
 #' # -----------------------------------------------
@@ -194,6 +193,12 @@ p_direction.mcmc <- function(x, method = "direct", ...) {
 
 #' @export
 p_direction.bcplm <- function(x, method = "direct", ...) {
+  p_direction(insight::get_parameters(x), method = method, ...)
+}
+
+
+#' @export
+p_direction.mcmc.list <- function(x, method = "direct", ...) {
   p_direction(insight::get_parameters(x), method = method, ...)
 }
 
