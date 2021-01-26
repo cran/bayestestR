@@ -208,6 +208,10 @@ rope.BFBayesFactor <- function(x, range = "default", ci = .89, ci_method = "HDI"
 }
 
 
+#' @export
+rope.bamlss <- rope.BFBayesFactor
+
+
 #' @rdname rope
 #' @export
 rope.MCMCglmm <- function(x, range = "default", ci = .89, ci_method = "HDI", verbose = TRUE, ...) {
@@ -284,8 +288,9 @@ rope.mcmc.list <- rope.bayesQR
 
 #' @rdname rope
 #' @export
-rope.stanreg <- function(x, range = "default", ci = .89, ci_method = "HDI", effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+rope.stanreg <- function(x, range = "default", ci = .89, ci_method = "HDI", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
 
   if (all(range == "default")) {
     range <- rope_range(x)
@@ -297,7 +302,7 @@ rope.stanreg <- function(x, range = "default", ci = .89, ci_method = "HDI", effe
   if (verbose) .check_multicollinearity(x, "rope")
 
   rope_data <- rope(
-    insight::get_parameters(x, effects = effects, parameters = parameters),
+    insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
     range = range,
     ci = ci,
     ci_method = ci_method,

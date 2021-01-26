@@ -15,8 +15,9 @@ if (!all(sapply(pkgs, require, quietly = TRUE, character.only = TRUE))) {
 
 set.seed(4)
 
-if (require(ggplot2))
+if (require("ggplot2") && require("see")) {
   theme_set(theme_modern())
+}
 
 ## ----deathsticks_fig, echo=FALSE, fig.cap="Bayesian analysis of the Students' (1908) Sleep data set.", fig.align='center', out.width="80%"----
 knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/deathsticks.jpg")
@@ -132,6 +133,22 @@ print(test_group2_right)
 
 ## -----------------------------------------------------------------------------
 plot(test_group2_right)
+
+## ----inteval_div, eval=FALSE--------------------------------------------------
+#  test_group2_dividing <- bayesfactor_parameters(model, null = c(-Inf, 0))
+#  test_group2_dividing
+
+## ----inteval_div2, echo=FALSE-------------------------------------------------
+test_group2_dividing <- bayesfactor_parameters(
+  data.frame(group2 = posterior),
+  data.frame(group2 = prior),
+  null = c(-Inf, 0)
+)
+
+print(test_group2_dividing)
+
+## -----------------------------------------------------------------------------
+plot(test_group2_dividing)
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  my_first_si <- si(model, BF = 1)

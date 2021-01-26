@@ -89,6 +89,17 @@ eti.mcmc <- function(x, ci = .89, verbose = TRUE, ...) {
 
 
 #' @export
+eti.bamlss <- function(x, ci = .89, component = c("all", "conditional", "location"), verbose = TRUE, ...) {
+  component <- match.arg(component)
+  d <- insight::get_parameters(x, component = component)
+  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
+  attr(dat, "data") <- .safe_deparse(substitute(x))
+  dat
+}
+
+
+
+#' @export
 eti.bcplm <- function(x, ci = .89, verbose = TRUE, ...) {
   d <- insight::get_parameters(x)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
@@ -145,11 +156,13 @@ eti.emm_list <- eti.emmGrid
 #' @rdname eti
 #' @export
 eti.stanreg <- function(x, ci = .89, effects = c("fixed", "random", "all"),
+                        component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
                         parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
 
   out <- .prepare_output(
-    eti(insight::get_parameters(x, effects = effects, parameters = parameters), ci = ci, verbose = verbose, ...),
+    eti(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), ci = ci, verbose = verbose, ...),
     insight::clean_parameters(x),
     inherits(x, "stanmvreg")
   )
@@ -209,7 +222,7 @@ eti.BFBayesFactor <- function(x, ci = .89, verbose = TRUE, ...) {
   ))
 
   data.frame(
-    "CI" = ci * 100,
+    "CI" = ci,
     "CI_low" = results[1],
     "CI_high" = results[2]
   )

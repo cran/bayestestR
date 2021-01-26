@@ -155,6 +155,12 @@ p_significance.mcmc <- function(x, threshold = "default", ...) {
 
 
 #' @export
+p_significance.bamlss <- function(x, threshold = "default", component = c("all", "conditional", "location"), ...) {
+  p_significance(insight::get_parameters(x, component = component), threshold = threshold, ...)
+}
+
+
+#' @export
 p_significance.bcplm <- function(x, threshold = "default", ...) {
   p_significance(insight::get_parameters(x), threshold = threshold, ...)
 }
@@ -193,12 +199,13 @@ p_significance.emm_list <- p_significance.emmGrid
 
 #' @rdname p_significance
 #' @export
-p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
   threshold <- .select_threshold_ps(model = x, threshold = threshold)
 
   data <- p_significance(
-    insight::get_parameters(x, effects = effects, parameters = parameters),
+    insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
     threshold = threshold
   )
 

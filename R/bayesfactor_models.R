@@ -6,9 +6,17 @@
 #'
 #' @author Mattan S. Ben-Shachar
 #'
-#' @param ... Fitted models (see details), all fit on the same data, or a single \code{BFBayesFactor} object (see 'Details').
-#' @param denominator Either an integer indicating which of the models to use as the denominator,
-#' or a model to be used as a denominator. Ignored for \code{BFBayesFactor}.
+#' @param ... Fitted models (see details), all fit on the same data, or a single
+#'   \code{BFBayesFactor} object (see 'Details'). Ignored in \code{as.matrix()},
+#'   \code{update()}.
+#' @param denominator Either an integer indicating which of the models to use as
+#'   the denominator, or a model to be used as a denominator. Ignored for
+#'   \code{BFBayesFactor}.
+#' @param object,x A \code{\link{bayesfactor_models}} object.
+#' @param subset Vector of model indices to keep or remove.
+#' @param reference Index of model to rereference to, or \code{"top"} to
+#'   reference to the best model, or \code{"bottom"} to reference to the worst
+#'   model.
 #' @inheritParams hdi
 #'
 #' @note There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
@@ -51,7 +59,11 @@
 #' lm4 <- lm(Sepal.Length ~ Species * Petal.Length, data = iris)
 #' bayesfactor_models(lm1, lm2, lm3, lm4, denominator = 1)
 #' bayesfactor_models(lm2, lm3, lm4, denominator = lm1) # same result
-#' bayesfactor_models(lm1, lm2, lm3, lm4, denominator = lm1) # same result
+#' BFM <- bayesfactor_models(lm1, lm2, lm3, lm4, denominator = lm1) # same result
+#'
+#' update(BFM, reference = "bottom")
+#' as.matrix(BFM)
+#'
 #' \dontrun{
 #' # With lmerMod objects:
 #' # ---------------------
@@ -142,6 +154,12 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
   mods <- list(...)
   mnames <- sapply(match.call(expand.dots = FALSE)$`...`, .safe_deparse)
 
+  # In the case of a list as direct input
+  if(length(mods) == 1 && inherits(mods[[1]], "list")){
+    mods <- mods[[1]]
+    mnames <- names(mods)
+  }
+
   if (!is.numeric(denominator)) {
     model_name <- .safe_deparse(match.call()[["denominator"]])
     denominator_model <- which(mnames == model_name)
@@ -189,12 +207,11 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
     stringsAsFactors = FALSE
   )
 
-  attr(res, "denominator") <- denominator
-  attr(res, "BF_method") <- "BIC approximation"
-  attr(res, "unsupported_models") <- !all(supported_models)
-  class(res) <- c("bayesfactor_models", "see_bayesfactor_models", class(res))
 
-  res
+  .bf_models_output(res,
+                    denominator = denominator,
+                    bf_method = "BIC approximation",
+                    unsupported_models = !all(supported_models))
 }
 
 
@@ -206,6 +223,15 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
 
   # Organize the models
   mods <- list(...)
+
+  # In the case of a list as direct input
+  if(length(mods) == 1 && inherits(mods[[1]], "list")){
+    mods <- mods[[1]]
+    was_list <- TRUE
+  } else {
+    was_list <- FALSE
+  }
+
 
   # Warn
   n_samps <- sapply(mods, function(x) {
@@ -222,7 +248,12 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
 
   if (!is.numeric(denominator)) {
     model_name <- .safe_deparse(match.call()[["denominator"]])
-    arg_names <- sapply(match.call(expand.dots = FALSE)$`...`, .safe_deparse)
+    if (was_list) {
+      arg_names <- names(mods)
+    } else {
+      arg_names <- sapply(match.call(expand.dots = FALSE)$`...`, .safe_deparse)
+    }
+
     denominator_model <- which(arg_names == model_name)
 
     if (length(denominator_model) == 0) {
@@ -264,13 +295,14 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
     stringsAsFactors = FALSE
   )
 
-  attr(res, "denominator") <- denominator
-  attr(res, "BF_method") <- "marginal likelihoods (bridgesampling)"
-  attr(res, "unsupported_models") <- FALSE
-  class(res) <- c("bayesfactor_models", "see_bayesfactor_models", class(res))
 
-  res
+  .bf_models_output(res,
+                    denominator = denominator,
+                    bf_method = "marginal likelihoods (bridgesampling)")
 }
+
+
+
 
 #' @export
 bayesfactor_models.stanreg <- function(..., denominator = 1, verbose = TRUE) {
@@ -313,15 +345,71 @@ bayesfactor_models.BFBayesFactor <- function(..., verbose = TRUE) {
     stringsAsFactors = FALSE
   )
 
-  attr(res, "denominator") <- 1
-  attr(res, "BF_method") <- "JZS (BayesFactor)"
-  attr(res, "unsupported_models") <- !"BFlinearModel" %in% class(models@denominator)
+  .bf_models_output(res,
+                    denominator = 1,
+                    bf_method = "JZS (BayesFactor)",
+                    unsupported_models = !"BFlinearModel" %in% class(models@denominator))
+}
+
+
+# Methods -----------------------------------------------------------------
+
+#' @rdname bayesfactor_models
+#' @export
+update.bayesfactor_models <- function(object, subset = NULL, reference = NULL, ...) {
+  if (!is.null(reference)) {
+    if (reference == "top") {
+      reference <- which.max(object$BF)
+    } else if (reference == "bottom") {
+      reference <- which.min(object$BF)
+    }
+    object$BF <- object$BF / object$BF[reference]
+    attr(object, "denominator") <- reference
+  }
+
+  denominator <- attr(object, "denominator")
+
+  if (!is.null(subset)) {
+    if (all(subset < 0)) {
+      subset <- seq_len(nrow(object))[subset]
+    }
+    object_subset <- object[subset, ]
+
+    if (denominator %in% subset) {
+      attr(object_subset, "denominator") <- which(denominator == subset)
+    } else {
+      object_subset <- rbind(object[denominator, ], object_subset)
+      attr(object_subset, "denominator") <- 1
+    }
+    object <- object_subset
+  }
+  object
+}
+
+
+#' @rdname bayesfactor_models
+#' @export
+as.matrix.bayesfactor_models <- function(x, ...) {
+  x$BF <- log(x$BF)
+  out <- -outer(x$BF, x$BF, FUN = "-")
+  rownames(out) <- colnames(out) <- x$Model
+
+  out <- exp(out)
+
+  class(out) <- c("bayesfactor_models_matrix", class(out))
+  out
+}
+
+# Helpers -----------------------------------------------------------------
+#' @keywords internal
+.bf_models_output <- function(res, denominator = 1, bf_method = "method", unsupported_models = FALSE) {
+  attr(res, "denominator") <- denominator
+  attr(res, "BF_method") <- bf_method
+  attr(res, "unsupported_models") <- unsupported_models
   class(res) <- c("bayesfactor_models", "see_bayesfactor_models", class(res))
 
   res
 }
-
-
 
 
 #' @keywords internal

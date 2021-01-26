@@ -143,8 +143,9 @@ ci.sim <- function(x, ci = .89, method = "ETI", parameters = NULL, verbose = TRU
 #' @rdname ci
 #' @export
 ci.stanreg <- function(x, ci = .89, method = "ETI", effects = c("fixed", "random", "all"),
+                       component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
                        parameters = NULL, verbose = TRUE, BF = 1, ...) {
-  .ci_bayesian(x, ci = ci, method = method, effects = effects, parameters = parameters, verbose = verbose, BF = BF, ...)
+  .ci_bayesian(x, ci = ci, method = method, effects = effects, component = component, parameters = parameters, verbose = verbose, BF = BF, ...)
 }
 
 
@@ -181,6 +182,15 @@ ci.MCMCglmm <- function(x, ci = .89, method = "ETI", verbose = TRUE, ...) {
 ci.mcmc <- function(x, ci = .89, method = "ETI", verbose = TRUE, ...) {
   ci(as.data.frame(x), ci = ci, method = method, verbose = verbose, ...)
 }
+
+
+
+#' @export
+ci.bamlss <- function(x, ci = .89, method = "ETI", component = c("all", "conditional", "location"), verbose = TRUE, ...) {
+  component <- match.arg(component)
+  ci(insight::get_parameters(x, component = component), ci = ci, method = method, verbose = verbose, ...)
+}
+
 
 
 #' @export

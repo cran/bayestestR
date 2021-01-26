@@ -22,8 +22,9 @@ bayesfactor(
 
 \item{prior}{An object representing a prior distribution (see 'Details').}
 
-\item{direction}{Test type (see 'Details'). One of \code{0}, \code{"two-sided"} (default, two tailed),
-\code{-1}, \code{"left"} (left tailed) or \code{1}, \code{"right"} (right tailed).}
+\item{direction}{Test type (see 'Details'). One of \code{0},
+\code{"two-sided"} (default, two tailed), \code{-1}, \code{"left"} (left
+tailed) or \code{1}, \code{"right"} (right tailed).}
 
 \item{null}{Value of the null, either a scalar (for point-null) or a range
 (for a interval-null).}
@@ -35,8 +36,9 @@ Only applies to mixed models. May be abbreviated.}
 
 \item{verbose}{Toggle off warnings.}
 
-\item{denominator}{Either an integer indicating which of the models to use as the denominator,
-or a model to be used as a denominator. Ignored for \code{BFBayesFactor}.}
+\item{denominator}{Either an integer indicating which of the models to use as
+the denominator, or a model to be used as a denominator. Ignored for
+\code{BFBayesFactor}.}
 
 \item{match_models}{See details.}
 
@@ -60,11 +62,12 @@ There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{
 \examples{
 library(bayestestR)
 
-# Vectors
-prior <- distribution_normal(1000, mean = 0, sd = 1)
-posterior <- distribution_normal(1000, mean = .5, sd = .3)
+if (require("logspline")) {
+  prior <- distribution_normal(1000, mean = 0, sd = 1)
+  posterior <- distribution_normal(1000, mean = .5, sd = .3)
 
-bayesfactor(posterior, prior = prior)
+  bayesfactor(posterior, prior = prior)
+}
 \dontrun{
 # rstanarm models
 # ---------------
@@ -74,14 +77,16 @@ if (require("rstanarm")) {
 }
 }
 
-# Frequentist models
-# ---------------
-m0 <- lm(extra ~ 1, data = sleep)
-m1 <- lm(extra ~ group, data = sleep)
-m2 <- lm(extra ~ group + ID, data = sleep)
+if (require("logspline")) {
+  # Frequentist models
+  # ---------------
+  m0 <- lm(extra ~ 1, data = sleep)
+  m1 <- lm(extra ~ group, data = sleep)
+  m2 <- lm(extra ~ group + ID, data = sleep)
 
-comparison <- bayesfactor(m0, m1, m2)
-comparison
+  comparison <- bayesfactor(m0, m1, m2)
+  comparison
 
-bayesfactor(comparison)
+  bayesfactor(comparison)
+}
 }

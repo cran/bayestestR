@@ -236,10 +236,11 @@ equivalence_test.BFBayesFactor <- function(x, range = "default", ci = .89, verbo
 
 #' @rdname equivalence_test
 #' @export
-equivalence_test.stanreg <- function(x, range = "default", ci = .89, effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+equivalence_test.stanreg <- function(x, range = "default", ci = .89, effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
 
-  out <- .equivalence_test_models(x, range, ci, effects, component = "conditional", parameters, verbose)
+  out <- .equivalence_test_models(x, range, ci, effects, component, parameters, verbose)
   out <- merge(out, insight::clean_parameters(x)[, c("Parameter", "Effects", "Cleaned_Parameter")], by = "Parameter", sort = FALSE)
 
   class(out) <- unique(c("equivalence_test", "see_equivalence_test", class(out)))
@@ -290,6 +291,15 @@ equivalence_test.mcmc <- function(x, range = "default", ci = .89, parameters = N
 #' @export
 equivalence_test.bcplm <- function(x, range = "default", ci = .89, parameters = NULL, verbose = TRUE, ...) {
   out <- .equivalence_test_models(insight::get_parameters(x), range, ci, effects = "fixed", component = "conditional", parameters, verbose = FALSE)
+  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  out
+}
+
+
+#' @export
+equivalence_test.bamlss <- function(x, range = "default", ci = .89, component = c("all", "conditional", "location"), parameters = NULL, verbose = TRUE, ...) {
+  component <- match.arg(component)
+  out <- .equivalence_test_models(insight::get_parameters(x, component = component), range, ci, effects = "fixed", component = "conditional", parameters, verbose = FALSE)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
 }

@@ -45,8 +45,9 @@ if (!all(sapply(pkgs, require, quietly = TRUE, character.only = TRUE))) {
 
 set.seed(4)
 
-if (require(ggplot2))
+if (require("ggplot2") && require("see")) {
   theme_set(theme_modern())
+}
 ```
 
 The adoption of the Bayesian framework for applied statistics, especially in the social and psychological sciences, seems to be developing in two distinct directions. One of the key topics marking their separation is their opinion about **the Bayes factor**. In short, some authors (e.g., the "Amsterdam school", led by [Wagenmakers](https://www.bayesianspectacles.org/)) advocate its use and emphasize its qualities as a statistical index, while others point to its limits and prefer, instead, the precise description of posterior distributions (using [CIs](https://easystats.github.io/bayestestR/reference/hdi.html), [ROPEs](https://easystats.github.io/bayestestR/reference/rope.html), etc.). 
@@ -69,9 +70,12 @@ $$
 Using this equation, We can compare the probability-odds of two models:
 
 $$
-\frac{P(M_1|D)}{P(M_2|D)} = \frac{P(D|M_1)}{P(D|M_2)} \times \frac{P(M_1)}{P(M_2)}
+\underbrace{\frac{P(M_1|D)}{P(M_2|D)}}_{\text{Posterior Odds}} = 
+\underbrace{\frac{P(D|M_1)}{P(D|M_2)}}_{\text{Likelihood Ratio}} 
+\times
+\underbrace{\frac{P(M_1)}{P(M_2)}}_{\text{Prior Odds}}
 $$
-Where the left-most term are the *posterior odds*, the right-most term are the *prior odds*, and the middle term is the *Bayes factor*:
+Where the *likelihood ratio* (the middle term) is the *Bayes factor*:
 
 $$
 BF_{12}=\frac{P(D|M_1)}{P(D|M_2)}
@@ -242,9 +246,9 @@ print(My_second_BF)
 plot(My_second_BF)
 ```
 
-### One-sided tests
+### Directional hypotheses
 
-We can also conduct a directional test (a "one sided" or "one tailed" test) if we have a prior hypotheses about the direction of the effect. This can be done by setting an order restriction on the prior distribution (and thus also on the posterior distribution) of the alternative [@morey2014simple]. For example, if we have a prior hypothesis that the effect of the drug is an *increase* in the number of sleep hours, the alternative will be restricted to the region to the right of the null (point or interval):
+We can also compute Bayes factors for directional hypotheses ("one sided"), if we have a prior hypotheses about the direction of the effect. This can be done by setting an *order restriction* on the prior distribution (which results in an order restriction on the posterior distribution) of the alternative [@morey2014simple]. For example, if we have a prior hypothesis that *the drug has a positive effect on the number of sleep hours*, the alternative will be restricted to the region to the right of the null (point or interval):
 
 ```{r savagedickey_one_sided, eval=FALSE}
 test_group2_right <- bayesfactor_parameters(model, direction = ">")
@@ -268,8 +272,40 @@ print(test_group2_right)
 plot(test_group2_right)
 ```
 
-As we can see, given that we have an *a priori* assumption about the direction of the effect (*that the effect is positive*), **the presence of an effect is 2.8 times more likely than the absence of an effect**, given the observed data (or that the data are 2.8 time more probable under $H_1$ than $H_0$). This indicates that, given the observed data, and a priori hypothesis, the posterior mass has shifted away from the null value, giving some evidence against the null (note that a Bayes factor of 2.8 is still considered quite [weak evidence](https://easystats.github.io/effectsize/reference/interpret_bf.html)).
+As we can see, given that we have an *a priori* assumption about the direction of the effect (that the effect is positive), **the presence of an effect is 2.8 times more likely than the absence of an effect**, given the observed data (or that the data are 2.8 time more probable under $H_1$ than $H_0$). This indicates that, given the observed data, and a priori hypothesis, the posterior mass has shifted away from the null value, giving some evidence against the null (note that a Bayes factor of 2.8 is still considered quite [weak evidence](https://easystats.github.io/effectsize/reference/interpret_bf.html)).
 
+Thank to the flexibility of Bayesian statistics, it is also possible to compute a Bayes factor for **dividing** hypotheses - that is, for a null and alternative that are *complementary*, opposing one-sided hypotheses [@morey2014simple]. For example, above we compared an alternative of $H_A$: *the drug has a positive effects* to the null $H_0$: *the drug has no effect*, as we did above. But we can also compare instead the same alternative to its *complementary* hypothesis: $H_{-A}$: *the drug has a negative effects*. 
+
+```{r inteval_div, eval=FALSE}
+test_group2_dividing <- bayesfactor_parameters(model, null = c(-Inf, 0))
+test_group2_dividing
+```
+
+```{r inteval_div2, echo=FALSE}
+test_group2_dividing <- bayesfactor_parameters(
+  data.frame(group2 = posterior),
+  data.frame(group2 = prior),
+  null = c(-Inf, 0)
+)
+
+print(test_group2_dividing)
+```
+
+```{r}
+plot(test_group2_dividing)
+```
+
+We can see that this test produces even stronger (more conclusive) evidence than the one-sided vs. point-null test! And indeed, as a rule of thumb, the more specific the two hypotheses are, and the more distinct they are from one another, the more "power" our Bayes factor has! ^[For more, see [this talk by Richard D. Morey, minute 48](https://philstatwars.files.wordpress.com/2020/09/richard_presentation.mp4)]
+
+Thanks to the transitivity of Bayes factors, we can also use `bayesfactor_parameters()` to compare even more types of hypotheses, with some trickery. For example:
+
+$$
+\underbrace{BF_{0<b<1\text{ vs. }b=0}}_{\text{range vs. point}}
+= 
+\underbrace{BF_{b<0\text{ vs. }b=0}}_{\text{directional vs. point}} 
+/
+\underbrace{BF_{b<0\text{ vs. }0<b<1}}_{\text{directional vs. range}} 
+$$
 **NOTE**: See the *Testing Contrasts* appendix below.
 
 ### Support intervals {#si}
@@ -494,9 +530,9 @@ ggplot(iris, aes(Petal.Length, Sepal.Length, color = Species)) +
 Note that these Bayes factors compare the restricted model to the unrestricted model. If we wanted to compare the restricted model to the null model, we could use the transitive property of Bayes factors like so:
 
 $$
-BF_{restricted / NULL} = \frac
-{BF_{restricted / un-restricted}}
-{BF_{un-restricted / NULL}}
+BF_{\text{restricted vs. NULL}} = \frac
+{BF_{\text{restricted vs. un-restricted}}}
+{BF_{\text{un-restricted vs NULL}}}
 $$
 
 **Because these restrictions are on the prior distribution, they are only appropriate for testing pre-planned (*a priori*) hypotheses, and should not be used for any post hoc comparisons [@morey_2015_blog].**

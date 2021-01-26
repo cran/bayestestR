@@ -136,6 +136,17 @@ hdi.MCMCglmm <- function(x, ci = .89, verbose = TRUE, ...) {
 
 
 #' @export
+hdi.bamlss <- function(x, ci = .89, component = c("all", "conditional", "location"), verbose = TRUE, ...) {
+  component <- match.arg(component)
+  d <- insight::get_parameters(x, component = component)
+  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "hdi")
+  attr(dat, "data") <- .safe_deparse(substitute(x))
+  dat
+}
+
+
+
+#' @export
 hdi.mcmc <- function(x, ci = .89, verbose = TRUE, ...) {
   d <- as.data.frame(x)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "hdi")
@@ -203,11 +214,12 @@ hdi.emm_list <- hdi.emmGrid
 #' @importFrom insight get_parameters
 #' @rdname hdi
 #' @export
-hdi.stanreg <- function(x, ci = .89, effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+hdi.stanreg <- function(x, ci = .89, effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
 
   out <- .prepare_output(
-    hdi(insight::get_parameters(x, effects = effects, parameters = parameters), ci = ci, verbose = verbose, ...),
+    hdi(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), ci = ci, verbose = verbose, ...),
     insight::clean_parameters(x),
     inherits(x, "stanmvreg")
   )
@@ -265,7 +277,7 @@ hdi.BFBayesFactor <- function(x, ci = .89, verbose = TRUE, ...) {
       warning("`ci` is too small or x does not contain enough data points, returning NAs.")
     }
     return(data.frame(
-      "CI" = ci * 100,
+      "CI" = ci,
       "CI_low" = NA,
       "CI_high" = NA
     ))
@@ -278,7 +290,7 @@ hdi.BFBayesFactor <- function(x, ci = .89, verbose = TRUE, ...) {
       warning("`ci` is too large or x does not contain enough data points, returning NAs.")
     }
     return(data.frame(
-      "CI" = ci * 100,
+      "CI" = ci,
       "CI_low" = NA,
       "CI_high" = NA
     ))
@@ -302,7 +314,7 @@ hdi.BFBayesFactor <- function(x, ci = .89, verbose = TRUE, ...) {
   }
 
   data.frame(
-    "CI" = ci * 100,
+    "CI" = ci,
     "CI_low" = x_sorted[min_i],
     "CI_high" = x_sorted[min_i + window_size]
   )

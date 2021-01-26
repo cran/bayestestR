@@ -1,4 +1,25 @@
-# bayestestR 0.7.6
+# bayestestR 0.8.1.1
+
+## Bug fixes
+
+* `bayesfactor_pointull()` / `bf_pointull()` are now `bayesfactor_pointnull()` / `bf_pointnull()` (can *you* spot the difference? #363 ).
+
+# bayestestR 0.8.1
+
+## General
+
+* Support for `bamlss` models.
+* Roll-back R dependency to R >= 3.4.
+
+## Changes to functions
+
+* All `.stanreg` methods gain a `component` argument, to also include auxiliary parameters.
+
+## Bug fixes
+
+* `bayesfactor_parameters()` no longer errors for no reason when computing extremely un/likely direction hypotheses.
+
+# bayestestR 0.8.0
 
 ## New functions
 

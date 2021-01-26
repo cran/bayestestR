@@ -49,6 +49,8 @@ describe_posterior(
   diagnostic = c("ESS", "Rhat"),
   priors = FALSE,
   effects = c("fixed", "random", "all"),
+  component = c("location", "all", "conditional", "smooth_terms", "sigma",
+    "distributional", "auxiliary"),
   parameters = NULL,
   BF = 1,
   ...
@@ -67,6 +69,8 @@ describe_posterior(
   diagnostic = c("ESS", "Rhat"),
   priors = FALSE,
   effects = c("fixed", "random", "all"),
+  component = c("location", "all", "conditional", "smooth_terms", "sigma",
+    "distributional", "auxiliary"),
   parameters = NULL,
   ...
 )
@@ -97,7 +101,8 @@ describe_posterior(
   bf_prior = NULL,
   diagnostic = c("ESS", "Rhat"),
   effects = c("fixed", "random", "all"),
-  component = c("conditional", "zi", "zero_inflated", "all"),
+  component = c("conditional", "zi", "zero_inflated", "all", "location",
+    "distributional", "auxiliary"),
   parameters = NULL,
   BF = 1,
   ...
@@ -159,15 +164,15 @@ proportion of HDI, to use for the percentage in ROPE.}
 \item{effects}{Should results for fixed effects, random effects or both be returned?
 Only applies to mixed models. May be abbreviated.}
 
+\item{component}{Should results for all parameters, parameters for the conditional model
+or the zero-inflated part of the model be returned? May be abbreviated. Only
+applies to \pkg{brms}-models.}
+
 \item{parameters}{Regular expression pattern that describes the parameters that
 should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
-
-\item{component}{Should results for all parameters, parameters for the conditional model
-or the zero-inflated part of the model be returned? May be abbreviated. Only
-applies to \pkg{brms}-models.}
 }
 \description{
 Compute indices relevant to describe and characterize the posterior distributions.
@@ -181,15 +186,17 @@ One or more components of point estimates (like posterior mean or median),
 \examples{
 library(bayestestR)
 
-x <- rnorm(1000)
-describe_posterior(x)
-describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all")
-describe_posterior(x, ci = c(0.80, 0.90))
+if (require("logspline")) {
+  x <- rnorm(1000)
+  describe_posterior(x)
+  describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all")
+  describe_posterior(x, ci = c(0.80, 0.90))
 
-df <- data.frame(replicate(4, rnorm(100)))
-describe_posterior(df)
-describe_posterior(df, centrality = "all", dispersion = TRUE, test = "all")
-describe_posterior(df, ci = c(0.80, 0.90))
+  df <- data.frame(replicate(4, rnorm(100)))
+  describe_posterior(df)
+  describe_posterior(df, centrality = "all", dispersion = TRUE, test = "all")
+  describe_posterior(df, ci = c(0.80, 0.90))
+}
 \dontrun{
 # rstanarm models
 # -----------------------------------------------

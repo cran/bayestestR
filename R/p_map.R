@@ -32,9 +32,7 @@
 #' library(BayesFactor)
 #' bf <- ttestBF(x = rnorm(100, 1, 1))
 #' p_map(bf)
-#' }
 #'
-#' \donttest{
 #' # ---------------------------------------
 #' # Robustness to density estimation method
 #' set.seed(333)
@@ -164,6 +162,24 @@ p_map.mcmc.list <- p_map.mcmc
 
 
 
+#' @export
+p_map.bamlss <- function(x, precision = 2^10, method = "kernel", component = c("all", "conditional", "location"), parameters = NULL, ...) {
+  component <- match.arg(component)
+  out <- .p_map_models(
+    x = x,
+    precision = precision,
+    method = method,
+    effects = "all",
+    component = component,
+    parameters = parameters,
+    ...
+  )
+
+  attr(out, "data") <- insight::get_parameters(x, parameters = parameters)
+  out
+}
+
+
 
 #' @export
 p_map.sim.merMod <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
@@ -207,11 +223,12 @@ p_map.sim <- function(x, precision = 2^10, method = "kernel", parameters = NULL,
 
 #' @rdname p_map
 #' @export
-p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
+p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, ...) {
   effects <- match.arg(effects)
+  component <- match.arg(component)
 
   out <- .prepare_output(
-    p_map(insight::get_parameters(x, effects = effects, parameters = parameters), precision = precision, method = method),
+    p_map(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), precision = precision, method = method),
     insight::clean_parameters(x),
     inherits(x, "stanmvreg")
   )
