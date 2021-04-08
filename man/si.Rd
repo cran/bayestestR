@@ -5,6 +5,7 @@
 \alias{si.numeric}
 \alias{si.stanreg}
 \alias{si.brmsfit}
+\alias{si.blavaan}
 \alias{si.emmGrid}
 \alias{si.data.frame}
 \title{Compute Support Intervals}
@@ -26,6 +27,18 @@ si(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
 )
 
 \method{si}{brmsfit}(
+  posterior,
+  prior = NULL,
+  BF = 1,
+  verbose = TRUE,
+  effects = c("fixed", "random", "all"),
+  component = c("conditional", "location", "zi", "zero_inflated", "all",
+    "smooth_terms", "sigma", "distributional", "auxiliary"),
+  parameters = NULL,
+  ...
+)
+
+\method{si}{blavaan}(
   posterior,
   prior = NULL,
   BF = 1,
@@ -94,7 +107,7 @@ that by default, \code{brms::brm()} uses flat priors for fixed-effects; see exam
 The choice of \code{BF} (the level of support) depends on what we want our interval to represent:
 \itemize{
   \item A \code{BF} = 1 contains values whose credibility is not decreased by observing the data.
-  \item A \code{BF} > 1 contains values who recived more impressive support from the data.
+  \item A \code{BF} > 1 contains values who received more impressive support from the data.
   \item A \code{BF} < 1 contains values whose credibility has \emph{not} been impressively decreased by observing the data.
   Testing against values outside this interval will produce a Bayes factor larger than 1/\code{BF} in support of
   the alternative. E.g., if an SI (BF = 1/3) excludes 0, the Bayes factor against the point-null will be larger than 3.

@@ -1,9 +1,13 @@
 #' Empirical Distributions
 #'
-#' Generate a sequence of n-quantiles, i.e., a sample of size \code{n} with a near-perfect distribution.
+#' Generate a sequence of n-quantiles, i.e., a sample of size \code{n} with a
+#' near-perfect distribution.
 #'
-#' @param type Can be any of the names from base R's \link[stats]{Distributions}, like \code{"cauchy"}, \code{"pois"} or \code{"beta"}.
-#' @param random Generate near-perfect or random (simple wrappers for the base R \code{r*} functions) distributions.
+#' @param type Can be any of the names from base R's
+#'   \link[stats]{Distributions}, like \code{"cauchy"}, \code{"pois"} or
+#'   \code{"beta"}.
+#' @param random Generate near-perfect or random (simple wrappers for the base R
+#'   \code{r*} functions) distributions.
 #' @param ... Arguments passed to or from other methods.
 #' @inheritParams tweedie::rtweedie
 #'
@@ -21,8 +25,7 @@ distribution <- function(type = "normal", ...) {
     "gamma", "geom", "hyper", "lnorm", "multinom", "nbinom", "normal", "gaussian",
     "pois", "poisson", "student", "t", "student_t", "unif", "uniform", "weibull"
   )
-  switch(
-    match.arg(arg = type, choices = basr_r_distributions),
+  switch(match.arg(arg = type, choices = basr_r_distributions),
     "beta" = distribution_beta(...),
     "binom" = ,
     "binomial" = distribution_binomial(...),
@@ -87,6 +90,7 @@ distribution_binomial <- function(n, size = 1, prob = 0.5, random = FALSE, ...) 
 
 
 #' @rdname distribution
+#' @export
 distribution_binom <- distribution_binomial
 
 
@@ -116,6 +120,7 @@ distribution_chisquared <- function(n, df, ncp = 0, random = FALSE, ...) {
 }
 
 #' @rdname distribution
+#' @export
 distribution_chisq <- distribution_chisquared
 
 
@@ -165,6 +170,7 @@ distribution_normal <- function(n, mean = 0, sd = 1, random = FALSE, ...) {
 }
 
 #' @rdname distribution
+#' @export
 distribution_gaussian <- distribution_normal
 
 
@@ -213,9 +219,11 @@ distribution_student <- function(n, df, ncp, random = FALSE, ...) {
 }
 
 #' @rdname distribution
+#' @export
 distribution_t <- distribution_student
 
 #' @rdname distribution
+#' @export
 distribution_student_t <- distribution_student
 
 #' @rdname distribution
@@ -244,8 +252,6 @@ distribution_uniform <- function(n, min = 0, max = 1, random = FALSE, ...) {
     stats::qunif(seq(1 / n, 1 - 1 / n, length.out = n), min, max, ...)
   }
 }
-
-
 
 
 

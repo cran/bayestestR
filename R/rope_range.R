@@ -19,6 +19,7 @@
 #'   }
 #'
 #' @param x A \code{stanreg}, \code{brmsfit} or \code{BFBayesFactor} object.
+#' @param verbose Toggle warnings.
 #' @inheritParams rope
 #'
 #' @examples
@@ -43,8 +44,11 @@
 #' }
 #'
 #' if (require("BayesFactor")) {
-#'   bf <- ttestBF(x = rnorm(100, 1, 1))
-#'   rope_range(bf)
+#'   model <- ttestBF(mtcars[mtcars$vs == 1, "mpg"], mtcars[mtcars$vs == 0, "mpg"])
+#'   rope_range(model)
+#'
+#'   model <- lmBF(mpg ~ vs, data = mtcars)
+#'   rope_range(model)
 #' }
 #' }
 #' @references Kruschke, J. K. (2018). Rejecting or accepting parameter values in Bayesian estimation. Advances in Methods and Practices in Psychological Science, 1(2), 270-280. \doi{10.1177/2515245918771304}.
@@ -57,113 +61,34 @@ rope_range <- function(x, ...) {
 }
 
 
+#' @rdname rope_range
 #' @export
-rope_range.brmsfit <- function(x, ...) {
+rope_range.default <- function(x, verbose = TRUE, ...) {
   response <- insight::get_response(x)
   information <- insight::model_info(x)
 
   if (insight::is_multivariate(x)) {
-    mapply(function(i, j) .rope_range(i, j), x, information, response)
+    ret <- mapply(function(i, j) .rope_range(x, i, j), information, response)
+
+    # return matrix as named list
+    # see https://stackoverflow.com/questions/6819804/how-to-convert-a-matrix-to-a-list-of-column-vectors-in-r
+    # this is not the fastest solution bot keeps columns names
+    as.list(as.data.frame(ret))
   } else {
-    .rope_range(x, information, response)
+    .rope_range(x, information, response, verbose)
   }
 }
 
 
-#' @export
-rope_range.stanreg <- rope_range.brmsfit
+# Exceptions --------------------------------------------------------------
 
 #' @export
-rope_range.bamlss <- rope_range.brmsfit
-
-#' @export
-#' @importFrom stats sd
-rope_range.BFBayesFactor <- function(x, ...) {
-  fac <- 1
-  if (inherits(x@numerator[[1]], "BFlinearModel")) {
-    response <- tryCatch(
-      {
-        insight::get_response(x)
-      },
-      error = function(e) {
-        NULL
-      }
-    )
-
-    if (!is.null(response)) {
-      # TODO if https://github.com/easystats/bayestestR/issues/364
-      # use SIGMA param instead
-      fac <- stats::sd(response, na.rm = TRUE)
-    }
-  }
-
-  fac * c(-0.1, 0.1)
-}
-
-#' @export
-rope_range.lm <- rope_range.brmsfit
-
-#' @export
-rope_range.glm <- rope_range.brmsfit
-
-#' @export
-rope_range.merMod <- rope_range.brmsfit
-
-#' @export
-rope_range.glmmTMB <- rope_range.brmsfit
-
-#' @export
-rope_range.mixed <- rope_range.brmsfit
-
-#' @export
-rope_range.MixMod <- rope_range.brmsfit
-
-#' @export
-rope_range.wbm <- rope_range.brmsfit
-
-#' @export
-rope_range.feis <- rope_range.brmsfit
-
-#' @export
-rope_range.gee <- rope_range.brmsfit
-
-#' @export
-rope_range.geeglm <- rope_range.brmsfit
-
-#' @export
-rope_range.lme <- rope_range.brmsfit
-
-#' @export
-rope_range.felm <- rope_range.brmsfit
-
-#' @export
-rope_range.fixest <- rope_range.brmsfit
-
-#' @export
-rope_range.gls <- rope_range.brmsfit
-
-#' @export
-rope_range.hurdle <- rope_range.brmsfit
-
-#' @export
-rope_range.zeroinfl <- rope_range.brmsfit
-
-#' @export
-rope_range.bayesQR <- rope_range.brmsfit
-
-#' @export
-rope_range.default <- function(x, ...) {
-  c(-.1, .1)
-}
-
-#' @export
-rope_range.mlm <- function(x, ...) {
+rope_range.mlm <- function(x, verbose = TRUE, ...) {
   response <- insight::get_response(x)
   information <- insight::model_info(x)
 
-  lapply(response, function(i) .rope_range(x, information, i))
+  lapply(response, function(i) .rope_range(x, information, i, verbose))
 }
-
 
 
 
@@ -171,54 +96,45 @@ rope_range.mlm <- function(x, ...) {
 
 
 #' @importFrom stats sigma sd
-#' @importFrom insight n_obs find_parameters
-.rope_range <- function(x, information, response) {
-  negligible_value <- tryCatch(
-    {
-      if (information$link == "identity") {
-        # Linear Models
-        warning("Note that the default rope range for binomial models might change in future versions (see https://github.com/easystats/bayestestR/issues/364).",
-                "Please set it explicitly to preserve current results.")
-        # 0.1 * stats::sigma(x) # https://github.com/easystats/bayestestR/issues/364
-        0.1 * stats::sd(response, na.rm = TRUE)
-      } else if (information$is_ttest) {
-        # T-tests
-        # if https://github.com/easystats/bayestestR/issues/364, change to just be 0.1
-        if ("BFBayesFactor" %in% class(x)) {
-          # TODO this actually never happens because there is a BFBayesFactor method!
-          0.1 * stats::sd(x@data[, 1])
-        } else {
-          warning("Could not estimate a good default ROPE range. Using 'c(-0.1, 0.1)'.", call. = FALSE)
-          0.1
-        }
-      } else if (information$link == "logit") {
-        # Logistic Models (any)
-        0.1 * pi / sqrt(3)
-      } else if (information$link == "probit") {
-        # Probit models
-        0.1
-      } else if (information$is_correlation) {
-        # Correlations
-        # https://github.com/easystats/bayestestR/issues/121
-        0.05
-      } else if (information$is_count) {
-        # Not sure about this
-        sig <- stats::sigma(x)
-        if (!is.null(sig) && length(sig) > 0 && !is.na(sig)) {
-          0.1 * sig
-        } else {
-          0.1
-        }
-      } else {
-        # Default
-        0.1
-      }
-    },
-    error = function(e) {
-      warning("Could not estimate a good default ROPE range. Using 'c(-0.1, 0.1)'.", call. = FALSE)
-      0.1
+.rope_range <- function(x, information = NULL, response = NULL, verbose = TRUE) {
+
+  # if(method != "legacy") {
+  #   message("Other ROPE range methods than 'legacy' are currently not implemented. See https://github.com/easystats/bayestestR/issues/364", call. = FALSE)
+  # }
+
+
+  negligible_value <- tryCatch({
+    if (!is.null(response) && information$link == "identity") {
+      # Linear Models
+      0.1 * stats::sd(response, na.rm = TRUE)
+      # 0.1 * stats::sigma(x) # https://github.com/easystats/bayestestR/issues/364
+    } else if (information$link == "logit") {
+      # Logistic Models (any)
+      # Sigma==pi / sqrt(3)
+      0.1 * pi / sqrt(3)
+    } else if (information$link == "probit") {
+      # Probit models
+      # Sigma==1
+      0.1 * 1
+    } else if (information$is_correlation) {
+      # Correlations
+      # https://github.com/easystats/bayestestR/issues/121
+      0.05
+    } else if (information$is_count) {
+      # Not sure about this
+      sig <- stats::sigma(x)
+      if (is.null(sig) || length(sig) == 0 || is.na(sig)) stop()
+      0.1 * sig
+    } else {
+      # Default
+      stop()
     }
-  )
+  }, error = function(e) {
+    if (isTRUE(verbose)) {
+      warning("Could not estimate a good default ROPE range. Using 'c(-0.1, 0.1)'.", call. = FALSE)
+    }
+    0.1
+  })
 
   c(-1, 1) * negligible_value
 }

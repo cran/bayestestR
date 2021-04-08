@@ -1,46 +1,49 @@
-#' @importFrom insight print_color
-#' @importFrom tools toTitleCase
-#' @export
-print.bayesfactor_models <- function(x, digits = 3, log = FALSE, ...) {
-  BFE <- x
-  denominator <- attr(BFE, "denominator")
-  grid.type <- attr(BFE, "BF_method")
 
-  BFE <- as.data.frame(BFE)
-  if (log) {
-    BFE$BF <- log(BFE$BF)
-  }
-  BFE$BF <- insight::format_value(BFE$BF, digits = digits, missing = "NA", zap_small = log)
-  BFE$Model[BFE$Model == "1"] <- "(Intercept only)" # indicate null-model
-  BFE$Model <- paste0(" [", seq_len(nrow(BFE)), "] ", BFE$Model)
+# print.bayesfactor_models <- function(x, digits = 3, log = FALSE, show_names = TRUE, ...) {
+#   BFE <- x
+#   denominator <- attr(BFE, "denominator")
+#   grid.type <- attr(BFE, "BF_method")
+#   model_names <- rownames(BFE)
+#
+#   BFE <- as.data.frame(BFE)
+#   if (log) {
+#     BFE$BF <- log(BFE$BF)
+#   }
+#   BFE$BF <- insight::format_value(BFE$BF, digits = digits, missing = "NA", zap_small = log)
+#   BFE$Model[BFE$Model == "1"] <- "(Intercept only)" # indicate null-model
+#
+#   if ((!show_names) || is.null(model_names) || length(model_names) != nrow(BFE)) {
+#     BFE$i <- paste0("[", seq_len(nrow(BFE)), "]")
+#   } else {
+#     BFE$i <- paste0("[", model_names, "]")
+#   }
+#
+#   # Denominator
+#   denM <- .trim(paste0(BFE$i, " ", BFE$Model)[denominator])
+#   BFE <- BFE[-denominator, ]
+#   BFE <- BFE[c("i", "Model", "BF")]
+#   colnames(BFE)[1] <- ""
+#
+#   # footer
+#   footer <- list(
+#     "\n* Against Denominator: ",
+#     c(denM, "cyan"),
+#     "\n*   Bayes Factor Type: ",
+#     c(grid.type, "cyan"),
+#     if (log) c("\n\nBayes Factors are on the log-scale.", "red")
+#   )
+#
+#   cat(insight::export_table(
+#     BFE,
+#     sep = " ", header = NULL, align = c("llr"),
+#     caption = c("# Bayes Factors for Model Comparison", "blue"),
+#     footer = footer
+#   ))
+#
+#   invisible(x)
+# }
 
-  # Denominator
-  if(is.numeric(denominator)) {
-    denM <- .trim(BFE$Model[denominator])
-    BFE <- BFE[-denominator, ]
-  } else{
-    denM <- tools::toTitleCase(denominator)
-  }
 
-
-  # footer
-  footer <- list(
-    "\n* Against Denominator: ",
-    c(denM, "cyan"),
-    "\n*   Bayes Factor Type: ",
-    c(grid.type, "cyan"),
-    if (log) c("\n\nBayes Factors are on the log-scale.", "red")
-  )
-
-  cat(insight::export_table(
-    BFE,
-    sep = " ", header = NULL, align = c("left", "right"),
-    caption = c("# Bayes Factors for Model Comparison", "blue"),
-    footer = footer)
-  )
-
-  invisible(x)
-}
 
 #' @importFrom insight print_color export_table
 #' @export

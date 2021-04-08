@@ -112,7 +112,7 @@ mediation <- function(model, ...) {
 
 #' @rdname mediation
 #' @export
-mediation.brmsfit <- function(model, treatment, mediator, response = NULL, centrality = "median", ci = .89, method = "ETI", ...) {
+mediation.brmsfit <- function(model, treatment, mediator, response = NULL, centrality = "median", ci = 0.95, method = "ETI", ...) {
   .mediation(
     model = model,
     treatment = treatment,
@@ -129,7 +129,7 @@ mediation.brmsfit <- function(model, treatment, mediator, response = NULL, centr
 
 #' @rdname mediation
 #' @export
-mediation.stanmvreg <- function(model, treatment, mediator, response = NULL, centrality = "median", ci = .89, method = "ETI", ...) {
+mediation.stanmvreg <- function(model, treatment, mediator, response = NULL, centrality = "median", ci = 0.95, method = "ETI", ...) {
   .mediation(
     model = model,
     treatment = treatment,
@@ -151,7 +151,7 @@ mediation.stanmvreg <- function(model, treatment, mediator, response = NULL, cen
 
 
 #' @importFrom insight model_info find_response find_predictors get_parameters
-.mediation <- function(model, treatment, mediator, response = NULL, centrality = "median", ci = .89, method = "ETI", pattern = "b_%s_%s", ...) {
+.mediation <- function(model, treatment, mediator, response = NULL, centrality = "median", ci = 0.95, method = "ETI", pattern = "b_%s_%s", ...) {
   # only one HDI interval
   if (length(ci) > 1) ci <- ci[1]
 
@@ -320,6 +320,7 @@ as.data.frame.bayestestR_mediation <- function(x, ...) {
 #' @importFrom insight export_table format_ci print_color format_value
 #' @export
 print.bayestestR_mediation <- function(x, digits = 3, ...) {
+  attr(x, "data") <- NULL
   insight::print_color("# Causal Mediation Analysis for Stan Model\n\n", "blue")
 
   cat(sprintf(
@@ -336,6 +337,8 @@ print.bayestestR_mediation <- function(x, digits = 3, ...) {
   x <- .remove_column(x, c("CI_low", "CI_high"))
   colnames(x)[ncol(x)] <- sprintf("%.5g%% %s", 100 * attributes(x)$ci, attributes(x)$ci_method)
 
+  # remove class, to avoid conflicts with "as.data.frame.bayestestR_mediation()"
+  class(x) <- "data.frame"
   cat(insight::export_table(x, digits = digits))
   cat("\n")
 

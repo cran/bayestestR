@@ -43,6 +43,28 @@
 #' @keywords internal
 .clean_priors_and_posteriors.brmsfit <- .clean_priors_and_posteriors.stanreg
 
+
+#' @keywords internal
+#' @importFrom insight get_parameters
+.clean_priors_and_posteriors.blavaan <- function(posterior, prior,
+                                                 verbose = TRUE, ...) {
+  # Get Priors
+  if (is.null(prior)) {
+    prior <- posterior
+  }
+
+  prior <- unupdate(prior, verbose = verbose)
+
+  prior <- insight::get_parameters(prior)
+  posterior <- insight::get_parameters(posterior)
+
+  list(
+    posterior = posterior,
+    prior = prior
+  )
+}
+
+
 #' @keywords internal
 #' @importFrom stats update
 .clean_priors_and_posteriors.emmGrid <- function(posterior, prior,
@@ -273,7 +295,7 @@
       # 3. direction?
       if (direction > 0) {
         d_points <- d_points[d_points$x >= min(null), , drop = FALSE]
-        if (is.infinite(min(null))){
+        if (is.infinite(min(null))) {
           norm_factor <- 1
         } else {
           norm_factor <- 1 - logspline::plogspline(min(null), f_x)
@@ -282,7 +304,7 @@
         d_null$y <- d_null$y / norm_factor
       } else if (direction < 0) {
         d_points <- d_points[d_points$x <= max(null), , drop = FALSE]
-        if (is.infinite(max(null))){
+        if (is.infinite(max(null))) {
           norm_factor <- 1
         } else {
           norm_factor <- logspline::plogspline(max(null), f_x)

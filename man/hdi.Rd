@@ -5,7 +5,6 @@
 \alias{hdi.numeric}
 \alias{hdi.data.frame}
 \alias{hdi.MCMCglmm}
-\alias{hdi.bayesQR}
 \alias{hdi.sim.merMod}
 \alias{hdi.sim}
 \alias{hdi.emmGrid}
@@ -16,30 +15,28 @@
 \usage{
 hdi(x, ...)
 
-\method{hdi}{numeric}(x, ci = 0.89, verbose = TRUE, ...)
+\method{hdi}{numeric}(x, ci = 0.95, verbose = TRUE, ...)
 
-\method{hdi}{data.frame}(x, ci = 0.89, verbose = TRUE, ...)
+\method{hdi}{data.frame}(x, ci = 0.95, verbose = TRUE, ...)
 
-\method{hdi}{MCMCglmm}(x, ci = 0.89, verbose = TRUE, ...)
-
-\method{hdi}{bayesQR}(x, ci = 0.89, verbose = TRUE, ...)
+\method{hdi}{MCMCglmm}(x, ci = 0.95, verbose = TRUE, ...)
 
 \method{hdi}{sim.merMod}(
   x,
-  ci = 0.89,
+  ci = 0.95,
   effects = c("fixed", "random", "all"),
   parameters = NULL,
   verbose = TRUE,
   ...
 )
 
-\method{hdi}{sim}(x, ci = 0.89, parameters = NULL, verbose = TRUE, ...)
+\method{hdi}{sim}(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...)
 
-\method{hdi}{emmGrid}(x, ci = 0.89, verbose = TRUE, ...)
+\method{hdi}{emmGrid}(x, ci = 0.95, verbose = TRUE, ...)
 
 \method{hdi}{stanreg}(
   x,
-  ci = 0.89,
+  ci = 0.95,
   effects = c("fixed", "random", "all"),
   component = c("location", "all", "conditional", "smooth_terms", "sigma",
     "distributional", "auxiliary"),
@@ -50,7 +47,7 @@ hdi(x, ...)
 
 \method{hdi}{brmsfit}(
   x,
-  ci = 0.89,
+  ci = 0.95,
   effects = c("fixed", "random", "all"),
   component = c("conditional", "zi", "zero_inflated", "all"),
   parameters = NULL,
@@ -58,7 +55,7 @@ hdi(x, ...)
   ...
 )
 
-\method{hdi}{BFBayesFactor}(x, ci = 0.89, verbose = TRUE, ...)
+\method{hdi}{BFBayesFactor}(x, ci = 0.95, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
@@ -68,7 +65,7 @@ vectors. Can also be a Bayesian model (\code{stanreg}, \code{brmsfit},
 \item{...}{Currently not used.}
 
 \item{ci}{Value or vector of probability of the (credible) interval - CI (between 0 and 1)
-to be estimated. Default to \code{.89} (89\%).}
+to be estimated. Default to \code{.95} (95\%).}
 
 \item{verbose}{Toggle off warnings.}
 
@@ -102,16 +99,27 @@ from each tail of the distribution and always include the median, the HDI is
 \emph{not} equal-tailed and therefore always includes the mode(s) of posterior
 distributions.
 \cr \cr
-By default, \code{hdi()} and \code{eti()} return the 89\% intervals (\code{ci = 0.89}),
-deemed to be more stable than, for instance, 95\% intervals (\cite{Kruschke, 2014}).
-An effective sample size of at least 10.000 is recommended if 95\% intervals
-should be computed (\cite{Kruschke, 2014, p. 183ff}). Moreover, 89 indicates
-the arbitrariness of interval limits - its only remarkable property is being
+The \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{95\% or 89\% Credible Intervals (CI)}
+are two reasonable ranges to characterize the uncertainty related to the estimation (see \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{here} for a discussion about the differences between these two values).
+\cr
+The 89\% intervals (\code{ci = 0.89}) are deemed to be more stable than, for
+instance, 95\% intervals (\cite{Kruschke, 2014}).
+An effective sample size of at least 10.000 is recommended if one wants to estimate
+95\% intervals with high precision (\cite{Kruschke, 2014, p. 183ff}). Unfortunately, the default number of posterior samples for most Bayes packages (e.g., `rstanarm` or `brms`) is only 4.000 (thus, you might want to increase it when fitting your model). Moreover,
+89 indicates the arbitrariness of interval limits - its only remarkable property is being
 the highest prime number that does not exceed the already unstable 95\%
 threshold (\cite{McElreath, 2015}).
+\cr
+However, 95\% has some \href{https://easystats.github.io/blog/posts/bayestestr_95/}{advantages too}.
+For instance, it shares (in the case of a normal posterior distribution) an intuitive relationship with the
+standard deviation and it conveys a more accurate image of the (artificial)
+bounds of the distribution. Also, because it is wider, it makes analyses more
+conservative (i.e., the probability of covering 0 is larger for the 95\% CI than
+for lower ranges such as 89\%), which is a good thing in the context of the
+reproducibility crisis.
 \cr \cr
-A 90\% equal-tailed interval (ETI) has 5\% of the distribution on either
-side of its limits. It indicates the 5th percentile and the 95h percentile.
+A 95\% equal-tailed interval (ETI) has 2.5\% of the distribution on either
+side of its limits. It indicates the 2.5th percentile and the 97.5h percentile.
 In symmetric distributions, the two methods of computing credible intervals,
 the ETI and the \link[=hdi]{HDI}, return similar results.
 \cr \cr

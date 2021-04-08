@@ -22,7 +22,7 @@
 #' The choice of \code{BF} (the level of support) depends on what we want our interval to represent:
 #' \itemize{
 #'   \item A \code{BF} = 1 contains values whose credibility is not decreased by observing the data.
-#'   \item A \code{BF} > 1 contains values who recived more impressive support from the data.
+#'   \item A \code{BF} > 1 contains values who received more impressive support from the data.
 #'   \item A \code{BF} < 1 contains values whose credibility has \emph{not} been impressively decreased by observing the data.
 #'   Testing against values outside this interval will produce a Bayes factor larger than 1/\code{BF} in support of
 #'   the alternative. E.g., if an SI (BF = 1/3) excludes 0, the Bayes factor against the point-null will be larger than 3.
@@ -135,6 +135,7 @@ si.stanreg <- function(posterior, prior = NULL,
 
   out <- .prepare_output(temp, cleaned_parameters, inherits(posterior, "stanmvreg"))
 
+  attr(out, "ci_method") <- "SI"
   attr(out, "object_name") <- .safe_deparse(substitute(posterior))
   class(out) <- class(temp)
   attr(out, "plot_data") <- attr(temp, "plot_data")
@@ -146,6 +147,10 @@ si.stanreg <- function(posterior, prior = NULL,
 #' @rdname si
 #' @export
 si.brmsfit <- si.stanreg
+
+#' @rdname si
+#' @export
+si.blavaan <- si.stanreg
 
 
 #' @rdname si
@@ -162,6 +167,7 @@ si.emmGrid <- function(posterior, prior = NULL,
     BF = BF, verbose = verbose, ...
   )
 
+  attr(out, "ci_method") <- "SI"
   attr(out, "object_name") <- .safe_deparse(substitute(posterior))
   out
 }
@@ -208,8 +214,10 @@ si.data.frame <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) 
     CI_high = sis[, 2],
     stringsAsFactors = FALSE
   )
-  class(out) <- unique(c("bayestestR_si", "see_si", "bayestestR_ci", "see_ci", class(out)))
+
+  attr(out, "ci_method") <- "SI"
   attr(out, "plot_data") <- .make_BF_plot_data(posterior, prior, 0, 0, ...)$plot_data
+  class(out) <- unique(c("bayestestR_si", "see_si", "bayestestR_ci", "see_ci", class(out)))
 
   out
 }
@@ -219,6 +227,16 @@ si.data.frame <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) 
 si.stanfit <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, effects = c("fixed", "random", "all"), ...) {
   si(insight::get_parameters(posterior, effects = effects))
 }
+
+#' @export
+si.get_predicted <- function(posterior, ...) {
+  out <- si(as.data.frame(t(posterior)), ...)
+  attr(out, "object_name") <- .safe_deparse(substitute(posterior))
+  out
+}
+
+# Helper ------------------------------------------------------------------
+
 
 
 #' @importFrom stats median mad na.omit

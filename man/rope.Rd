@@ -16,20 +16,20 @@ rope(x, ...)
 
 \method{rope}{default}(x, ...)
 
-\method{rope}{numeric}(x, range = "default", ci = 0.89, ci_method = "HDI", verbose = TRUE, ...)
+\method{rope}{numeric}(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...)
 
-\method{rope}{data.frame}(x, range = "default", ci = 0.89, ci_method = "HDI", verbose = TRUE, ...)
+\method{rope}{data.frame}(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...)
 
-\method{rope}{emmGrid}(x, range = "default", ci = 0.89, ci_method = "HDI", verbose = TRUE, ...)
+\method{rope}{emmGrid}(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...)
 
-\method{rope}{BFBayesFactor}(x, range = "default", ci = 0.89, ci_method = "HDI", verbose = TRUE, ...)
+\method{rope}{BFBayesFactor}(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...)
 
-\method{rope}{MCMCglmm}(x, range = "default", ci = 0.89, ci_method = "HDI", verbose = TRUE, ...)
+\method{rope}{MCMCglmm}(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...)
 
 \method{rope}{stanreg}(
   x,
   range = "default",
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "HDI",
   effects = c("fixed", "random", "all"),
   component = c("location", "all", "conditional", "smooth_terms", "sigma",
@@ -42,7 +42,7 @@ rope(x, ...)
 \method{rope}{brmsfit}(
   x,
   range = "default",
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "HDI",
   effects = c("fixed", "random", "all"),
   component = c("conditional", "zi", "zero_inflated", "all"),
@@ -56,7 +56,14 @@ rope(x, ...)
 
 \item{...}{Currently not used.}
 
-\item{range}{ROPE's lower and higher bounds. Should be a vector of length two (e.g., \code{c(-0.1, 0.1)}) or \code{"default"}. If \code{"default"}, the range is set to \code{c(-0.1, 0.1)} if input is a vector, and based on \code{\link[=rope_range]{rope_range()}} if a Bayesian model is provided.}
+\item{range}{ROPE's lower and higher bounds. Should be \code{"default"} or
+depending on the number of outcome variables a vector or a list. In models with one response,
+`range` should be a vector of length two (e.g., \code{c(-0.1, 0.1)}). In
+multivariate models, `range` should be a list with a numeric vectors for
+each response variable. Vector names should correspond to the name of the response
+variables. If \code{"default"} and input is a vector, the range is set to \code{c(-0.1,
+0.1)}. If \code{"default"} and input is a Bayesian model,
+\code{\link[=rope_range]{rope_range()}} is used.}
 
 \item{ci}{The Credible Interval (CI) probability, corresponding to the proportion of HDI, to use for the percentage in ROPE.}
 
@@ -154,6 +161,11 @@ rope(emtrends(model, ~1, "wt"), ci = c(.90, .95))
 
 library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
+rope(model)
+rope(model, ci = c(.90, .95))
+
+library(brms)
+model <- brms::brm(brms::mvbind(mpg, disp) ~ wt + cyl, data = mtcars)
 rope(model)
 rope(model, ci = c(.90, .95))
 

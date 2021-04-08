@@ -38,8 +38,22 @@ describe_prior <- function(model, ...) {
 
 
 
+#' @export
+describe_prior.brmsfit <- function(model,
+                                   effects = c("fixed", "random", "all"),
+                                   component = c("conditional", "zi", "zero_inflated",
+                                                 "all", "location", "distributional", "auxiliary"),
+                                   parameters = NULL, ...) {
+  .describe_prior(model, parameters = parameters)
+}
+
+
+# Internal ----------------------------------------------------------------
+
+
+
 #' @keywords internal
-.describe_prior <- function(model, ...) {
+.describe_prior <- function(model, parameters = NULL, ...) {
   priors <- insight::get_priors(model, ...)
 
   # Format names
@@ -55,6 +69,23 @@ describe_prior <- function(model, ...) {
     names(priors)[names(priors) == "Prior_Response"] <- "Response"
   }
 
+  # make sure parameter names match between prior output and model
+  cp <- insight::clean_parameters(model)
+
+  ## TODO for now, only fixed effects
+  if ("Effects" %in% names(cp)) {
+    cp <- cp[cp$Effects == "fixed", ]
+  }
+
+  if (!is.null(parameters) && !all(priors$Parameter %in% parameters)) {
+    cp$Cleaned_Parameter <- gsub("(.*)(\\.|\\[)\\d+(\\.|\\])", "\\1", cp$Cleaned_Parameter)
+    cp$Cleaned_Parameter[cp$Cleaned_Parameter == "Intercept"] <- "(Intercept)"
+    colnames(priors)[1] <- "Cleaned_Parameter"
+    out <- merge(cp, priors, by = "Cleaned_Parameter", all = TRUE)
+    out <- out[!duplicated(out$Parameter), ]
+    priors <- out[intersect(colnames(out), c("Parameter", "Prior_Distribution", "Prior_df", "Prior_Location", "Prior_Scale", "Response"))]
+  }
+
   priors
 }
 
@@ -62,14 +93,21 @@ describe_prior <- function(model, ...) {
 #' @export
 describe_prior.stanreg <- .describe_prior
 
-#' @export
-describe_prior.brmsfit <- .describe_prior
+
 
 #' @export
 describe_prior.bcplm <- .describe_prior
 
 #' @export
+describe_prior.blavaan <- .describe_prior
+
+#' @export
 describe_prior.mcmc.list <- function(model, ...) {
+  NULL
+}
+
+#' @export
+describe_prior.BGGM <- function(model, ...) {
   NULL
 }
 

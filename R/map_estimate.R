@@ -39,8 +39,6 @@ map_estimate <- function(x, precision = 2^10, method = "kernel", ...) {
 
 
 
-
-
 #' @rdname map_estimate
 #' @export
 map_estimate.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
@@ -60,7 +58,6 @@ map_estimate.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
 }
 
 
-
 #' @rdname map_estimate
 #' @export
 map_estimate.bayesQR <- function(x, precision = 2^10, method = "kernel", ...) {
@@ -68,6 +65,47 @@ map_estimate.bayesQR <- function(x, precision = 2^10, method = "kernel", ...) {
   map_estimate(x, precision = precision, method = method)
 }
 
+
+#' @export
+map_estimate.BGGM <- function(x, precision = 2^10, method = "kernel", ...) {
+  x <- insight::get_parameters(x)
+  map_estimate(x, precision = precision, method = method)
+}
+
+
+#' @export
+map_estimate.mcmc <- function(x, precision = 2^10, method = "kernel", ...) {
+  x <- insight::get_parameters(x)
+  map_estimate(x, precision = precision, method = method)
+}
+
+
+#' @export
+map_estimate.bamlss <- function(x, precision = 2^10, method = "kernel", ...) {
+  x <- insight::get_parameters(x)
+  map_estimate(x, precision = precision, method = method)
+}
+
+
+#' @export
+map_estimate.bcplm <- function(x, precision = 2^10, method = "kernel", ...) {
+  x <- insight::get_parameters(x)
+  map_estimate(x, precision = precision, method = method)
+}
+
+
+#' @export
+map_estimate.blrm <- function(x, precision = 2^10, method = "kernel", ...) {
+  x <- insight::get_parameters(x)
+  map_estimate(x, precision = precision, method = method)
+}
+
+
+#' @export
+map_estimate.mcmc.list <- function(x, precision = 2^10, method = "kernel", ...) {
+  x <- insight::get_parameters(x)
+  map_estimate(x, precision = precision, method = method)
+}
 
 
 #' @importFrom insight get_parameters
@@ -82,14 +120,14 @@ map_estimate.bayesQR <- function(x, precision = 2^10, method = "kernel", ...) {
     row.names = NULL
   )
 
+  out <- .add_clean_parameters_attribute(out, x)
   attr(out, "MAP_density") <- sapply(l, attr, "MAP_density")
   attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
   attr(out, "centrality") <- "map"
   class(out) <- unique(c("map_estimate", "see_point_estimate", class(out)))
-
-  class(out) <- unique(c("map_estimate", class(out)))
   out
 }
+
 
 #' @rdname map_estimate
 #' @export
@@ -107,6 +145,9 @@ map_estimate.stanreg <- function(x, precision = 2^10, method = "kernel", effects
 #' @export
 map_estimate.stanfit <- map_estimate.stanreg
 
+#' @export
+map_estimate.blavaan <- map_estimate.stanreg
+
 
 #' @rdname map_estimate
 #' @export
@@ -121,14 +162,11 @@ map_estimate.brmsfit <- function(x, precision = 2^10, method = "kernel", effects
 }
 
 
-
 #' @rdname map_estimate
 #' @export
 map_estimate.data.frame <- function(x, precision = 2^10, method = "kernel", ...) {
   .map_estimate_models(x, precision = precision, method = method)
 }
-
-
 
 
 #' @rdname map_estimate
@@ -140,6 +178,18 @@ map_estimate.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
 
 #' @export
 map_estimate.emm_list <- map_estimate.emmGrid
+
+
+#' @export
+map_estimate.get_predicted <- function(x, ...) {
+  if ("iterations" %in% names(attributes(x))) {
+    map_estimate(as.data.frame(t(attributes(x)$iterations)), ...)
+  } else {
+    stop("No iterations present in the output.")
+  }
+}
+
+# Methods -----------------------------------------------------------------
 
 
 

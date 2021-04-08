@@ -147,13 +147,23 @@ point_estimate.bayesQR <- point_estimate.bcplm
 
 
 #' @export
+point_estimate.blrm <- point_estimate.bcplm
+
+
+#' @export
 point_estimate.mcmc.list <- point_estimate.bcplm
 
 
 #' @export
-point_estimate.bamlss <- function(x, centrality = "all", dispersion = FALSE,  component = c("conditional", "location", "all"), ...) {
+point_estimate.BGGM <- point_estimate.bcplm
+
+
+#' @export
+point_estimate.bamlss <- function(x, centrality = "all", dispersion = FALSE, component = c("conditional", "location", "all"), ...) {
   component <- match.arg(component)
-  point_estimate(insight::get_parameters(x, component = component), centrality = centrality, dispersion = dispersion, ...)
+  out <- point_estimate(insight::get_parameters(x, component = component), centrality = centrality, dispersion = dispersion, ...)
+  out <- .add_clean_parameters_attribute(out, x)
+  out
 }
 
 
@@ -177,12 +187,14 @@ point_estimate.emmGrid <- function(x, centrality = "all", dispersion = FALSE, ..
 point_estimate.emm_list <- point_estimate.emmGrid
 
 
+# Helper ------------------------------------------------------------------
+
+
 
 #' @importFrom insight get_parameters
 #' @keywords internal
 .point_estimate_models <- function(x, effects, component, parameters, centrality = "all", dispersion = FALSE, ...) {
   out <- point_estimate(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), centrality = centrality, dispersion = dispersion, ...)
-  # out$Parameter <- .get_parameter_names(x, effects = effects, component = component, parameters = parameters)
   out
 }
 
@@ -193,15 +205,17 @@ point_estimate.emm_list <- point_estimate.emmGrid
 point_estimate.stanreg <- function(x, centrality = "all", dispersion = FALSE, effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
+  cleaned_parameters <- insight::clean_parameters(x)
 
   out <- .prepare_output(
     point_estimate(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), centrality = centrality, dispersion = dispersion, ...),
-    insight::clean_parameters(x),
+    cleaned_parameters,
     inherits(x, "stanmvreg")
   )
 
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   attr(out, "centrality") <- centrality
+  attr(out, "clean_parameters") <- cleaned_parameters
   class(out) <- unique(c("point_estimate", "see_point_estimate", class(out)))
 
   out
@@ -210,20 +224,25 @@ point_estimate.stanreg <- function(x, centrality = "all", dispersion = FALSE, ef
 #' @export
 point_estimate.stanfit <- point_estimate.stanreg
 
+#' @export
+point_estimate.blavaan <- point_estimate.stanreg
+
 
 #' @rdname point_estimate
 #' @export
 point_estimate.brmsfit <- function(x, centrality = "all", dispersion = FALSE, effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
+  cleaned_parameters <- insight::clean_parameters(x)
 
   out <- .prepare_output(
     point_estimate(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), centrality = centrality, dispersion = dispersion, ...),
-    insight::clean_parameters(x)
+    cleaned_parameters
   )
 
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   attr(out, "centrality") <- centrality
+  attr(out, "clean_parameters") <- cleaned_parameters
   class(out) <- unique(c("point_estimate", "see_point_estimate", class(out)))
 
   out
@@ -245,6 +264,7 @@ point_estimate.sim.merMod <- function(x, centrality = "all", dispersion = FALSE,
   )
   attr(out, "data") <- insight::get_parameters(x, effects = effects, parameters = parameters)
   attr(out, "centrality") <- centrality
+  out <- .add_clean_parameters_attribute(out, x)
   class(out) <- unique(c("point_estimate", "see_point_estimate", class(out)))
 
   out
@@ -281,4 +301,20 @@ point_estimate.BFBayesFactor <- function(x, centrality = "all", dispersion = FAL
   class(out) <- unique(c("point_estimate", "see_point_estimate", class(out)))
 
   out
+}
+
+
+#' @export
+point_estimate.matrix <- function(x, ...) {
+  point_estimate(as.data.frame(x), ...)
+}
+
+
+#' @export
+point_estimate.get_predicted <- function(x, ...) {
+  if ("iterations" %in% names(attributes(x))) {
+    point_estimate(as.data.frame(t(attributes(x)$iterations)), ...)
+  } else{
+    as.numeric(x)
+  }
 }

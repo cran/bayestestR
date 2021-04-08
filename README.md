@@ -7,6 +7,15 @@
 
 ***Become a Bayesian master you will***
 
+------------------------------------------------------------------------
+
+:warning: We changed the default the CI width! Please make an [informed
+decision](https://easystats.github.io/bayestestR/articles/credible_interval.html)
+and set it explicitly (`ci = 0.89`, `ci = 0.95` or anything else that
+you decide) :warning:
+
+------------------------------------------------------------------------
+
 Existing R packages allow users to easily fit a large variety of models
 and extract and visualize the posterior draws. However, most of these
 packages only return a limited set of indices (e.g., point-estimates and
@@ -143,11 +152,11 @@ describe_posterior(
   centrality = "median",
   test = c("p_direction", "p_significance")
 )
-## # Description of Posterior Distributions
+## Summary of Posterior Distribution
 ## 
-## Parameter | Median |          89% CI |     pd |    ps
-## -----------------------------------------------------
-## Posterior |  0.024 | [-1.594, 1.650] | 50.94% | 0.470
+## Parameter | Median |        95% CI |     pd |   ps
+## --------------------------------------------------
+## Posterior |   0.01 | [-1.85, 2.03] | 50.55% | 0.47
 ```
 
 `describe_posterior()` works for many objects, including more complex
@@ -177,43 +186,51 @@ describe_posterior(
 )
 ```
 
-    ## # Description of Posterior Distributions
+    ## Summary of Posterior Distribution
     ## 
-    ## # Fixed Effects (Conditional Model)
+    ## Parameter   | Median |  Mean |   MAP |         95% CI |     pd |   ps |  Rhat |    ESS
+    ## --------------------------------------------------------------------------------------
+    ## (Intercept) |   0.96 |  0.96 |  0.96 | [-0.64,  2.74] | 90.00% | 0.88 | 1.011 | 110.00
+    ## child       |  -1.16 | -1.16 | -1.16 | [-1.39, -0.97] |   100% | 1.00 | 0.996 | 278.00
+    ## camper      |   0.73 |  0.72 |  0.73 | [ 0.51,  0.89] |   100% | 1.00 | 0.996 | 271.00
     ## 
-    ## Parameter | Median |   Mean |    MAP |           89% CI |      pd |    ps |  Rhat |     ESS
-    ## -------------------------------------------------------------------------------------------
-    ## Intercept |  0.962 |  0.963 |  0.964 | [-0.341,  2.293] |  90.00% | 0.884 | 1.011 | 109.680
-    ## child     | -1.159 | -1.156 | -1.155 | [-1.320, -0.995] | 100.00% | 1.000 | 0.996 | 278.161
-    ## camper    |  0.725 |  0.722 |  0.729 | [ 0.568,  0.870] | 100.00% | 1.000 | 0.996 | 271.166
+    ## # Fixed effects (zero-inflated)
     ## 
-    ## # Fixed Effects (Zero-Inflated Model)
+    ## Parameter   | Median |  Mean |   MAP |         95% CI |     pd |   ps |  Rhat |    ESS
+    ## --------------------------------------------------------------------------------------
+    ## (Intercept) |  -0.48 | -0.51 | -0.22 | [-1.75,  1.16] | 78.00% | 0.73 | 0.997 | 138.00
+    ## child       |   1.85 |  1.86 |  1.81 | [ 1.28,  2.61] |   100% | 1.00 | 0.996 | 303.00
+    ## camper      |  -0.88 | -0.86 | -0.99 | [-1.61, -0.04] | 98.40% | 0.96 | 0.996 | 292.00
     ## 
-    ## Parameter | Median |   Mean |    MAP |           89% CI |      pd |    ps |  Rhat |     ESS
-    ## -------------------------------------------------------------------------------------------
-    ## Intercept | -0.480 | -0.507 | -0.220 | [-1.694,  0.427] |  78.00% | 0.732 | 0.997 | 137.695
-    ## child     |  1.850 |  1.863 |  1.813 | [ 1.371,  2.468] | 100.00% | 1.000 | 0.996 | 302.735
-    ## camper    | -0.883 | -0.860 | -0.988 | [-1.474, -0.225] |  98.40% | 0.964 | 0.996 | 292.499
+    ## # Random effects (conditional) Intercept: persons
     ## 
-    ## # Random Effects (Conditional Model)
+    ## Parameter |    Median |  Mean |   MAP |         95% CI |     pd |   ps |  Rhat |    ESS
+    ## ---------------------------------------------------------------------------------------
+    ## persons.1 |     -0.99 | -1.01 | -0.84 | [-2.71,  0.78] | 92.00% | 0.90 | 1.007 | 106.00
+    ## persons.2 | -4.65e-03 | -0.04 |  0.03 | [-1.73,  1.54] | 50.00% | 0.45 | 1.013 | 109.00
+    ## persons.3 |      0.69 |  0.66 |  0.69 | [-1.06,  2.28] | 79.60% | 0.78 | 1.010 | 114.00
+    ## persons.4 |      1.57 |  1.56 |  1.56 | [-0.22,  3.12] | 96.80% | 0.96 | 1.009 | 114.00
     ## 
-    ## Parameter              | Median |   Mean |    MAP |           89% CI |      pd |    ps |  Rhat |     ESS
-    ## --------------------------------------------------------------------------------------------------------
-    ## persons 1              | -0.990 | -1.013 | -0.841 | [-2.250,  0.384] |  92.00% | 0.904 | 1.007 | 105.679
-    ## persons 2              | -0.005 | -0.035 |  0.026 | [-1.642,  0.950] |  50.00% | 0.452 | 1.013 | 108.942
-    ## persons 3              |  0.693 |  0.662 |  0.686 | [-0.581,  2.078] |  79.60% | 0.776 | 1.010 | 113.791
-    ## persons 4              |  1.574 |  1.560 |  1.561 | [ 0.094,  2.720] |  96.80% | 0.960 | 1.009 | 113.676
-    ## SD persons (Intercept) |  1.422 |  1.584 |  1.067 | [ 0.663,  2.488] | 100.00% | 1.000 | 1.010 | 126.414
+    ## # Random effects (zero-inflated) Intercept: persons
     ## 
-    ## # Random Effects (Zero-Inflated Model)
+    ## Parameter | Median |  Mean |   MAP |         95% CI |     pd |   ps |  Rhat |    ESS
+    ## ------------------------------------------------------------------------------------
+    ## persons.1 |   1.10 |  1.11 |  1.08 | [-0.29,  2.73] | 94.80% | 0.93 | 0.997 | 166.00
+    ## persons.2 |   0.18 |  0.18 |  0.22 | [-0.94,  1.60] | 63.20% | 0.54 | 0.996 | 154.00
+    ## persons.3 |  -0.30 | -0.31 | -0.54 | [-1.54,  1.17] | 64.00% | 0.59 | 0.997 | 154.00
+    ## persons.4 |  -1.45 | -1.46 | -1.44 | [-3.03, -0.13] | 98.00% | 0.97 | 1.000 | 189.00
     ## 
-    ## Parameter              | Median |   Mean |    MAP |           89% CI |      pd |    ps |  Rhat |     ESS
-    ## --------------------------------------------------------------------------------------------------------
-    ## persons 1              |  1.096 |  1.109 |  1.076 | [-0.064,  2.067] |  94.80% | 0.932 | 0.997 | 166.262
-    ## persons 2              |  0.183 |  0.176 |  0.219 | [-0.826,  1.118] |  63.20% | 0.544 | 0.996 | 153.965
-    ## persons 3              | -0.301 | -0.309 | -0.539 | [-1.442,  0.572] |  64.00% | 0.588 | 0.997 | 153.793
-    ## persons 4              | -1.452 | -1.465 | -1.440 | [-2.438, -0.090] |  98.00% | 0.972 | 1.000 | 189.301
-    ## SD persons (Intercept) |  1.303 |  1.494 |  0.989 | [ 0.614,  2.668] | 100.00% | 1.000 | 0.996 | 129.124
+    ## # Random effects (conditional) SD/Cor: persons
+    ## 
+    ## Parameter   | Median | Mean |  MAP |         95% CI |   pd |   ps |  Rhat |    ESS
+    ## ----------------------------------------------------------------------------------
+    ## (Intercept) |   1.42 | 1.58 | 1.07 | [ 0.60,  3.07] | 100% | 1.00 | 1.010 | 126.00
+    ## 
+    ## # Random effects (zero-inflated) SD/Cor: persons
+    ## 
+    ## Parameter   | Median | Mean |  MAP |         95% CI |   pd |   ps |  Rhat |    ESS
+    ## ----------------------------------------------------------------------------------
+    ## (Intercept) |   1.30 | 1.49 | 0.99 | [ 0.47,  2.90] | 100% | 1.00 | 0.996 | 129.00
 
 *bayestestR* also includes [**many other
 features**](https://easystats.github.io/bayestestR/reference/index.html)
@@ -227,11 +244,11 @@ library(bayestestR)
 posterior <- distribution_gamma(10000, 1.5)  # Generate a skewed distribution
 centrality <- point_estimate(posterior)  # Get indices of centrality
 centrality
-## # Point Estimates
+## Point Estimate
 ## 
 ## Median | Mean |  MAP
 ## --------------------
-##   1.18 | 1.50 | 0.51
+## 1.18   | 1.50 | 0.51
 ```
 
 As for other [**easystats**](https://github.com/easystats) packages,
@@ -276,18 +293,10 @@ prime number that does not exceed the already unstable 95% threshold
 posterior <- distribution_chisquared(10000, 4)
 
 hdi(posterior, ci = .89)
-## # Highest Density Interval
-## 
-## 89% HDI     
-## ------------
-## [0.18, 7.63]
+## 89% HDI: [0.18, 7.63]
 
 eti(posterior, ci = .89)
-## # Equal-Tailed Interval
-## 
-## 89% ETI     
-## ------------
-## [0.75, 9.25]
+## 89% ETI: [0.75, 9.25]
 ```
 
 ![](man/figures/unnamed-chunk-11-1.png)<!-- -->
@@ -319,7 +328,7 @@ guidelines*](https://easystats.github.io/bayestestR/articles/guidelines.html).
 ``` r
 posterior <- distribution_normal(10000, 0.4, 0.2)
 p_direction(posterior)
-## pd = 97.73%
+## Probability of Direction: 0.98
 ```
 
 ![](man/figures/unnamed-chunk-13-1.png)<!-- -->
@@ -359,7 +368,7 @@ rope(posterior, range = c(-0.1, 0.1))
 ## 
 ## inside ROPE
 ## -----------
-## 1.33 %
+## 4.41 %
 ```
 
 ![](man/figures/unnamed-chunk-15-1.png)<!-- -->
@@ -387,13 +396,13 @@ prior <- distribution_normal(10000, mean = 0, sd = 1)
 posterior <- distribution_normal(10000, mean = 1, sd = 0.7)
 
 bayesfactor_parameters(posterior, prior, direction = "two-sided", null = 0)
-## # Bayes Factor (Savage-Dickey density ratio)
+## Bayes Factor (Savage-Dickey density ratio)
 ## 
-## BF   
-## -----
-## 1.946
+## BF  
+## ----
+## 1.95
 ## 
-## * Evidence Against The Null: [0]
+## * Evidence Against The Null: 0
 ```
 
 ![](man/figures/unnamed-chunk-17-1.png)<!-- -->
@@ -454,7 +463,7 @@ Compute the density of a given point of a distribution.
 
 ``` r
 density_at(rnorm(1000, 1, 1), 1)
-## [1] 0.39
+## [1] 0.37
 ```
 
 # References

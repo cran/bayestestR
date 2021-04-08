@@ -1,10 +1,26 @@
-# bayestestR 0.8.1.1
+# bayestestR 0.8.2.1
+
+## Breaking
+
+* The default `ci` width has been changed to 0.95 instead of 0.89 (see [here](https://github.com/easystats/bayestestR/discussions/250)).
+* Column names for `bayesfactor_restricted()` are now `p_prior` and `p_posterior` (was `Prior_prob` and `Posterior_prob`), to be consistent with `bayesfactor_inclusion()` output.
+
+* Removed the `mhdior` experimental function.
+
+## General
+
+* Support for `blavaan` models.
+* Support for `blrm` models (*rmsb*).
+* Support for `BGGM` models (*BGGM*).
+* `check_prior()` and `describe_prior()` should now also work for more ways of prior definition in models from *rstanarm* or *brms*.
 
 ## Bug fixes
 
-* `bayesfactor_pointull()` / `bf_pointull()` are now `bayesfactor_pointnull()` / `bf_pointnull()` (can *you* spot the difference? #363 ).
+* Fixed bug in `print()` method for the `mediation()` function.
+* Fixed remaining inconsistencies with CI values, which were not reported as fraction for `rope()`.
+* Fixed issues with special prior definitions in `check_prior()`, `describe_prior()`  and `simulate_prior()`.
 
-# bayestestR 0.8.1
+# bayestestR 0.8.2
 
 ## General
 
@@ -18,6 +34,8 @@
 ## Bug fixes
 
 * `bayesfactor_parameters()` no longer errors for no reason when computing extremely un/likely direction hypotheses.
+
+* `bayesfactor_pointull()` / `bf_pointull()` are now `bayesfactor_pointnull()` / `bf_pointnull()` (can *you* spot the difference? #363 ).
 
 # bayestestR 0.8.0
 

@@ -2,14 +2,19 @@
 % Please edit documentation in R/rope_range.R
 \name{rope_range}
 \alias{rope_range}
+\alias{rope_range.default}
 \title{Find Default Equivalence (ROPE) Region Bounds}
 \usage{
 rope_range(x, ...)
+
+\method{rope_range}{default}(x, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{stanreg}, \code{brmsfit} or \code{BFBayesFactor} object.}
 
 \item{...}{Currently not used.}
+
+\item{verbose}{Toggle warnings.}
 }
 \description{
 This function attempts at automatically finding suitable "default"
@@ -53,8 +58,11 @@ if (require("brms")) {
 }
 
 if (require("BayesFactor")) {
-  bf <- ttestBF(x = rnorm(100, 1, 1))
-  rope_range(bf)
+  model <- ttestBF(mtcars[mtcars$vs == 1, "mpg"], mtcars[mtcars$vs == 0, "mpg"])
+  rope_range(model)
+
+  model <- lmBF(mpg ~ vs, data = mtcars)
+  rope_range(model)
 }
 }
 }

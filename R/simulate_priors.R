@@ -24,45 +24,61 @@ simulate_prior <- function(model, n = 1000, ...) {
 
 
 #' @export
-simulate_prior.stanreg <- function(model, n = 1000, effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, ...) {
+simulate_prior.stanreg <- function(model,
+                                   n = 1000,
+                                   effects = c("fixed", "random", "all"),
+                                   component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
+                                   parameters = NULL,
+                                   verbose = TRUE,
+                                   ...) {
+
   # check arguments
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  priors <-
-    insight::get_priors(
-      model,
-      effects = effects,
-      component = component,
-      parameters = parameters
-    )
+  priors <- insight::get_priors(
+    model,
+    effects = effects,
+    component = component,
+    parameters = parameters,
+    verbose = verbose
+  )
 
-  .simulate_prior(priors, n = n)
+  .simulate_prior(priors, n = n, verbose = verbose)
 }
 
+#' @export
+simulate_prior.blavaan <- simulate_prior.stanreg
 
 #' @export
-simulate_prior.brmsfit <- function(model, n = 1000, effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, ...) {
+simulate_prior.brmsfit <- function(model,
+                                   n = 1000,
+                                   effects = c("fixed", "random", "all"),
+                                   component = c("conditional", "zi", "zero_inflated", "all"),
+                                   parameters = NULL,
+                                   verbose = TRUE,
+                                   ...) {
+
   # check arguments
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  priors <-
-    insight::get_priors(
-      model,
-      effects = effects,
-      component = component,
-      parameters = parameters
-    )
+  priors <- insight::get_priors(
+    model,
+    effects = effects,
+    component = component,
+    parameters = parameters,
+    verbose = verbose,
+  )
 
-  .simulate_prior(priors, n = n)
+  .simulate_prior(priors, n = n, verbose = verbose)
 }
 
 
 
 #' @export
-simulate_prior.bcplm <- function(model, n = 1000, ...) {
-  .simulate_prior(insight::get_priors(model), n = n)
+simulate_prior.bcplm <- function(model, n = 1000, verbose = TRUE, ...) {
+  .simulate_prior(insight::get_priors(model, verbose = verbose), n = n, verbose = verbose)
 }
 
 
@@ -71,12 +87,18 @@ simulate_prior.bcplm <- function(model, n = 1000, ...) {
 
 
 #' @keywords internal
-.simulate_prior <- function(priors, n = 1000) {
+.simulate_prior <- function(priors, n = 1000, verbose = TRUE) {
   simulated <- data.frame(.bamboozled = 1:n)
+  sim_error_msg <- FALSE
 
   # iterate over parameters
   for (param in priors$Parameter) {
     prior <- priors[priors$Parameter == param, ]
+
+    # edge cases
+    if (nrow(prior) > 1) {
+      prior <- prior[1, ]
+    }
 
     # Get actual scale
     if ("Adjusted_Scale" %in% names(prior)) {
@@ -89,9 +111,25 @@ simulate_prior.bcplm <- function(model, n = 1000, ...) {
     }
 
     # Simulate prior
-    prior <- distribution(prior$Distribution, n, prior$Location, scale)
+    prior <- tryCatch(
+      {
+        if (prior$Distribution %in% c("t", "student_t", "Student's t")) {
+          distribution(prior$Distribution, n, prior$df, prior$Location)
+        } else {
+          distribution(prior$Distribution, n, prior$Location, scale)
+        }
+      },
+      error = function(e) {
+        sim_error_msg <- TRUE
+        NA
+      }
+    )
 
     simulated[param] <- prior
+  }
+
+  if (sim_error_msg && verbose) {
+    warning(paste0("Can't simulate priors from a ", prior$Distribution, " distribution."), call. = FALSE)
   }
 
   simulated$.bamboozled <- NULL

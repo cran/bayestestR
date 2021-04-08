@@ -8,7 +8,7 @@
 #' @details
 #'   \strong{Effective Sample (ESS)} should be as large as possible, although for most applications, an effective sample size greater than 1000 is sufficient for stable estimates (Bürkner, 2017). The ESS corresponds to the number of independent samples with the same estimation power as the N autocorrelated samples. It is is a measure of \dQuote{how much independent information there is in autocorrelated chains} (\cite{Kruschke 2015, p182-3}).
 #'   \cr \cr
-#'   \strong{Rhat} should be the closest to 1. It should not be larger than 1.1 (\cite{Gelman and Rubin, 1992}) or 1.01 (\cite{Vehtari et al., 2019}). The split R-hat statistic quantifies the consistency of an ensemble of Markov chains.
+#'   \strong{Rhat} should be the closest to 1. It should not be larger than 1.1 (\cite{Gelman and Rubin, 1992}) or 1.01 (\cite{Vehtari et al., 2019}). The split Rhat statistic quantifies the consistency of an ensemble of Markov chains.
 #'   \cr \cr
 #'   \strong{Monte Carlo Standard Error (MCSE)} is another measure of accuracy of the chains. It is defined as standard deviation of the chains divided by their effective sample size (the formula for \code{mcse()} is from Kruschke 2015, p. 187). The MCSE \dQuote{provides a quantitative suggestion of how big the estimation noise is}.
 #'
@@ -41,7 +41,6 @@ diagnostic_posterior <- function(posteriors, diagnostic = c("ESS", "Rhat"), ...)
 }
 
 
-
 #' @export
 diagnostic_posterior.numeric <- function(posteriors, diagnostic = c("ESS", "Rhat"), ...) {
   stop("`diagnostic_posterior` only works with rstanarm or brms models.")
@@ -52,7 +51,6 @@ diagnostic_posterior.data.frame <- diagnostic_posterior.numeric
 
 #' @export
 diagnostic_posterior.BFBayesFactor <- diagnostic_posterior.numeric
-
 
 
 #' @inheritParams insight::get_parameters.BFBayesFactor
@@ -213,7 +211,6 @@ diagnostic_posterior.brmsfit <- function(posteriors, diagnostic = "all", effects
 }
 
 
-
 #' @inheritParams insight::get_parameters
 #' @export
 diagnostic_posterior.stanfit <- function(posteriors, diagnostic = "all", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
@@ -260,4 +257,54 @@ diagnostic_posterior.stanfit <- function(posteriors, diagnostic = "all", effects
 
   # Select rows
   diagnostic_df[diagnostic_df$Parameter %in% params, ]
+}
+
+
+#' @export
+diagnostic_posterior.blavaan <- function(posteriors, diagnostic = "all", ...) {
+
+  # Find parameters
+  params <- suppressWarnings(insight::find_parameters(posteriors, flatten = TRUE))
+
+  out <- data.frame("Parameter" = params)
+
+  # If no diagnostic
+  if (is.null(diagnostic)) {
+    return(out)
+  }
+
+  diagnostic <- match.arg(diagnostic, c("ESS", "Rhat", "MCSE", "all"), several.ok = TRUE)
+  if ("all" %in% diagnostic) {
+    diagnostic <- c("ESS", "Rhat", "MCSE")
+  } else {
+    diagnostic <- c(diagnostic)
+    if ("Rhat" %in% diagnostic) diagnostic <- c(diagnostic, "khat")
+  }
+
+  # Get indices
+  if ("Rhat" %in% diagnostic) {
+    if (!requireNamespace("blavaan", quietly = TRUE)) {
+      stop("Package 'blavaan' required for this function to work. Please install it.")
+    }
+
+    Rhat <- blavaan::blavInspect(posteriors, what = "psrf")
+    Rhat <- data.frame(
+      Parameter = colnames(get_parameters(posteriors)),
+      Rhat = Rhat
+    )
+    out <- merge(out, Rhat, by = "Parameter", all = TRUE)
+  }
+
+  if ("ESS" %in% diagnostic) {
+    ESS <- effective_sample(posteriors)
+    out <- merge(out, ESS, by = "Parameter", all = TRUE)
+  }
+
+
+  if ("MCSE" %in% diagnostic) {
+    MCSE <- mcse(posteriors)
+    out <- merge(out, MCSE, by = "Parameter", all = TRUE)
+  }
+
+  unique(out)
 }

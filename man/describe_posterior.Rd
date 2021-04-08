@@ -5,8 +5,8 @@
 \alias{describe_posterior.numeric}
 \alias{describe_posterior.stanreg}
 \alias{describe_posterior.stanmvreg}
-\alias{describe_posterior.MCMCglmm}
 \alias{describe_posterior.brmsfit}
+\alias{describe_posterior.MCMCglmm}
 \alias{describe_posterior.BFBayesFactor}
 \title{Describe Posterior Distributions}
 \usage{
@@ -14,11 +14,11 @@ describe_posterior(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "hdi",
   test = c("p_direction", "rope"),
   rope_range = "default",
-  rope_ci = 0.89,
+  rope_ci = 0.95,
   ...
 )
 
@@ -26,11 +26,11 @@ describe_posterior(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "hdi",
   test = c("p_direction", "rope"),
   rope_range = "default",
-  rope_ci = 0.89,
+  rope_ci = 0.95,
   bf_prior = NULL,
   BF = 1,
   ...
@@ -40,11 +40,11 @@ describe_posterior(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "hdi",
   test = c("p_direction", "rope"),
   rope_range = "default",
-  rope_ci = 0.89,
+  rope_ci = 0.95,
   bf_prior = NULL,
   diagnostic = c("ESS", "Rhat"),
   priors = FALSE,
@@ -60,11 +60,11 @@ describe_posterior(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "hdi",
   test = "p_direction",
   rope_range = "default",
-  rope_ci = 0.89,
+  rope_ci = 0.95,
   bf_prior = NULL,
   diagnostic = c("ESS", "Rhat"),
   priors = FALSE,
@@ -75,29 +75,15 @@ describe_posterior(
   ...
 )
 
-\method{describe_posterior}{MCMCglmm}(
-  posteriors,
-  centrality = "median",
-  dispersion = FALSE,
-  ci = 0.89,
-  ci_method = "hdi",
-  test = c("p_direction", "rope"),
-  rope_range = "default",
-  rope_ci = 0.89,
-  diagnostic = "ESS",
-  parameters = NULL,
-  ...
-)
-
 \method{describe_posterior}{brmsfit}(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "hdi",
   test = c("p_direction", "rope"),
   rope_range = "default",
-  rope_ci = 0.89,
+  rope_ci = 0.95,
   bf_prior = NULL,
   diagnostic = c("ESS", "Rhat"),
   effects = c("fixed", "random", "all"),
@@ -105,6 +91,21 @@ describe_posterior(
     "distributional", "auxiliary"),
   parameters = NULL,
   BF = 1,
+  priors = FALSE,
+  ...
+)
+
+\method{describe_posterior}{MCMCglmm}(
+  posteriors,
+  centrality = "median",
+  dispersion = FALSE,
+  ci = 0.95,
+  ci_method = "hdi",
+  test = c("p_direction", "rope"),
+  rope_range = "default",
+  rope_ci = 0.95,
+  diagnostic = "ESS",
+  parameters = NULL,
   ...
 )
 
@@ -112,11 +113,11 @@ describe_posterior(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
-  ci = 0.89,
+  ci = 0.95,
   ci_method = "hdi",
   test = c("p_direction", "rope", "bf"),
   rope_range = "default",
-  rope_ci = 0.89,
+  rope_ci = 0.95,
   priors = TRUE,
   ...
 )

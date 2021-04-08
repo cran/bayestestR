@@ -11,14 +11,16 @@ print_data_frame <- function(x, digits) {
   }
 
   if ("split" %in% colnames(x)) {
+    if (anyNA(x$split)) {
+      x$split[is.na(x$split)] <- "{other}"
+    }
     out <- lapply(split(x, f = x$split), function(i) {
       .remove_column(i, c("split", "Component", "Effects"))
     })
   }
 
   for (i in names(out)) {
-    header <- switch(
-      i,
+    header <- switch(i,
       "conditional" = ,
       "fixed_conditional" = ,
       "fixed" = "# Fixed Effects (Conditional Model)",
@@ -33,7 +35,16 @@ print_data_frame <- function(x, digits) {
       "random_zero_inflated" = ,
       "random_zi" = "# Random Effects (Zero-Inflated Model)",
       "smooth_sd" = ,
-      "fixed_smooth_sd" = "# Smooth Terms"
+      "fixed_smooth_sd" = "# Smooth Terms",
+
+      # blavaan
+      "latent" = "# Latent Loading",
+      "residual" = "# Residual Variance",
+      "intercept" = "# Intercept",
+      "regression" = "# Regression",
+
+      # Default
+      paste0("# ", i)
     )
 
     if ("Parameter" %in% colnames(out[[i]])) {

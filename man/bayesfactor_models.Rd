@@ -30,7 +30,7 @@ the denominator, or a model to be used as a denominator. Ignored for
 
 \item{subset}{Vector of model indices to keep or remove.}
 
-\item{reference}{Index of model to rereference to, or \code{"top"} to
+\item{reference}{Index of model to reference to, or \code{"top"} to
 reference to the best model, or \code{"bottom"} to reference to the worst
 model.}
 }
@@ -54,7 +54,10 @@ analysis with \code{bayesfactor_inclusion}).
     \item \code{stanreg} models must have been fitted with a defined \code{diagnostic_file}.
   }
   \item For \code{BFBayesFactor}, \code{bayesfactor_models()} is mostly a wraparound \code{BayesFactor::extractBF()}.
-  \item For all other model types (supported by \CRANpkg{insight}), BIC approximations are used to compute Bayes factors.
+  \item BIC approximations are used to compute Bayes factors for all other model types (with a BIC method).
+  \itemize{
+    \item \strong{Note} that BICs are extracted from models as-is. So if for example you want to compare mixed-models bases on ML instead of REML, you must supply models fit with ML.
+  }
 }
 In order to correctly and precisely estimate Bayes factors, a rule of thumb
 are the 4 P's: \strong{P}roper \strong{P}riors and \strong{P}lentiful
@@ -92,7 +95,6 @@ BFM <- bayesfactor_models(lm1, lm2, lm3, lm4, denominator = lm1) # same result
 
 update(BFM, reference = "bottom")
 as.matrix(BFM)
-
 \dontrun{
 # With lmerMod objects:
 # ---------------------

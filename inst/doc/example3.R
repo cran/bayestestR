@@ -1,8 +1,13 @@
 ## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
 library(knitr)
 options(knitr.kable.NA = '')
-knitr::opts_chunk$set(comment=">")
-knitr::opts_chunk$set(dpi=150)
+knitr::opts_chunk$set(
+  comment = ">",
+  message = FALSE,
+  warning = FALSE,
+  out.width = "100%"
+)
+
 options(digits=2)
 
 set.seed(333)

@@ -114,7 +114,6 @@
 #'   posterior <- distribution_normal(1000, mean = .5, sd = .3)
 #'   bayesfactor_parameters(posterior, prior)
 #' }
-#'
 #' \dontrun{
 #' # rstanarm models
 #' # ---------------
@@ -268,6 +267,7 @@ bayesfactor_parameters.stanreg <- function(posterior,
   bf_val <- .prepare_output(temp, cleaned_parameters, inherits(posterior, "stanmvreg"))
 
   class(bf_val) <- class(temp)
+  attr(bf_val, "clean_parameters") <- cleaned_parameters
   attr(bf_val, "hypothesis") <- attr(temp, "hypothesis") # don't change the name of this attribute - it is used only internally for "see" and printing
   attr(bf_val, "direction") <- attr(temp, "direction")
   attr(bf_val, "plot_data") <- attr(temp, "plot_data")
@@ -281,6 +281,36 @@ bayesfactor_parameters.stanreg <- function(posterior,
 #' @export
 bayesfactor_parameters.brmsfit <- bayesfactor_parameters.stanreg
 
+
+#' @rdname bayesfactor_parameters
+#' @export
+bayesfactor_parameters.blavaan <- function(posterior,
+                                           prior = NULL,
+                                           direction = "two-sided",
+                                           null = 0,
+                                           verbose = TRUE,
+                                           ...) {
+  cleaned_parameters <- insight::clean_parameters(posterior)
+
+  samps <- .clean_priors_and_posteriors(posterior, prior,
+                                        verbose = verbose)
+
+  # Get BFs
+  temp <- bayesfactor_parameters.data.frame(
+    posterior = samps$posterior, prior = samps$prior,
+    direction = direction, null = null, ...
+  )
+
+  bf_val <- .prepare_output(temp, cleaned_parameters)
+
+  class(bf_val) <- class(temp)
+  attr(bf_val, "clean_parameters") <- cleaned_parameters
+  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis") # don't change the name of this attribute - it is used only internally for "see" and printing
+  attr(bf_val, "direction") <- attr(temp, "direction")
+  attr(bf_val, "plot_data") <- attr(temp, "plot_data")
+
+  bf_val
+}
 
 
 #' @export
