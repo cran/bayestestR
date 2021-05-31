@@ -76,6 +76,7 @@ print.bayesfactor_models <- function(x,
                                      show_names = TRUE,
                                      caption = "Bayes Factors for Model Comparison",
                                      ...) {
+  show_names <- show_names & !attr(x, "unsupported_models")
   .print_bf_default(x = x, digits = digits, log = log, show_names = show_names, caption = caption, align = c("llr"), ...)
 }
 
@@ -176,7 +177,6 @@ print.bayesfactor_parameters <- function(x, digits = 3, log = FALSE, ...) {
 .print_bf_default <- function(x,
                               digits = 3,
                               log = FALSE,
-                              show_names = NULL,
                               caption = NULL,
                               align = NULL,
                               ...) {
@@ -188,8 +188,7 @@ print.bayesfactor_parameters <- function(x, digits = 3, log = FALSE, ...) {
     log = log,
     format = "text",
     caption = caption,
-    show_names = show_names,
-    ...
+    ... # pass show_names
   )
 
   cat(insight::export_table(

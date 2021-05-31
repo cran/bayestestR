@@ -1,53 +1,33 @@
-#' Equal-Tailed Interval (ETI)
+#' Bias Corrected and Accelerated Interval (BCa)
 #'
-#' Compute the \strong{Equal-Tailed Interval (ETI)} of posterior distributions using the quantiles method. The probability of being below this interval is equal to the probability of being above it. The ETI can be used in the context of uncertainty characterisation of posterior distributions as \strong{Credible Interval (CI)}.
+#' Compute the \strong{Bias Corrected and Accelerated Interval (BCa)} of posterior distributions.
 #'
 #' @inheritParams hdi
 #' @inherit ci return
 #' @inherit hdi details
 #'
+#' @references DiCiccio, T. J. and B. Efron. (1996). Bootstrap Confidence Intervals. Statistical Science. 11(3): 189–212. \doi{10.1214/ss/1032280214}
+#'
 #' @examples
-#' library(bayestestR)
-#'
 #' posterior <- rnorm(1000)
-#' eti(posterior)
-#' eti(posterior, ci = c(.80, .89, .95))
-#'
-#' df <- data.frame(replicate(4, rnorm(100)))
-#' eti(df)
-#' eti(df, ci = c(.80, .89, .95))
-#' \dontrun{
-#' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
-#' eti(model)
-#' eti(model, ci = c(.80, .89, .95))
-#'
-#' library(emmeans)
-#' eti(emtrends(model, ~1, "wt"))
-#'
-#' library(brms)
-#' model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
-#' eti(model)
-#' eti(model, ci = c(.80, .89, .95))
-#'
-#' library(BayesFactor)
-#' bf <- ttestBF(x = rnorm(100, 1, 1))
-#' eti(bf)
-#' eti(bf, ci = c(.80, .89, .95))
-#' }
-#'
+#' bci(posterior)
+#' bci(posterior, ci = c(.80, .89, .95))
 #' @export
-eti <- function(x, ...) {
-  UseMethod("eti")
+bci <- function(x, ...) {
+  UseMethod("bci")
 }
 
-
-
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
+bcai <- bci
+
+
+
+#' @rdname bci
+#' @export
+bci.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
   out <- do.call(rbind, lapply(ci, function(i) {
-    .eti(x = x, ci = i, verbose = verbose)
+    .bci(x = x, ci = i, verbose = verbose)
   }))
   class(out) <- unique(c("bayestestR_eti", "see_eti", "bayestestR_ci", "see_ci", class(out)))
   attr(out, "data") <- x
@@ -56,22 +36,22 @@ eti.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
 
 
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
-  dat <- .compute_interval_dataframe(x = x, ci = ci, verbose = verbose, fun = "eti")
+bci.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
+  dat <- .compute_interval_dataframe(x = x, ci = ci, verbose = verbose, fun = "bci")
   attr(dat, "object_name") <- .safe_deparse(substitute(x))
   dat
 }
 
 
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.MCMCglmm <- function(x, ci = 0.95, verbose = TRUE, ...) {
+bci.MCMCglmm <- function(x, ci = 0.95, verbose = TRUE, ...) {
   nF <- x$Fixed$nfl
   d <- as.data.frame(x$Sol[, 1:nF, drop = FALSE])
-  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
+  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "bci")
   attr(dat, "data") <- .safe_deparse(substitute(x))
   dat
 }
@@ -79,9 +59,9 @@ eti.MCMCglmm <- function(x, ci = 0.95, verbose = TRUE, ...) {
 
 
 #' @export
-eti.mcmc <- function(x, ci = 0.95, verbose = TRUE, ...) {
+bci.mcmc <- function(x, ci = 0.95, verbose = TRUE, ...) {
   d <- as.data.frame(x)
-  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
+  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "bci")
   attr(dat, "data") <- .safe_deparse(substitute(x))
   dat
 }
@@ -89,10 +69,10 @@ eti.mcmc <- function(x, ci = 0.95, verbose = TRUE, ...) {
 
 
 #' @export
-eti.bamlss <- function(x, ci = 0.95, component = c("all", "conditional", "location"), verbose = TRUE, ...) {
+bci.bamlss <- function(x, ci = 0.95, component = c("all", "conditional", "location"), verbose = TRUE, ...) {
   component <- match.arg(component)
   d <- insight::get_parameters(x, component = component)
-  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
+  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "bci")
   attr(dat, "data") <- .safe_deparse(substitute(x))
   dat
 }
@@ -100,33 +80,33 @@ eti.bamlss <- function(x, ci = 0.95, component = c("all", "conditional", "locati
 
 
 #' @export
-eti.bcplm <- function(x, ci = 0.95, verbose = TRUE, ...) {
+bci.bcplm <- function(x, ci = 0.95, verbose = TRUE, ...) {
   d <- insight::get_parameters(x)
-  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
+  dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "bci")
   attr(dat, "data") <- .safe_deparse(substitute(x))
   dat
 }
 
 
 #' @export
-eti.bayesQR <- eti.bcplm
+bci.bayesQR <- bci.bcplm
 
 #' @export
-eti.blrm <- eti.bcplm
+bci.blrm <- bci.bcplm
 
 #' @export
-eti.mcmc.list <- eti.bcplm
+bci.mcmc.list <- bci.bcplm
 
 #' @export
-eti.BGGM <- eti.bcplm
+bci.BGGM <- bci.bcplm
 
 
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.sim.merMod <- function(x, ci = 0.95, effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+bci.sim.merMod <- function(x, ci = 0.95, effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
-  dat <- .compute_interval_simMerMod(x = x, ci = ci, effects = effects, parameters = parameters, verbose = verbose, fun = "eti")
+  dat <- .compute_interval_simMerMod(x = x, ci = ci, effects = effects, parameters = parameters, verbose = verbose, fun = "bci")
   out <- dat$result
   attr(out, "data") <- dat$data
   out
@@ -134,10 +114,10 @@ eti.sim.merMod <- function(x, ci = 0.95, effects = c("fixed", "random", "all"), 
 
 
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
-  dat <- .compute_interval_sim(x = x, ci = ci, parameters = parameters, verbose = verbose, fun = "eti")
+bci.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
+  dat <- .compute_interval_sim(x = x, ci = ci, parameters = parameters, verbose = verbose, fun = "bci")
   out <- dat$result
   attr(out, "data") <- dat$data
   out
@@ -145,9 +125,9 @@ eti.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
 
 
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
+bci.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
 
   dat <- eti(xdf, ci = ci, verbose = verbose, ...)
@@ -156,11 +136,11 @@ eti.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
 }
 
 #' @export
-eti.emm_list <- eti.emmGrid
+bci.emm_list <- bci.emmGrid
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.stanreg <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
+bci.stanreg <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
                         component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
                         parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
@@ -179,16 +159,16 @@ eti.stanreg <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
 
 
 #' @export
-eti.stanfit <- eti.stanreg
+bci.stanfit <- bci.stanreg
 
 #' @export
-eti.blavaan <- eti.stanreg
+bci.blavaan <- bci.stanreg
 
 
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.brmsfit <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
+bci.brmsfit <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
                         component = c("conditional", "zi", "zero_inflated", "all"),
                         parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
@@ -206,9 +186,9 @@ eti.brmsfit <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
 
 
 
-#' @rdname eti
+#' @rdname bci
 #' @export
-eti.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
+bci.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
   out <- eti(insight::get_parameters(x), ci = ci, verbose = verbose, ...)
   attr(out, "object_name") <- .safe_deparse(substitute(x))
   out
@@ -216,7 +196,7 @@ eti.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
 
 
 #' @export
-eti.get_predicted <- function(x, ...) {
+bci.get_predicted <- function(x, ...) {
   if ("iterations" %in% names(attributes(x))) {
     out <- hdi(as.data.frame(t(attributes(x)$iterations)), ...)
   } else {
@@ -230,22 +210,32 @@ eti.get_predicted <- function(x, ...) {
 
 
 #' @importFrom stats quantile
-.eti <- function(x, ci, verbose = TRUE) {
+.bci <- function(x, ci, verbose = TRUE) {
   check_ci <- .check_ci_argument(x, ci, verbose)
 
   if (!is.null(check_ci)) {
     return(check_ci)
   }
 
-  results <- as.vector(stats::quantile(
-    x,
-    probs = c((1 - ci) / 2, (1 + ci) / 2),
-    names = FALSE
-  ))
+  low <- (1 - ci) / 2
+  high <- 1 - low
+  sims <- length(x)
+  z.inv <- length(x[x < mean(x, na.rm = TRUE)]) / sims
+
+  z <- stats::qnorm(z.inv)
+  U <- (sims - 1) * (mean(x, na.rm = TRUE) - x)
+  top <- sum(U^3)
+  under <- 6 * (sum(U^2))^1.5
+  a <- top / under
+
+  lower.inv <- stats::pnorm(z + (z + stats::qnorm(low)) / (1 - a * (z + stats::qnorm(low))))
+  lower <- stats::quantile(x, lower.inv, names = FALSE)
+  upper.inv <- stats::pnorm(z + (z + stats::qnorm(high)) / (1 - a * (z + stats::qnorm(high))))
+  upper <- stats::quantile(x, upper.inv, names = FALSE)
 
   data.frame(
     "CI" = ci,
-    "CI_low" = results[1],
-    "CI_high" = results[2]
+    "CI_low" = lower,
+    "CI_high" = upper
   )
 }

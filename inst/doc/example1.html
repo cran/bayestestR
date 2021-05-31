@@ -466,10 +466,10 @@ Prof. Sanders giving default values to define the Region of Practical Equivalen
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">describe_posterior</span>(model, <span class="at">test =</span> <span class="fu">c</span>(<span class="st">&quot;p_direction&quot;</span>, <span class="st">&quot;rope&quot;</span>, <span class="st">&quot;bayesfactor&quot;</span>))</span></code></pre></div>
 <pre><code>&gt; Summary of Posterior Distribution
 &gt; 
-&gt; Parameter     | Median |           95% CI |     pd |          ROPE | % in ROPE |     BF |  Rhat |     ESS
+&gt; Parameter     | Median |           95% CI |     pd |          ROPE | % in ROPE |  Rhat |     ESS |     BF
 &gt; ---------------------------------------------------------------------------------------------------------
-&gt; (Intercept)   | 276.62 | [240.03, 310.68] |   100% | [-6.17, 6.17] |        0% | &gt; 1000 | 1.002 | 2793.00
-&gt; feedsunflower |  52.73 | [ -0.12,  97.72] | 98.38% | [-6.17, 6.17] |     1.89% |  0.806 | 1.000 | 2860.00</code></pre>
+&gt; (Intercept)   | 276.62 | [240.03, 310.68] |   100% | [-6.17, 6.17] |        0% | 1.002 | 2793.00 | &gt; 1000
+&gt; feedsunflower |  52.73 | [ -0.12,  97.72] | 98.38% | [-6.17, 6.17] |     1.89% | 1.000 | 2860.00 |  0.806</code></pre>
 <p><strong>Tada!</strong> There we have it! The <strong>median</strong>, the <strong>CI</strong>, the <strong>pd</strong> and the <strong>ROPE percentage</strong>!</p>
 <p>Understanding and describing posterior distributions is just one aspect of Bayesian modelling. <strong>Are you ready for more?!</strong> <a href="https://easystats.github.io/bayestestR/articles/example2.html"><strong>Click here</strong></a> to see the next example.</p>
 </div>

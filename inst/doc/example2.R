@@ -73,9 +73,14 @@ model <- stan_glm(Species ~ Sepal.Width, data = data, family = "binomial", refre
 
 ## -----------------------------------------------------------------------------
 library(modelbased)
-means <- estimate_means(model, levels = c("Sepal.Width"), length = 2)
 
-means
+vizdata <- estimate_relation(model)
+
+ggplot(vizdata, aes(x = Sepal.Width, y = Predicted)) +
+  geom_ribbon(aes(ymin = CI_low, ymax = CI_high), alpha = 0.5) +
+  geom_line() + 
+  ylab("Probability of being virginica") +
+  theme_modern()
 
 ## -----------------------------------------------------------------------------
 describe_posterior(model, test = c("pd", "ROPE", "BF"))

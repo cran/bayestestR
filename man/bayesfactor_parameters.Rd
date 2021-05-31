@@ -154,7 +154,7 @@ filtered by default, so only parameters that typically appear in the
 for the output.}
 }
 \value{
-A data frame containing the Bayes factor representing evidence
+A data frame containing the (log) Bayes factor representing evidence
   \emph{against} the null.
 }
 \description{
@@ -265,7 +265,7 @@ if (require("logspline")) {
 # rstanarm models
 # ---------------
 if (require("rstanarm") && require("emmeans") && require("logspline")) {
-  contrasts(sleep$group) <- contr.bayes # see vingette
+  contrasts(sleep$group) <- contr.orthonorm # see vingette
   stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
   bayesfactor_parameters(stan_model)
   bayesfactor_parameters(stan_model, null = rope_range(stan_model))
@@ -279,7 +279,7 @@ if (require("rstanarm") && require("emmeans") && require("logspline")) {
 # brms models
 # -----------
 if (require("brms")) {
-  contrasts(sleep$group) <- contr.bayes # see vingette
+  contrasts(sleep$group) <- contr.orthonorm # see vingette
   my_custom_priors <-
     set_prior("student_t(3, 0, 1)", class = "b") +
     set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")

@@ -42,7 +42,7 @@
 #'   arguments to internal \code{\link[logspline]{logspline}}.)
 #' @inheritParams hdi
 #'
-#' @return A data frame containing the Bayes factor representing evidence
+#' @return A data frame containing the (log) Bayes factor representing evidence
 #'   \emph{against} the null.
 #'
 #' @note There is also a
@@ -118,7 +118,7 @@
 #' # rstanarm models
 #' # ---------------
 #' if (require("rstanarm") && require("emmeans") && require("logspline")) {
-#'   contrasts(sleep$group) <- contr.bayes # see vingette
+#'   contrasts(sleep$group) <- contr.orthonorm # see vingette
 #'   stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
 #'   bayesfactor_parameters(stan_model)
 #'   bayesfactor_parameters(stan_model, null = rope_range(stan_model))
@@ -132,7 +132,7 @@
 #' # brms models
 #' # -----------
 #' if (require("brms")) {
-#'   contrasts(sleep$group) <- contr.bayes # see vingette
+#'   contrasts(sleep$group) <- contr.orthonorm # see vingette
 #'   my_custom_priors <-
 #'     set_prior("student_t(3, 0, 1)", class = "b") +
 #'     set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
@@ -368,7 +368,7 @@ bayesfactor_parameters.data.frame <- function(posterior,
 
   bf_val <- data.frame(
     Parameter = colnames(posterior),
-    BF = sdbf,
+    log_BF = log(sdbf),
     stringsAsFactors = FALSE
   )
 
@@ -390,6 +390,8 @@ bayesfactor_parameters.data.frame <- function(posterior,
 #' @keywords internal
 #' @importFrom insight print_color
 .bayesfactor_parameters <- function(posterior, prior, direction = 0, null = 0, ...) {
+  stopifnot(length(null) %in% c(1, 2))
+
   if (isTRUE(all.equal(posterior, prior))) {
     return(1)
   }
@@ -442,8 +444,6 @@ bayesfactor_parameters.data.frame <- function(posterior,
     BF_alt_full <- h1_post / h1_prior
 
     return(BF_alt_full / BF_null_full)
-  } else {
-    stop("'null' must be of length 1 or 2")
   }
 }
 

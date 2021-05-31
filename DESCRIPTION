@@ -2,23 +2,23 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.9.0
+Version: 0.10.0
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
              role = c("aut", "cre"),
              email = "dom.makowski@gmail.com",
-             comment = c(ORCID = "0000-0001-5375-9967")),
+             comment = c(ORCID = "0000-0001-5375-9967", Twitter = "@Dom_Makowski")),
       person(given = "Daniel",
              family = "Lüdecke",
              role = "aut",
              email = "d.luedecke@uke.de",
-             comment = c(ORCID = "0000-0002-8895-3206")),
+             comment = c(ORCID = "0000-0002-8895-3206", Twitter = "@strengejacke")),
       person(given = "Mattan S.",
              family = "Ben-Shachar",
              role = "aut",
              email = "matanshm@post.bgu.ac.il",
-             comment = c(ORCID = "0000-0002-4287-4801")),
+             comment = c(ORCID = "0000-0002-4287-4801", Twitter = "@mattansb")),
       person(given = "Indrajeet",
              family = "Patil",
              role = "aut",
@@ -73,13 +73,16 @@ BugReports: https://github.com/easystats/bayestestR/issues
 VignetteBuilder: knitr
 Encoding: UTF-8
 Language: en-US
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.1.9001
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2021-04-07 14:46:28 UTC; user
-Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>),
-  Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>),
-  Mattan S. Ben-Shachar [aut] (<https://orcid.org/0000-0002-4287-4801>),
+Packaged: 2021-05-30 09:01:03 UTC; user
+Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
+    @Dom_Makowski),
+  Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>,
+    @strengejacke),
+  Mattan S. Ben-Shachar [aut] (<https://orcid.org/0000-0002-4287-4801>,
+    @mattansb),
   Indrajeet Patil [aut] (<https://orcid.org/0000-0003-1995-6531>,
     @patilindrajeets),
   Michael D. Wilson [aut] (<https://orcid.org/0000-0003-4143-7308>),
@@ -89,4 +92,4 @@ Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>),
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2021-04-08 05:40:02 UTC
+Date/Publication: 2021-05-31 06:40:09 UTC

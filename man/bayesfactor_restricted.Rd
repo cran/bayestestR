@@ -74,7 +74,7 @@ or the zero-inflated part of the model be returned? May be abbreviated. Only
 applies to \pkg{brms}-models.}
 }
 \value{
-A data frame containing the Bayes factor representing evidence \emph{against} the un-restricted model.
+A data frame containing the (log) Bayes factor representing evidence \emph{against} the un-restricted model.
 }
 \description{
 This method computes Bayes factors for comparing a model with an order restrictions on its parameters
@@ -157,7 +157,7 @@ bayesfactor_restricted(posterior, hypothesis = hyps, prior = prior)
 # ---------------
 if (require("rstanarm") && require("emmeans")) {
   fit_stan <- stan_glm(mpg ~ wt + cyl + am,
-    data = mtcars
+    data = mtcars, refresh = 0
   )
   hyps <- c(
     "am > 0 & cyl < 0",
@@ -171,7 +171,7 @@ if (require("rstanarm") && require("emmeans")) {
   # replicating http://bayesfactor.blogspot.com/2015/01/multiple-comparisons-with-bayesfactor-2.html
   disgust_data <- read.table(url("http://www.learnbayes.org/disgust_example.txt"), header = TRUE)
 
-  contrasts(disgust_data$condition) <- contr.bayes # see vignette
+  contrasts(disgust_data$condition) <- contr.orthonorm # see vignette
   fit_model <- stan_glm(score ~ condition, data = disgust_data, family = gaussian())
 
   em_condition <- emmeans(fit_model, ~condition)
@@ -180,8 +180,8 @@ if (require("rstanarm") && require("emmeans")) {
   bayesfactor_restricted(em_condition, prior = fit_model, hypothesis = hyps)
   # > # Bayes Factor (Order-Restriction)
   # >
-  # >                          Hypothesis P(Prior) P(Posterior) Bayes Factor
-  # >  lemon < control & control < sulfur     0.17         0.75         4.49
+  # >                          Hypothesis P(Prior) P(Posterior)   BF
+  # >  lemon < control & control < sulfur     0.17         0.75 4.49
   # > ---
   # > Bayes factors for the restricted model vs. the un-restricted model.
 }
