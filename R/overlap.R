@@ -16,7 +16,6 @@
 #'
 #' overlap(x, y)
 #' plot(overlap(x, y))
-#' @importFrom stats approxfun
 #' @export
 overlap <- function(x, y, method_density = "kernel", method_auc = "trapezoid", precision = 2^10, extend = TRUE, extend_scale = 0.1, ...) {
 
@@ -25,8 +24,8 @@ overlap <- function(x, y, method_density = "kernel", method_auc = "trapezoid", p
   dy <- estimate_density(y, method = method_density, precision = precision, extend = extend, extend_scale = extend_scale, ...)
 
   # Create density estimation functions
-  fx <- approxfun(dx$x, dx$y, method = "linear", rule = 2)
-  fy <- approxfun(dy$x, dy$y, method = "linear", rule = 2)
+  fx <- stats::approxfun(dx$x, dx$y, method = "linear", rule = 2)
+  fy <- stats::approxfun(dy$x, dy$y, method = "linear", rule = 2)
 
   x_axis <- seq(min(c(dx$x, dy$x)), max(c(dx$x, dy$x)), length.out = precision)
   data <- data.frame(x = x_axis, y1 = fx(x_axis), y2 = fy(x_axis))
@@ -58,11 +57,10 @@ print.overlap <- function(x, ...) {
 }
 
 
-#' @importFrom graphics plot polygon
 #' @export
 plot.overlap <- function(x, ...) {
   # Can be improved through see
   data <- attributes(x)$data
   plot(data$x, data$exclusion, type = "l")
-  polygon(data$x, data$intersection, col = "red")
+  graphics::polygon(data$x, data$intersection, col = "red")
 }

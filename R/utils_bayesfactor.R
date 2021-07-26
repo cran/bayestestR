@@ -8,7 +8,6 @@
 }
 
 #' @keywords internal
-#' @importFrom insight get_parameters
 .clean_priors_and_posteriors.stanreg <- function(posterior, prior,
                                                  verbose = TRUE,
                                                  effects, component, ...) {
@@ -19,7 +18,7 @@
 
 
   prior <- try(unupdate(prior, verbose = verbose), silent = TRUE)
-  if (is(prior, "try-error")) {
+  if (methods::is(prior, "try-error")) {
     if (grepl("flat priors", prior)) {
       prior <- paste0(
         prior, "Could not therefore compute Bayes factors, as these inform about ",
@@ -45,7 +44,6 @@
 
 
 #' @keywords internal
-#' @importFrom insight get_parameters
 .clean_priors_and_posteriors.blavaan <- function(posterior, prior,
                                                  verbose = TRUE, ...) {
   # Get Priors
@@ -66,12 +64,10 @@
 
 
 #' @keywords internal
-#' @importFrom stats update
-.clean_priors_and_posteriors.emmGrid <- function(posterior, prior,
+.clean_priors_and_posteriors.emmGrid <- function(posterior,
+                                                 prior,
                                                  verbose = TRUE) {
-  if (!requireNamespace("emmeans")) {
-    stop("Package 'emmeans' required for this function to work. Please install it by running `install.packages('emmeans')`.")
-  }
+  insight::check_if_installed("emmeans")
 
   if (is.null(prior)) {
     prior <- posterior
@@ -81,7 +77,7 @@
     )
   } else if (!inherits(prior, "emmGrid")) { # then is it a model
     prior <- try(unupdate(prior, verbose = verbose), silent = TRUE)
-    if (is(prior, "try-error")) {
+    if (methods::is(prior, "try-error")) {
       if (grepl("flat priors", prior)) {
         prior <- paste0(
           prior, "Could not therefore compute Bayes factors, as these inform about ",
@@ -124,7 +120,7 @@
     )
   } else if (!inherits(prior, "emm_list")) {
     prior <- try(unupdate(prior, verbose = verbose), silent = TRUE)
-    if (is(prior, "try-error")) {
+    if (methods::is(prior, "try-error")) {
       if (grepl("flat priors", prior)) {
         prior <- paste0(
           prior, "Could not therefore compute Bayes factors, as these inform about ",
@@ -163,7 +159,6 @@
 # BMA ---------------------------------------------------------------------
 
 #' @keywords internal
-#' @importFrom stats as.formula terms terms.formula
 .get_model_table <- function(BFGrid, priorOdds = NULL, add_effects_table = TRUE, ...) {
   denominator <- attr(BFGrid, "denominator")
   BFGrid <- rbind(BFGrid[denominator, ], BFGrid[-denominator, ])
@@ -171,7 +166,7 @@
 
   # This looks like it does nothing, but this is needed to prevent Inf in large BFs.
   # Small BFs are better than large BFs
-  BFGrid <- update(BFGrid, reference = "top")
+  BFGrid <- stats::update(BFGrid, reference = "top")
 
   # Prior and post odds
   Modelnames <- BFGrid$Model
@@ -259,14 +254,15 @@
 
 # make_BF_plot_data -------------------------------------------------------
 
-#' @importFrom stats median mad approx
-#' @importFrom utils stack
 #' @keywords internal
-.make_BF_plot_data <- function(posterior, prior, direction, null,
-                               extend_scale = 0.05, precision = 2^8, ...) {
-  if (!requireNamespace("logspline")) {
-    stop("Package \"logspline\" needed for this function to work. Please install it.")
-  }
+.make_BF_plot_data <- function(posterior,
+                               prior,
+                               direction,
+                               null,
+                               extend_scale = 0.05,
+                               precision = 2^8,
+                               ...) {
+  insight::check_if_installed("logspline")
 
   estimate_samples_density <- function(samples) {
     nm <- .safe_deparse(substitute(samples))
@@ -384,9 +380,7 @@ as.double.bayesfactor_restricted <- as.numeric.bayesfactor_inclusion
 
 #' @keywords internal
 .logspline <- function(x, ...) {
-  if (!requireNamespace("logspline")) {
-    stop("Package \"logspline\" needed for this function to work. Please install it.")
-  }
+  insight::check_if_installed("logspline")
 
   # arg_names <- names(formals(logspline::logspline, envir = parent.frame()))
   arg_names <- names(formals(logspline::logspline)) # support R<3.6.0

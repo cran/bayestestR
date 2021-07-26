@@ -77,15 +77,12 @@
 #'
 #' @references Deng, H., & Wickham, H. (2011). Density estimation in R. Electronic publication.
 #'
-#' @importFrom stats density
-#' @importFrom utils install.packages
 #' @export
 estimate_density <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ...) {
   UseMethod("estimate_density")
 }
 
 
-#' @importFrom stats predict
 #' @keywords internal
 .estimate_density <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ci = NULL, ...) {
   method <- match.arg(tolower(method), c("kernel", "logspline", "kernsmooth", "smooth", "mixture", "mclust"))
@@ -214,7 +211,6 @@ estimate_density.emm_list <- estimate_density.emmGrid
 
 
 
-#' @importFrom insight get_parameters
 #' @export
 estimate_density.stanreg <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, ...) {
   effects <- match.arg(effects)
@@ -235,7 +231,6 @@ estimate_density.blavaan <- estimate_density.stanreg
 
 
 
-#' @importFrom insight get_parameters
 #' @export
 estimate_density.brmsfit <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, ...) {
   effects <- match.arg(effects)
@@ -264,7 +259,6 @@ estimate_density.MCMCglmm <- function(x, method = "kernel", precision = 2^10, ex
 
 
 
-#' @importFrom insight get_parameters
 #' @export
 estimate_density.mcmc <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", parameters = NULL, ...) {
   out <- estimate_density(insight::get_parameters(x, parameters = parameters), method = method, precision = precision, extend = extend, extend_scale = extend_scale, bw = bw, ...)
@@ -329,7 +323,6 @@ as.data.frame.density <- function(x, ...) {
 #' posterior <- distribution_normal(n = 10)
 #' density_at(posterior, 0)
 #' density_at(posterior, c(0, 1))
-#' @importFrom stats approx density
 #' @export
 density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
   density <- estimate_density(posterior, precision = precision, method = method, ...)
@@ -356,7 +349,7 @@ density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
     # Estimate the SD
     sd_kde <- sqrt(df$y * Rk / (length(x) * h))
     # CI with estimated variance
-    z_alpha <- qnorm(ci)
+    z_alpha <- stats::qnorm(ci)
     df$CI_low <- df$y - z_alpha * sd_kde
     df$CI_high <- df$y + z_alpha * sd_kde
   }
@@ -370,7 +363,7 @@ density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
   if (!requireNamespace("logspline")) {
     if (interactive()) {
       readline("Package \"logspline\" needed for this function. Press ENTER to install or ESCAPE to abort.")
-      install.packages("logspline")
+      utils::install.packages("logspline")
     } else {
       stop("Package \"logspline\" needed for this function. Press run 'install.packages(\"logspline\")'.")
     }
@@ -386,7 +379,7 @@ density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
   if (!requireNamespace("KernSmooth")) {
     if (interactive()) {
       readline("Package \"KernSmooth\" needed for this function. Press ENTER to install or ESCAPE to abort.")
-      install.packages("KernSmooth")
+      utils::install.packages("KernSmooth")
     } else {
       stop("Package \"KernSmooth\" needed for this function. Press run 'install.packages(\"KernSmooth\")'.")
     }
@@ -399,14 +392,14 @@ density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
   if (!requireNamespace("mclust")) {
     if (interactive()) {
       readline("Package \"mclust\" needed for this function. Press ENTER to install or ESCAPE to abort.")
-      install.packages("KernSmooth")
+      utils::install.packages("KernSmooth")
     } else {
       stop("Package \"mclust\" needed for this function. Press run 'install.packages(\"mclust\")'.")
     }
   }
 
   x_axis <- seq(x_range[1], x_range[2], length.out = precision)
-  y <- predict(mclust::densityMclust(x, verbose = FALSE, ...), newdata = x_axis, ...)
+  y <- stats::predict(mclust::densityMclust(x, verbose = FALSE, ...), newdata = x_axis, ...)
   data.frame(x = x_axis, y = y)
 }
 

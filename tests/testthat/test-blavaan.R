@@ -1,5 +1,6 @@
 if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && require("testthat")) {
   test_that("blavaan, all", {
+    skip_on_cran()
     skip_if_not_installed("blavaan")
     skip_if_not_installed("lavaan")
     require(blavaan)
@@ -53,19 +54,19 @@ if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && req
     x <- p_direction(bfit)
     expect_equal(nrow(x), 14)
 
-    x <- rope(bfit)
+    x <- rope(bfit, range = c(-.1, .1))
     expect_equal(nrow(x), 14)
 
-    x <- p_rope(bfit)
+    x <- p_rope(bfit, range = c(-.1, .1))
     expect_equal(nrow(x), 14)
 
     x <- p_map(bfit)
     expect_equal(nrow(x), 14)
 
-    x <- p_significance(bfit)
+    x <- p_significance(bfit, threshold = c(-.1, .1))
     expect_equal(nrow(x), 14)
 
-    x <- equivalence_test(bfit)
+    x <- equivalence_test(bfit, range = c(-.1, .1))
     expect_equal(nrow(x), 14)
 
     x <- estimate_density(bfit)
@@ -75,23 +76,23 @@ if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && req
     ## Bayes factors ----
     x <- expect_warning(bayesfactor_models(bfit, bfit2))
     expect_true(x$log_BF[2] < 0)
-
-    bfit_prior <- unupdate(bfit)
-    capture.output(x <- bayesfactor_parameters(bfit, prior = bfit_prior))
-    expect_equal(nrow(x), 14)
-
-    x <- expect_warning(si(bfit, prior = bfit_prior))
-    expect_equal(nrow(x), 14)
-
+    
     x <- expect_warning(weighted_posteriors(bfit, bfit2))
     expect_equal(ncol(x), 14)
 
-    ## Prior/posterior checks ----
-    suppressWarnings(x <- check_prior(bfit))
-    expect_equal(nrow(x), 13)
-
-    x <- check_prior(bfit, simulate_priors = FALSE)
-    expect_equal(nrow(x), 14)
+    # bfit_prior <- unupdate(bfit)
+    # capture.output(x <- bayesfactor_parameters(bfit, prior = bfit_prior))
+    # expect_equal(nrow(x), 14)
+    #
+    # x <- expect_warning(si(bfit, prior = bfit_prior))
+    # expect_equal(nrow(x), 14)
+    #
+    # ## Prior/posterior checks ----
+    # suppressWarnings(x <- check_prior(bfit))
+    # expect_equal(nrow(x), 13)
+    #
+    # x <- check_prior(bfit, simulate_priors = FALSE)
+    # expect_equal(nrow(x), 14)
 
     x <- diagnostic_posterior(bfit)
     expect_equal(nrow(x), 14)
@@ -104,7 +105,7 @@ if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && req
     expect_equal(nrow(x), 13)
     # YES this is 13! We have two parameters with the same prior.
 
-    x <- describe_posterior(bfit, test = "all")
+    x <- describe_posterior(bfit, test = "all", rope_range = c(-.1, .1))
     expect_equal(nrow(x), 14)
   })
 }

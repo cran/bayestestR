@@ -2,7 +2,7 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.10.0
+Version: 0.10.5
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
@@ -60,7 +60,7 @@ Description: Provides utilities to describe posterior
     indices used for null-hypothesis testing (such as ROPE percentage, pd
     and Bayes factors).
 Depends: R (>= 3.4)
-Imports: insight (>= 0.13.2), methods, stats, utils
+Imports: insight (>= 0.14.1), datawizard, methods, stats, utils
 Suggests: BayesFactor, bayesQR, blavaan, bridgesampling, brms, dplyr,
         effectsize, emmeans, GGally, ggplot2, ggridges, httr,
         KernSmooth, knitr, lavaan, lme4, logspline, MASS, mclust,
@@ -73,10 +73,10 @@ BugReports: https://github.com/easystats/bayestestR/issues
 VignetteBuilder: knitr
 Encoding: UTF-8
 Language: en-US
-RoxygenNote: 7.1.1.9001
+RoxygenNote: 7.1.1
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2021-05-30 09:01:03 UTC; user
+Packaged: 2021-07-23 12:56:43 UTC; user
 Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
     @Dom_Makowski),
   Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>,
@@ -92,4 +92,4 @@ Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2021-05-31 06:40:09 UTC
+Date/Publication: 2021-07-26 09:40:08 UTC
