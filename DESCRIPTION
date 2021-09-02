@@ -2,7 +2,7 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.10.5
+Version: 0.11.0
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
@@ -29,6 +29,11 @@ Authors@R:
              role = "aut",
              email = "michael.d.wilson@curtin.edu.au",
              comment = c(ORCID = "0000-0003-4143-7308")),
+      person(given = "Brenton M.",
+             family = "Wiernik",
+             role = "aut",
+             email = "brenton@wiernik.org",
+             comment = c(ORCID = "0000-0001-9560-6336", Twitter = "@bmwiernik")),
       person(given = "Paul-Christian",
              family = "Bürkner",
              role = "rev",
@@ -60,9 +65,10 @@ Description: Provides utilities to describe posterior
     indices used for null-hypothesis testing (such as ROPE percentage, pd
     and Bayes factors).
 Depends: R (>= 3.4)
-Imports: insight (>= 0.14.1), datawizard, methods, stats, utils
+Imports: insight (>= 0.14.1), datawizard (>= 0.2.0), methods, stats,
+        utils
 Suggests: BayesFactor, bayesQR, blavaan, bridgesampling, brms, dplyr,
-        effectsize, emmeans, GGally, ggplot2, ggridges, httr,
+        effectsize, emmeans, GGally, ggdist, ggplot2, ggridges, httr,
         KernSmooth, knitr, lavaan, lme4, logspline, MASS, mclust,
         mediation, modelbased, parameters, performance, rmarkdown,
         rstan, rstanarm, see, spelling, stringr, testthat, tidyr,
@@ -73,10 +79,10 @@ BugReports: https://github.com/easystats/bayestestR/issues
 VignetteBuilder: knitr
 Encoding: UTF-8
 Language: en-US
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.1.9001
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2021-07-23 12:56:43 UTC; user
+Packaged: 2021-09-02 07:40:07 UTC; user
 Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
     @Dom_Makowski),
   Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>,
@@ -86,10 +92,12 @@ Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
   Indrajeet Patil [aut] (<https://orcid.org/0000-0003-1995-6531>,
     @patilindrajeets),
   Michael D. Wilson [aut] (<https://orcid.org/0000-0003-4143-7308>),
+  Brenton M. Wiernik [aut] (<https://orcid.org/0000-0001-9560-6336>,
+    @bmwiernik),
   Paul-Christian Bürkner [rev],
   Tristan Mahr [rev] (<https://orcid.org/0000-0002-8890-5116>),
   Henrik Singmann [ctb] (<https://orcid.org/0000-0002-4842-3657>),
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2021-07-26 09:40:08 UTC
+Date/Publication: 2021-09-03 00:10:30 UTC

@@ -1,9 +1,9 @@
 #' Reshape estimations with multiple iterations (draws) to long format
 #'
-#' Reshape a wide data.frame of iterations (such as posterior draws or bootsrapped samples) as columns to long format. Instead of having all iterations as columns (e.g., \code{iter_1, iter_2, ...}), will return 3 columns with the \code{\*_index} (the previous index of the row), the \code{\*_group} (the iteration number) and the \code{\*_value} (the value of said iteration).
+#' Reshape a wide data.frame of iterations (such as posterior draws or bootsrapped samples) as columns to long format. Instead of having all iterations as columns (e.g., `iter_1, iter_2, ...`), will return 3 columns with the `\*_index` (the previous index of the row), the `\*_group` (the iteration number) and the `\*_value` (the value of said iteration).
 #'
-#' @param x A data.frame containing posterior draws obtained from \code{estimate_response} or \code{estimate_link}.
-#' @param prefix The prefix of the draws (for instance, \code{"iter_"} for columns named as \code{iter_1, iter_2, iter_3}). If more than one are provided, will search for the first one that matches.
+#' @param x A data.frame containing posterior draws obtained from `estimate_response` or `estimate_link`.
+#' @param prefix The prefix of the draws (for instance, `"iter_"` for columns named as `iter_1, iter_2, iter_3`). If more than one are provided, will search for the first one that matches.
 #' @examples
 #' \donttest{
 #' if (require("rstanarm")) {
@@ -36,12 +36,14 @@ reshape_iterations <- function(x, prefix = c("draw", "iter", "iteration", "sim")
   newname <- ifelse(endsWith(prefix, "_"), substr(prefix, 1, nchar(prefix) - 1), prefix)
 
   # Create Index column
-  x[[paste0(newname, "_index")]] <- 1:nrow(x)
+  index_col <- paste0(newname, "_index")
+  if(index_col %in% names(x)) index_col <- paste0(".", newname, "_index")
+  x[[index_col]] <- 1:nrow(x)
 
   # Reshape
   long <- stats::reshape(x,
     varying = iter_cols,
-    idvar = paste0(newname, "_index"),
+    idvar = index_col,
     v.names = paste0(newname, "_value"),
     timevar = paste0(newname, "_group"),
     direction = "long"
