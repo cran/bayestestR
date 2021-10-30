@@ -130,7 +130,7 @@ hdi(posteriors$feedsunflower)
 rope(posteriors$feedsunflower, range = c(-20, 20), ci = 0.89)
 
 ## ----echo=FALSE, fig.cap="Prof. Sanders giving default values to define the Region of Practical Equivalence (ROPE).", fig.align='center', out.width="75%"----
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/profsanders.png")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/profsanders.jpg")
 
 ## -----------------------------------------------------------------------------
 rope_value <- 0.1 * sd(data$weight)

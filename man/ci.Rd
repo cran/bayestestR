@@ -100,7 +100,7 @@ Compute Confidence/Credible/Compatibility Intervals (CI) or Support Intervals (S
 \details{
 \itemize{
 \item \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{Bayesian models}
-\item \href{https://easystats.github.io/parameters/reference/ci.merMod.html}{Frequentist models}
+\item \href{https://easystats.github.io/parameters/reference/ci.default.html}{Frequentist models}
 }
 }
 \note{
@@ -151,7 +151,7 @@ if (require("emmeans")) {
 }
 }
 \references{
-Gelman A, Greenland S. Are confidence intervals better termed "uncertainty intervals"? BMJ 2019;l5381. \doi{10.1136/bmj.l5381}
+Gelman A, Greenland S. Are confidence intervals better termed "uncertainty intervals"? BMJ 2019;l5381. 10.1136/bmj.l5381
 }
 \seealso{
 Other ci: 

@@ -25,7 +25,7 @@ if (require("ggplot2") && require("see")) {
 }
 
 ## ----deathsticks_fig, echo=FALSE, fig.cap="Bayesian analysis of the Students' (1908) Sleep data set.", fig.align='center', out.width="80%"----
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/deathsticks.jpg")
+knitr::include_graphics("https://github.com/easystats/bayestestR/raw/master/man/figures/deathsticks.jpg")
 
 ## ----sleep_boxplot, echo=FALSE------------------------------------------------
 library(ggplot2)
@@ -182,22 +182,45 @@ plot(my_first_si)
 #  
 #  # intercept only model
 #  m0 <- brm(Sepal.Length ~ 1, data = iris,
-#            save_pars = save_pars(all = TRUE),  refresh = 0, backend = "rstan")
+#            prior =
+#              set_prior("student_t(3, 6, 6)", class = "Intercept") +
+#              set_prior("student_t(3, 0, 6)", class = "sigma"),
+#            save_pars = save_pars(all = TRUE),  backend = "rstan")
 #  
-#  # main effects models
+#  # Petal.Length only
 #  m1 <- brm(Sepal.Length ~ Petal.Length, data = iris,
-#            save_pars = save_pars(all = TRUE), refresh = 0, backend = "rstan")
+#            prior =
+#              set_prior("student_t(3, 6, 6)", class = "Intercept") +
+#              set_prior("student_t(3, 0, 6)", class = "sigma") +
+#              set_prior("normal(0, 1)", coef = "Petal.Length"),
+#            save_pars = save_pars(all = TRUE))
 #  
+#  # Species only
 #  m2 <- brm(Sepal.Length ~ Species, data = iris,
-#            save_pars = save_pars(all = TRUE), refresh = 0, backend = "rstan")
+#            prior =
+#              set_prior("student_t(3, 6, 6)", class = "Intercept") +
+#              set_prior("student_t(3, 0, 6)", class = "sigma") +
+#              set_prior("normal(0, 3)", coef = c("Speciesversicolor", "Speciesvirginica")),
+#            save_pars = save_pars(all = TRUE))
 #  
-#  # additive main effects model
+#  # Species + Petal.Length model
 #  m3 <- brm(Sepal.Length ~ Species + Petal.Length, data = iris,
-#            save_pars = save_pars(all = TRUE), refresh = 0, backend = "rstan")
+#            prior =
+#              set_prior("student_t(3, 6, 6)", class = "Intercept") +
+#              set_prior("student_t(3, 0, 6)", class = "sigma") +
+#              set_prior("normal(0, 1)", coef = "Petal.Length") +
+#              set_prior("normal(0, 3)", coef = c("Speciesversicolor", "Speciesvirginica")),
+#            save_pars = save_pars(all = TRUE))
 #  
-#  # full model
+#  # full interactive model
 #  m4 <- brm(Sepal.Length ~ Species * Petal.Length, data = iris,
-#            save_pars = save_pars(all = TRUE), refresh = 0, backend = "rstan")
+#            prior =
+#              set_prior("student_t(3, 6, 6)", class = "Intercept") +
+#              set_prior("student_t(3, 0, 6)", class = "sigma") +
+#              set_prior("normal(0, 1)", coef = "Petal.Length") +
+#              set_prior("normal(0, 3)", coef = c("Speciesversicolor", "Speciesvirginica")) +
+#              set_prior("normal(0, 2)", coef = c("Speciesversicolor:Petal.Length", "Speciesvirginica:Petal.Length")),
+#            save_pars = save_pars(all = TRUE))
 
 ## ----brms_models_disp, eval = FALSE-------------------------------------------
 #  library(bayestestR)
@@ -208,16 +231,17 @@ plot(my_first_si)
 ## ---- echo = FALSE------------------------------------------------------------
 comparison <- structure(
   list(Model = c("Petal.Length", "Species", "Species + Petal.Length", "Species * Petal.Length", "1"), 
-       log_BF = c(102.600193981361, 68.5488807613052, 128.665504913167, 128.919384882682, 0)),
+       log_BF = c(101.556419030653, 64.2903334815192, 122.864721399001, 119.712908243647, 0)), 
   class = c("bayesfactor_models", "see_bayesfactor_models", "data.frame"), 
-  row.names = c("m1", "m2", "m3", "m4", "m0"),
-  denominator = 5L,
+  row.names = c("m1", "m2", "m3", "m4", "m0"), 
+  denominator = 5L, 
   BF_method = "marginal likelihoods (bridgesampling)",
-  unsupported_models = FALSE)
+  unsupported_models = FALSE
+)
 print(comparison)
 
 ## ----update_models1-----------------------------------------------------------
-update(comparison, reference = 3)
+update(comparison, reference = 4)
 
 ## ----update_models2-----------------------------------------------------------
 update(comparison, reference = 2)
@@ -284,13 +308,13 @@ BF_ToothGrowth <- anovaBF(len ~ dose * supp, ToothGrowth, progress = FALSE)
 bayesfactor_inclusion(BF_ToothGrowth)
 
 ## ----JASP_all_fig, echo=FALSE-------------------------------------------------
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP1.PNG")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP1.jpg")
 
 ## ----JASP_matched-------------------------------------------------------------
 bayesfactor_inclusion(BF_ToothGrowth, match_models = TRUE)
 
 ## ----JASP_matched_fig, echo=FALSE---------------------------------------------
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP2.PNG")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP2.jpg")
 
 ## ----JASP_Nuisance------------------------------------------------------------
 BF_ToothGrowth_against_dose <- BF_ToothGrowth[3:4] / BF_ToothGrowth[2] # OR:
@@ -303,7 +327,7 @@ BF_ToothGrowth_against_dose
 bayesfactor_inclusion(BF_ToothGrowth_against_dose)
 
 ## ----JASP_Nuisance_fig, echo=FALSE--------------------------------------------
-knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP3.PNG")
+knitr::include_graphics("https://github.com/easystats/easystats/raw/master/man/figures/bayestestR/JASP3.jpg")
 
 ## -----------------------------------------------------------------------------
 mod <- stan_glm(mpg ~ wt + am,
@@ -321,8 +345,7 @@ mod_carb <- stan_glm(mpg ~ wt + am + carb,
 )
 
 BF_carb <- bayesfactor_models(mod_carb, denominator = mod, verbose = FALSE)
-BF <- BF_carb$BF[1]
-print(BF_carb)
+BF_carb
 
 ## -----------------------------------------------------------------------------
 hdi(mod_carb, ci = .95)
@@ -341,13 +364,10 @@ set.seed(1)
 ## -----------------------------------------------------------------------------
 library(emmeans)
 
-groups <- emmeans(model, ~group)
-group_diff <- pairs(groups)
-
-(groups_all <- rbind(groups, group_diff))
+(group_diff <- emmeans(model, pairwise ~ group))
 
 # pass the original model via prior
-bayesfactor_parameters(groups_all, prior = model)
+bayesfactor_parameters(group_diff, prior = model)
 
 ## ---- echo=FALSE--------------------------------------------------------------
 set.seed(1)
@@ -355,11 +375,11 @@ set.seed(1)
 ## ---- eval=FALSE--------------------------------------------------------------
 #  library(modelbased)
 #  
-#  estimate_contrasts(model, test = "bf")
+#  estimate_contrasts(model, test = "bf", bf_prior = model)
 
 ## -----------------------------------------------------------------------------
 df <- iris
-contrasts(df$Species)[, ] <- contr.sum(3)
+contrasts(df$Species) <- contr.sum
 
 fit_sum <- stan_glm(Sepal.Length ~ Species,
   data = df,
@@ -369,27 +389,21 @@ fit_sum <- stan_glm(Sepal.Length ~ Species,
   refresh = 0
 )
 
-pairs_sum <- pairs(emmeans(fit_sum, ~Species))
+(pairs_sum <- pairs(emmeans(fit_sum, ~Species)))
 
-em_pairs_samples <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(pairs_sum, names = FALSE)))
-
-print(pairs_sum)
-
-ggplot(stack(em_pairs_samples), aes(x = values, fill = ind)) +
+ggplot(stack(insight::get_parameters(pairs_sum)), aes(x = values, fill = ind)) +
   geom_density(size = 1) +
   facet_grid(ind ~ .) +
   labs(x = "prior difference values") +
   theme(legend.position = "none")
 
-## ---- eval=FALSE--------------------------------------------------------------
-#  contrasts(df$Species) <- contr.orthonorm
+## -----------------------------------------------------------------------------
+contrasts(df$Species) <- contr.orthonorm
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  options(contrasts = c("contr.orthonorm", "contr.poly"))
 
 ## -----------------------------------------------------------------------------
-contrasts(df$Species)[, ] <- contr.orthonorm(3)
-
 fit_bayes <- stan_glm(Sepal.Length ~ Species,
   data = df,
   prior = normal(0, c(1, 1), autoscale = FALSE),
@@ -398,13 +412,9 @@ fit_bayes <- stan_glm(Sepal.Length ~ Species,
   refresh = 0
 )
 
-pairs_bayes <- pairs(emmeans(fit_bayes, ~Species))
+(pairs_bayes <- pairs(emmeans(fit_bayes, ~Species)))
 
-em_pairs_samples <- as.data.frame(as.matrix(emmeans::as.mcmc.emmGrid(pairs_bayes, names = FALSE)))
-
-print(pairs_bayes)
-
-ggplot(stack(em_pairs_samples), aes(x = values, fill = ind)) +
+ggplot(stack(insight::get_parameters(pairs_bayes)), aes(x = values, fill = ind)) +
   geom_density(size = 1) +
   facet_grid(ind ~ .) +
   labs(x = "prior difference values") +

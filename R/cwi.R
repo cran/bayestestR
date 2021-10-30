@@ -1,6 +1,14 @@
-#' Curve-wise Intervals (CWI)
+#' Curvewise Intervals (CWI)
 #'
-#' Compute the **Curve-Wise Interval (CWI)** of posterior distributions using \code{ggdist::curve_interval()}. These are particularly useful for visualisation of model's predictions.
+#' Compute the **Curvewise interval (CWI)** (also called the "simultaneous interval" or "joint interval") of posterior distributions using \code{ggdist::curve_interval()}.
+#' Whereas the more typical "pointwise intervals" contain xx% of the posterior for a single parameter,
+#' joint/curvewise intervals contain xx% of the posterior distribution for **all** parameters.
+#'
+#' Applied model predictions, pointwise intervals contain xx% of the predicted response values **conditional** on specific predictor values.
+#' In contrast, curvewise intervals contain xx% of the predicted response values across all predictor values.
+#' Put another way, curvewise intervals contain xx% of the full **prediction lines** from the model.
+#'
+#' For more details, see the [*ggdist* documentation on curvewise intervals](https://mjskay.github.io/ggdist/articles/lineribbon.html#curve-boxplots-aka-lineribbons-with-joint-intervals-or-curvewise-intervals-).
 #'
 #' @inheritParams hdi
 #' @inherit ci return
@@ -9,6 +17,7 @@
 #' @family ci
 #'
 #' @examples
+#' \donttest{
 #' library(bayestestR)
 #'
 #' if (require("ggplot2") && require("rstanarm") && require("ggdist")) {
@@ -45,7 +54,7 @@
 #'            aes(y = iter_value, group = iter_group),
 #'            alpha = 0.3)
 #' }
-#'
+#' }
 #' @export
 cwi <- function(x, ...) {
   UseMethod("cwi")

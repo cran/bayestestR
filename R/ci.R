@@ -4,7 +4,7 @@
 #'
 #' \itemize{
 #'  \item [Bayesian models](https://easystats.github.io/bayestestR/articles/credible_interval.html)
-#'  \item [Frequentist models](https://easystats.github.io/parameters/reference/ci.merMod.html)
+#'  \item [Frequentist models](https://easystats.github.io/parameters/reference/ci.default.html)
 #' }
 #'
 #' @param x A `stanreg` or `brmsfit` model, or a vector representing a posterior distribution.
@@ -30,7 +30,7 @@
 #'   \cr \cr
 #'   There is also a [`plot()`-method](https://easystats.github.io/see/articles/bayestestR.html) implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
-#' @references Gelman A, Greenland S. Are confidence intervals better termed "uncertainty intervals"? BMJ 2019;l5381. \doi{10.1136/bmj.l5381}
+#' @references Gelman A, Greenland S. Are confidence intervals better termed "uncertainty intervals"? BMJ 2019;l5381. 10.1136/bmj.l5381
 #'
 #'
 #' @examples
@@ -114,7 +114,7 @@ ci.emmGrid <- function(x, ci = NULL, ...) {
     }
 
     if (is.null(ci)) ci <- 0.95
-    return(parameters::ci_wald(model = x, ci = ci, dof = parameters::degrees_of_freedom(x), ...))
+    return(parameters::ci(model = x, ci = ci, ...))
   }
 
   if (is.null(ci)) ci <- 0.95
