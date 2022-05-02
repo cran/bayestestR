@@ -65,17 +65,19 @@ if (.runThisTest) {
       fit1 <- brm(rating ~ treat + period + carry,
         data = inhaler,
         refresh = 0,
+        silent = TRUE,
         save_pars = save_pars(all = TRUE)
       )
       fit2 <- brm(rating ~ period + carry,
         data = inhaler,
         refresh = 0,
+        silent = TRUE,
         save_pars = save_pars(all = TRUE)
       )
 
 
       set.seed(444)
-      res_BT <- weighted_posteriors(fit1, fit2)
+      expect_warning(res_BT <- weighted_posteriors(fit1, fit2))
 
       set.seed(444)
       res_brms <- brms::posterior_average(fit1, fit2, weights = "bma", missing = 0)

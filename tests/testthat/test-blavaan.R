@@ -1,11 +1,6 @@
-if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && require("testthat")) {
+if (requiet("bayestestR") && requiet("testthat") && requiet("blavaan") && requiet("lavaan") && requiet("cmdstanr")) {
   test_that("blavaan, all", {
     skip_on_cran()
-    skip_if_not_installed("blavaan")
-    skip_if_not_installed("lavaan")
-    skip_if_not_installed("cmdstanr")
-    require(blavaan)
-
     data("PoliticalDemocracy", package = "lavaan")
 
     model <- "
@@ -84,7 +79,7 @@ if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && req
     expect_equal(ncol(x), 14)
 
     # bfit_prior <- unupdate(bfit)
-    # capture.output(x <- bayesfactor_parameters(bfit, prior = bfit_prior))
+    # capture.output(x <- expect_warning(bayesfactor_parameters(bfit, prior = bfit_prior)))
     # expect_equal(nrow(x), 14)
     #
     # x <- expect_warning(si(bfit, prior = bfit_prior))

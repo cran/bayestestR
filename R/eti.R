@@ -44,6 +44,11 @@ eti <- function(x, ...) {
 }
 
 
+#' @export
+eti.default <- function(x, ...) {
+  stop(insight::format_message(paste0("'eti()' is not yet implemented for objects of class '", class(x)[1], "'.")), call. = FALSE)
+}
+
 
 #' @rdname eti
 #' @export
@@ -58,23 +63,30 @@ eti.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
 
 
 
-#' @rdname eti
 #' @export
 eti.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
   dat <- .compute_interval_dataframe(x = x, ci = ci, verbose = verbose, fun = "eti")
-  attr(dat, "object_name") <- .safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
   dat
 }
 
 
 
-#' @rdname eti
+#' @export
+eti.draws <- function(x, ci = 0.95, verbose = TRUE, ...) {
+  dat <- .compute_interval_dataframe(x = .posterior_draws_to_df(x), ci = ci, verbose = verbose, fun = "eti")
+  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
+  dat
+}
+
+
+
 #' @export
 eti.MCMCglmm <- function(x, ci = 0.95, verbose = TRUE, ...) {
   nF <- x$Fixed$nfl
   d <- as.data.frame(x$Sol[, 1:nF, drop = FALSE])
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
-  attr(dat, "data") <- .safe_deparse(substitute(x))
+  attr(dat, "data") <- insight::safe_deparse(substitute(x))
   dat
 }
 
@@ -84,7 +96,7 @@ eti.MCMCglmm <- function(x, ci = 0.95, verbose = TRUE, ...) {
 eti.mcmc <- function(x, ci = 0.95, verbose = TRUE, ...) {
   d <- as.data.frame(x)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
-  attr(dat, "data") <- .safe_deparse(substitute(x))
+  attr(dat, "data") <- insight::safe_deparse(substitute(x))
   dat
 }
 
@@ -95,7 +107,7 @@ eti.bamlss <- function(x, ci = 0.95, component = c("all", "conditional", "locati
   component <- match.arg(component)
   d <- insight::get_parameters(x, component = component)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
-  attr(dat, "data") <- .safe_deparse(substitute(x))
+  attr(dat, "data") <- insight::safe_deparse(substitute(x))
   dat
 }
 
@@ -105,7 +117,7 @@ eti.bamlss <- function(x, ci = 0.95, component = c("all", "conditional", "locati
 eti.bcplm <- function(x, ci = 0.95, verbose = TRUE, ...) {
   d <- insight::get_parameters(x)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = "eti")
-  attr(dat, "data") <- .safe_deparse(substitute(x))
+  attr(dat, "data") <- insight::safe_deparse(substitute(x))
   dat
 }
 
@@ -123,8 +135,6 @@ eti.mcmc.list <- eti.bcplm
 eti.BGGM <- eti.bcplm
 
 
-
-#' @rdname eti
 #' @export
 eti.sim.merMod <- function(x, ci = 0.95, effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
@@ -135,8 +145,6 @@ eti.sim.merMod <- function(x, ci = 0.95, effects = c("fixed", "random", "all"), 
 }
 
 
-
-#' @rdname eti
 #' @export
 eti.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
   dat <- .compute_interval_sim(x = x, ci = ci, parameters = parameters, verbose = verbose, fun = "eti")
@@ -146,19 +154,18 @@ eti.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
 }
 
 
-
-#' @rdname eti
 #' @export
 eti.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
 
   dat <- eti(xdf, ci = ci, verbose = verbose, ...)
-  attr(dat, "object_name") <- .safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
   dat
 }
 
 #' @export
 eti.emm_list <- eti.emmGrid
+
 
 #' @rdname eti
 #' @export
@@ -175,7 +182,7 @@ eti.stanreg <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
   )
 
   class(out) <- unique(c("bayestestR_eti", "see_eti", class(out)))
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
@@ -202,17 +209,15 @@ eti.brmsfit <- function(x, ci = 0.95, effects = c("fixed", "random", "all"),
   )
 
   class(out) <- unique(c("bayestestR_eti", "see_eti", class(out)))
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
 
-
-#' @rdname eti
 #' @export
 eti.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
   out <- eti(insight::get_parameters(x), ci = ci, verbose = verbose, ...)
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
@@ -220,11 +225,11 @@ eti.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
 #' @export
 eti.get_predicted <- function(x, ...) {
   if ("iterations" %in% names(attributes(x))) {
-    out <- hdi(as.data.frame(t(attributes(x)$iterations)), ...)
+    out <- eti(as.data.frame(t(attributes(x)$iterations)), ...)
   } else {
     stop("No iterations present in the output.")
   }
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
@@ -241,7 +246,8 @@ eti.get_predicted <- function(x, ...) {
   results <- as.vector(stats::quantile(
     x,
     probs = c((1 - ci) / 2, (1 + ci) / 2),
-    names = FALSE
+    names = FALSE,
+    na.rm = TRUE
   ))
 
   data.frame(

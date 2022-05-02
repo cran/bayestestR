@@ -8,7 +8,7 @@
 \alias{point_estimate.BFBayesFactor}
 \title{Point-estimates of posterior distributions}
 \usage{
-point_estimate(x, centrality = "all", dispersion = FALSE, ...)
+point_estimate(x, ...)
 
 \method{point_estimate}{numeric}(x, centrality = "all", dispersion = FALSE, threshold = 0.1, ...)
 
@@ -37,14 +37,16 @@ point_estimate(x, centrality = "all", dispersion = FALSE, ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
-vectors. Can also be a Bayesian model (\code{stanreg}, \code{brmsfit},
-\code{MCMCglmm}, \code{mcmc} or \code{bcplm}) or a \code{BayesFactor} model.}
+vectors. Can also be a Bayesian model. \strong{bayestestR} supports a wide range
+of models (see, for example, \code{methods("hdi")}) and not all of those are
+documented in the 'Usage' section, because methods for other classes mostly
+resemble the arguments of the \code{.numeric} or \code{.data.frame}methods.}
+
+\item{...}{Additional arguments to be passed to or from methods.}
 
 \item{centrality}{The point-estimates (centrality indices) to compute.  Character (vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"} or \code{"all"}.}
 
 \item{dispersion}{Logical, if \code{TRUE}, computes indices of dispersion related to the estimate(s) (\code{SD} and \code{MAD} for \code{mean} and \code{median}, respectively).}
-
-\item{...}{Additional arguments to be passed to or from methods.}
 
 \item{threshold}{For \code{centrality = "trimmed"} (i.e. trimmed mean), indicates the fraction (0 to 0.5) of observations to be trimmed from each end of the vector before the mean is computed.}
 
@@ -108,5 +110,5 @@ point_estimate(bf, centrality = c("median", "MAP"))
 
 }
 \references{
-\href{https://easystats.github.io/bayestestR/articles/indicesEstimationComparison.html}{Vignette In-Depth 1: Comparison of Point-Estimates}
+Makowski, D., Ben-Shachar, M. S., Chen, S. H. A., \& Lüdecke, D. (2019). \emph{Indices of Effect Existence and Significance in the Bayesian Framework}. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
 }

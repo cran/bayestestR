@@ -125,18 +125,15 @@ as.double.rope <- function(x, ...) {
 }
 
 
-
-#' @rdname rope
 #' @export
 rope.default <- function(x, ...) {
   NULL
 }
 
 
-
 #' @rdname rope
 #' @export
-rope.numeric <- function(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...) {
+rope.numeric <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
   if (all(range == "default")) {
     range <- c(-0.1, 0.1)
   } else if (!all(is.numeric(range)) || length(range) != 2) {
@@ -170,12 +167,10 @@ rope.numeric <- function(x, range = "default", ci = 0.95, ci_method = "HDI", ver
 
 
 
-
-#' @rdname rope
 #' @export
-rope.data.frame <- function(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...) {
+rope.data.frame <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
   out <- .prepare_rope_df(x, range, ci, ci_method, verbose)
-  HDI_area_attributes <- .compact_list(out$HDI_area)
+  HDI_area_attributes <- insight::compact_list(out$HDI_area)
   dat <- data.frame(
     Parameter = rep(names(HDI_area_attributes), each = length(ci)),
     out$tmp,
@@ -184,7 +179,7 @@ rope.data.frame <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
   row.names(dat) <- NULL
 
   attr(dat, "HDI_area") <- HDI_area_attributes
-  attr(dat, "object_name") <- .safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
 
   class(dat) <- c("rope", "see_rope", "data.frame")
   dat
@@ -192,13 +187,19 @@ rope.data.frame <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
 
 
 
-#' @rdname rope
 #' @export
-rope.emmGrid <- function(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...) {
+rope.draws <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
+  rope(.posterior_draws_to_df(x), range = range, ci = ci, ci_method = ci_method, verbose = verbose, ...)
+}
+
+
+
+#' @export
+rope.emmGrid <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
 
   dat <- rope(xdf, range = range, ci = ci, ci_method = ci_method, verbose = verbose, ...)
-  attr(dat, "object_name") <- .safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
   dat
 }
 
@@ -207,14 +208,13 @@ rope.emm_list <- rope.emmGrid
 
 
 
-#' @rdname rope
 #' @export
-rope.BFBayesFactor <- function(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...) {
+rope.BFBayesFactor <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
   if (all(range == "default")) {
     range <- rope_range(x, verbose = verbose)
   }
   out <- rope(insight::get_parameters(x), range = range, ci = ci, ci_method = ci_method, verbose = verbose, ...)
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
@@ -223,32 +223,29 @@ rope.BFBayesFactor <- function(x, range = "default", ci = 0.95, ci_method = "HDI
 rope.bamlss <- rope.BFBayesFactor
 
 
-#' @rdname rope
 #' @export
-rope.MCMCglmm <- function(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...) {
+rope.MCMCglmm <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
   nF <- x$Fixed$nfl
   out <- rope(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), range = range, ci = ci, ci_method = ci_method, verbose = verbose, ...)
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
 
 #' @export
-rope.mcmc <- function(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...) {
+rope.mcmc <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
   out <- rope(as.data.frame(x), range = range, ci = ci, ci_method = ci_method, verbose = verbose, ...)
   attr(out, "object_name") <- NULL
-  attr(out, "data") <- .safe_deparse(substitute(x))
+  attr(out, "data") <- insight::safe_deparse(substitute(x))
   out
 }
 
 
-
-
 #' @export
-rope.bcplm <- function(x, range = "default", ci = 0.95, ci_method = "HDI", verbose = TRUE, ...) {
+rope.bcplm <- function(x, range = "default", ci = 0.95, ci_method = "ETI", verbose = TRUE, ...) {
   out <- rope(insight::get_parameters(x), range = range, ci = ci, ci_method = ci_method, verbose = verbose, ...)
   attr(out, "object_name") <- NULL
-  attr(out, "data") <- .safe_deparse(substitute(x))
+  attr(out, "data") <- insight::safe_deparse(substitute(x))
   out
 }
 
@@ -267,7 +264,7 @@ rope.mcmc.list <- rope.bcplm
 
 
 #' @keywords internal
-.rope <- function(x, range = c(-0.1, 0.1), ci = 0.95, ci_method = "HDI", verbose = TRUE) {
+.rope <- function(x, range = c(-0.1, 0.1), ci = 0.95, ci_method = "ETI", verbose = TRUE) {
   ci_bounds <- ci(x, ci = ci, method = ci_method, verbose = verbose)
 
   if (anyNA(ci_bounds)) {
@@ -296,7 +293,7 @@ rope.mcmc.list <- rope.bcplm
 
 #' @rdname rope
 #' @export
-rope.stanreg <- function(x, range = "default", ci = 0.95, ci_method = "HDI", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, verbose = TRUE, ...) {
+rope.stanreg <- function(x, range = "default", ci = 0.95, ci_method = "ETI", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
 
@@ -321,7 +318,7 @@ rope.stanreg <- function(x, range = "default", ci = 0.95, ci_method = "HDI", eff
   out <- .prepare_output(rope_data, insight::clean_parameters(x), inherits(x, "stanmvreg"))
 
   attr(out, "HDI_area") <- attr(rope_data, "HDI_area")
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   class(out) <- class(rope_data)
 
   out
@@ -339,7 +336,7 @@ rope.blavaan <- rope.stanreg
 rope.brmsfit <- function(x,
                          range = "default",
                          ci = 0.95,
-                         ci_method = "HDI",
+                         ci_method = "ETI",
                          effects = c("fixed", "random", "all"),
                          component = c("conditional", "zi", "zero_inflated", "all"),
                          parameters = NULL,
@@ -356,8 +353,8 @@ rope.brmsfit <- function(x,
   } else if (insight::is_multivariate(x)) {
     if (
       !is.list(range) ||
-      length(range) < length(insight::find_response(x)) ||
-      !all(names(range) %in% insight::find_response(x))
+        length(range) < length(insight::find_response(x)) ||
+        !all(names(range) %in% insight::find_response(x))
     ) {
       stop("With a multivariate model, `range` should be 'default' or a list of named numeric vectors with length 2.")
     }
@@ -411,7 +408,7 @@ rope.brmsfit <- function(x,
   }
 
   attr(out, "HDI_area") <- attr(rope_data, "HDI_area")
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   class(out) <- class(rope_data)
 
   out
@@ -420,7 +417,7 @@ rope.brmsfit <- function(x,
 
 
 #' @export
-rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "HDI", effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
+rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "ETI", effects = c("fixed", "random", "all"), parameters = NULL, verbose = TRUE, ...) {
   effects <- match.arg(effects)
 
   if (all(range == "default")) {
@@ -436,7 +433,7 @@ rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
     tmp <- getropedata$tmp
     HDI_area <- getropedata$HDI_area
 
-    if (!.is_empty_object(tmp)) {
+    if (!insight::is_empty_object(tmp)) {
       tmp <- .clean_up_tmp_stanreg(
         tmp,
         group = .x,
@@ -444,7 +441,7 @@ rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
         parms = names(parms)
       )
 
-      if (!.is_empty_object(HDI_area)) {
+      if (!insight::is_empty_object(HDI_area)) {
         attr(tmp, "HDI_area") <- HDI_area
       }
     } else {
@@ -454,7 +451,7 @@ rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
     tmp
   })
 
-  dat <- do.call(rbind, args = c(.compact_list(list), make.row.names = FALSE))
+  dat <- do.call(rbind, args = c(insight::compact_list(list), make.row.names = FALSE))
 
   dat <- switch(effects,
     fixed = .select_rows(dat, "Group", "fixed"),
@@ -463,10 +460,10 @@ rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
   )
 
   if (all(dat$Group == dat$Group[1])) {
-    dat <- .remove_column(dat, "Group")
+    dat <- datawizard::data_remove(dat, "Group", verbose = FALSE)
   }
 
-  HDI_area_attributes <- lapply(.compact_list(list), attr, "HDI_area")
+  HDI_area_attributes <- lapply(insight::compact_list(list), attr, "HDI_area")
 
   if (effects != "all") {
     HDI_area_attributes <- HDI_area_attributes[[1]]
@@ -475,7 +472,7 @@ rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
   }
 
   attr(dat, "HDI_area") <- HDI_area_attributes
-  attr(dat, "object_name") <- .safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
 
   dat
 }
@@ -483,7 +480,7 @@ rope.sim.merMod <- function(x, range = "default", ci = 0.95, ci_method = "HDI", 
 
 
 #' @export
-rope.sim <- function(x, range = "default", ci = 0.95, ci_method = "HDI", parameters = NULL, verbose = TRUE, ...) {
+rope.sim <- function(x, range = "default", ci = 0.95, ci_method = "ETI", parameters = NULL, verbose = TRUE, ...) {
   if (all(range == "default")) {
     range <- rope_range(x, verbose = verbose)
   } else if (!all(is.numeric(range)) || length(range) != 2) {
@@ -496,7 +493,7 @@ rope.sim <- function(x, range = "default", ci = 0.95, ci_method = "HDI", paramet
   dat <- getropedata$tmp
   HDI_area <- getropedata$HDI_area
 
-  if (!.is_empty_object(dat)) {
+  if (!insight::is_empty_object(dat)) {
     dat <- .clean_up_tmp_stanreg(
       dat,
       group = "fixed",
@@ -504,14 +501,14 @@ rope.sim <- function(x, range = "default", ci = 0.95, ci_method = "HDI", paramet
       parms = names(parms)
     )
 
-    if (!.is_empty_object(HDI_area)) {
+    if (!insight::is_empty_object(HDI_area)) {
       attr(dat, "HDI_area") <- HDI_area
     }
   } else {
     dat <- NULL
   }
 
-  attr(dat, "object_name") <- .safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
 
   dat
 }

@@ -4,31 +4,17 @@
 \alias{describe_posterior}
 \alias{describe_posterior.numeric}
 \alias{describe_posterior.stanreg}
-\alias{describe_posterior.stanmvreg}
 \alias{describe_posterior.brmsfit}
-\alias{describe_posterior.MCMCglmm}
-\alias{describe_posterior.BFBayesFactor}
 \title{Describe Posterior Distributions}
 \usage{
-describe_posterior(
-  posteriors,
-  centrality = "median",
-  dispersion = FALSE,
-  ci = 0.95,
-  ci_method = "hdi",
-  test = c("p_direction", "rope"),
-  rope_range = "default",
-  rope_ci = 0.95,
-  keep_iterations = FALSE,
-  ...
-)
+describe_posterior(posteriors, ...)
 
 \method{describe_posterior}{numeric}(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
   ci = 0.95,
-  ci_method = "hdi",
+  ci_method = "eti",
   test = c("p_direction", "rope"),
   rope_range = "default",
   rope_ci = 0.95,
@@ -43,7 +29,7 @@ describe_posterior(
   centrality = "median",
   dispersion = FALSE,
   ci = 0.95,
-  ci_method = "hdi",
+  ci_method = "eti",
   test = c("p_direction", "rope"),
   rope_range = "default",
   rope_ci = 0.95,
@@ -59,32 +45,12 @@ describe_posterior(
   ...
 )
 
-\method{describe_posterior}{stanmvreg}(
-  posteriors,
-  centrality = "median",
-  dispersion = FALSE,
-  ci = 0.95,
-  ci_method = "hdi",
-  test = "p_direction",
-  rope_range = "default",
-  rope_ci = 0.95,
-  keep_iterations = FALSE,
-  bf_prior = NULL,
-  diagnostic = c("ESS", "Rhat"),
-  priors = FALSE,
-  effects = c("fixed", "random", "all"),
-  component = c("location", "all", "conditional", "smooth_terms", "sigma",
-    "distributional", "auxiliary"),
-  parameters = NULL,
-  ...
-)
-
 \method{describe_posterior}{brmsfit}(
   posteriors,
   centrality = "median",
   dispersion = FALSE,
   ci = 0.95,
-  ci_method = "hdi",
+  ci_method = "eti",
   test = c("p_direction", "rope"),
   rope_range = "default",
   rope_ci = 0.95,
@@ -99,39 +65,14 @@ describe_posterior(
   priors = FALSE,
   ...
 )
-
-\method{describe_posterior}{MCMCglmm}(
-  posteriors,
-  centrality = "median",
-  dispersion = FALSE,
-  ci = 0.95,
-  ci_method = "hdi",
-  test = c("p_direction", "rope"),
-  rope_range = "default",
-  rope_ci = 0.95,
-  keep_iterations = FALSE,
-  diagnostic = "ESS",
-  parameters = NULL,
-  ...
-)
-
-\method{describe_posterior}{BFBayesFactor}(
-  posteriors,
-  centrality = "median",
-  dispersion = FALSE,
-  ci = 0.95,
-  ci_method = "hdi",
-  test = c("p_direction", "rope", "bf"),
-  rope_range = "default",
-  rope_ci = 0.95,
-  keep_iterations = FALSE,
-  priors = TRUE,
-  verbose = TRUE,
-  ...
-)
 }
 \arguments{
-\item{posteriors}{A vector, data frame or model of posterior draws.}
+\item{posteriors}{A vector, data frame or model of posterior draws.
+\strong{bayestestR} supports a wide range of models (see \code{methods("describe_posterior")})
+and not all of those are documented in the 'Usage' section, because methods
+for other classes mostly resemble the arguments of the \code{.numeric} method.}
+
+\item{...}{Additional arguments to be passed to or from methods.}
 
 \item{centrality}{The point-estimates (centrality indices) to compute.  Character (vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"} or \code{"all"}.}
 
@@ -141,9 +82,10 @@ describe_posterior(
 to be estimated. Default to \code{.95} (\verb{95\%}).}
 
 \item{ci_method}{The type of index used for Credible Interval. Can be
-\code{"HDI"} (default, see \code{\link[=hdi]{hdi()}}), \code{"ETI"}
-(see \code{\link[=eti]{eti()}}), \code{"BCI"} (see
-\code{\link[=bci]{bci()}}) or \code{"SI"} (see \code{\link[=si]{si()}}).}
+\code{"ETI"} (default, see \code{\link[=eti]{eti()}}), \code{"HDI"}
+(see \code{\link[=hdi]{hdi()}}), \code{"BCI"} (see
+\code{\link[=bci]{bci()}}), \code{"SPI"} (see \code{\link[=spi]{spi()}}), or
+\code{"SI"} (see \code{\link[=si]{si()}}).}
 
 \item{test}{The indices of effect existence to compute. Character (vector) or
 list with one or more of these options: \code{"p_direction"} (or \code{"pd"}),
@@ -164,8 +106,6 @@ proportion of HDI, to use for the percentage in ROPE.}
 bootstrapped or Bayesian models. They will be added as additional columns
 named \verb{iter_1, iter_2, ...}. You can reshape them to a long format by
 running \code{\link[=reshape_iterations]{reshape_iterations()}}.}
-
-\item{...}{Additional arguments to be passed to or from methods.}
 
 \item{bf_prior}{Distribution representing a prior for the computation of
 Bayes factors / SI. Used if the input is a posterior, otherwise (in the
@@ -190,8 +130,6 @@ that should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
-
-\item{verbose}{Toggle off warnings.}
 }
 \description{
 Compute indices relevant to describe and characterize the posterior distributions.
@@ -253,7 +191,7 @@ if (require("BayesFactor")) {
 }
 \references{
 \itemize{
-\item \href{https://easystats.github.io/bayestestR/articles/indicesEstimationComparison.html}{Comparison of Point-Estimates}
+\item Makowski, D., Ben-Shachar, M. S., Chen, S. H. A., \& Lüdecke, D. (2019). \emph{Indices of Effect Existence and Significance in the Bayesian Framework}. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
 \item \href{https://easystats.github.io/bayestestR/articles/region_of_practical_equivalence.html}{Region of Practical Equivalence (ROPE)}
 \item \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{Bayes factors}
 }

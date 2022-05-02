@@ -5,8 +5,8 @@
 #' @inheritParams hdi
 #' @inheritParams estimate_density
 #'
-#' @return A numeric value if `posterior` is a vector. If `posterior`
-#' is a model-object, returns a data frame with following columns:
+#' @return A numeric value if `x` is a vector. If `x` is a model-object,
+#' returns a data frame with following columns:
 #'   \itemize{
 #'     \item `Parameter` The model parameter(s), if `x` is a model-object. If `x` is a vector, this column is missing.
 #'     \item `MAP_Estimate` The MAP estimate for the posterior or each model parameter.
@@ -38,6 +38,8 @@ map_estimate <- function(x, precision = 2^10, method = "kernel", ...) {
 
 
 
+# numeric -----------------------
+
 #' @rdname map_estimate
 #' @export
 map_estimate.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
@@ -57,55 +59,36 @@ map_estimate.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
 }
 
 
-#' @rdname map_estimate
+
+# other models -----------------------
+
 #' @export
 map_estimate.bayesQR <- function(x, precision = 2^10, method = "kernel", ...) {
   x <- insight::get_parameters(x)
   map_estimate(x, precision = precision, method = method)
 }
 
+#' @export
+map_estimate.BGGM <- map_estimate.bayesQR
 
 #' @export
-map_estimate.BGGM <- function(x, precision = 2^10, method = "kernel", ...) {
-  x <- insight::get_parameters(x)
-  map_estimate(x, precision = precision, method = method)
-}
-
+map_estimate.mcmc <- map_estimate.bayesQR
 
 #' @export
-map_estimate.mcmc <- function(x, precision = 2^10, method = "kernel", ...) {
-  x <- insight::get_parameters(x)
-  map_estimate(x, precision = precision, method = method)
-}
-
+map_estimate.bamlss <- map_estimate.bayesQR
 
 #' @export
-map_estimate.bamlss <- function(x, precision = 2^10, method = "kernel", ...) {
-  x <- insight::get_parameters(x)
-  map_estimate(x, precision = precision, method = method)
-}
-
+map_estimate.bcplm <- map_estimate.bayesQR
 
 #' @export
-map_estimate.bcplm <- function(x, precision = 2^10, method = "kernel", ...) {
-  x <- insight::get_parameters(x)
-  map_estimate(x, precision = precision, method = method)
-}
-
+map_estimate.blrm <- map_estimate.bayesQR
 
 #' @export
-map_estimate.blrm <- function(x, precision = 2^10, method = "kernel", ...) {
-  x <- insight::get_parameters(x)
-  map_estimate(x, precision = precision, method = method)
-}
+map_estimate.mcmc.list <- map_estimate.bayesQR
 
 
-#' @export
-map_estimate.mcmc.list <- function(x, precision = 2^10, method = "kernel", ...) {
-  x <- insight::get_parameters(x)
-  map_estimate(x, precision = precision, method = method)
-}
 
+# stan / posterior models -----------------------
 
 #' @keywords internal
 .map_estimate_models <- function(x, precision, method, ...) {
@@ -167,7 +150,12 @@ map_estimate.data.frame <- function(x, precision = 2^10, method = "kernel", ...)
 }
 
 
-#' @rdname map_estimate
+#' @export
+map_estimate.draws <- function(x, precision = 2^10, method = "kernel", ...) {
+  .map_estimate_models(.posterior_draws_to_df(x), precision = precision, method = method)
+}
+
+
 #' @export
 map_estimate.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
   x <- insight::get_parameters(x)
@@ -187,9 +175,9 @@ map_estimate.get_predicted <- function(x, ...) {
   }
 }
 
+
+
 # Methods -----------------------------------------------------------------
-
-
 
 #' @rdname as.numeric.p_direction
 #' @method as.numeric map_estimate

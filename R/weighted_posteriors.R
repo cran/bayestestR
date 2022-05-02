@@ -97,7 +97,7 @@
 #'   BFmods <- bayesfactor_models(m0, m1)
 #'
 #'   wp <- weighted_posteriors(pred_m0, pred_m1,
-#'     prior_odds = BFmods$BF[2]
+#'     prior_odds = as.numeric(BFmods)[2]
 #'   )
 #'
 #'   # look at first 5 prediction intervals
@@ -133,7 +133,7 @@ weighted_posteriors <- function(..., prior_odds = NULL, missing = 0, verbose = T
 #' @rdname weighted_posteriors
 weighted_posteriors.data.frame <- function(..., prior_odds = NULL, missing = 0, verbose = TRUE) {
   Mods <- list(...)
-  mnames <- sapply(match.call(expand.dots = FALSE)$`...`, .safe_deparse)
+  mnames <- sapply(match.call(expand.dots = FALSE)$`...`, insight::safe_deparse)
 
   # find min nrow
   iterations <- min(sapply(Mods, nrow))
@@ -159,6 +159,7 @@ weighted_posteriors.data.frame <- function(..., prior_odds = NULL, missing = 0, 
   attr(res, "weights") <- data.frame(Model = mnames, weights = weighted_samps)
   return(res)
 }
+
 
 #' @export
 #' @rdname weighted_posteriors

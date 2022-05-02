@@ -2,14 +2,37 @@
 % Please edit documentation in R/describe_prior.R
 \name{describe_prior}
 \alias{describe_prior}
+\alias{describe_prior.brmsfit}
 \title{Describe Priors}
 \usage{
 describe_prior(model, ...)
+
+\method{describe_prior}{brmsfit}(
+  model,
+  effects = c("fixed", "random", "all"),
+  component = c("conditional", "zi", "zero_inflated", "all", "location",
+    "distributional", "auxiliary"),
+  parameters = NULL,
+  ...
+)
 }
 \arguments{
 \item{model}{A Bayesian model.}
 
 \item{...}{Currently not used.}
+
+\item{effects}{Should results for fixed effects, random effects or both be
+returned? Only applies to mixed models. May be abbreviated.}
+
+\item{component}{Should results for all parameters, parameters for the
+conditional model or the zero-inflated part of the model be returned? May
+be abbreviated. Only applies to \pkg{brms}-models.}
+
+\item{parameters}{Regular expression pattern that describes the parameters
+that should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
+filtered by default, so only parameters that typically appear in the
+\code{summary()} are returned. Use \code{parameters} to select specific parameters
+for the output.}
 }
 \description{
 Returns a summary of the priors used in the model.

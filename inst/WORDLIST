@@ -1,5 +1,6 @@
 ADE
 Altough
+BCI
 BCa
 BFs
 BGGM
@@ -12,6 +13,8 @@ Bayesfactor
 Bergh
 Bridgesampling
 CRC
+CWI
+Curvewise
 DOI
 DV
 Dablander
@@ -19,10 +22,10 @@ DescTools
 Desimone
 DiCiccio
 Driing
+Elsevier
 ESS
 ETI
 Efron
-Elsevier
 Etz
 Fernández
 Funder
@@ -44,11 +47,13 @@ Kass
 Keele
 Kruschke
 Kuriyal
+Kurz's
 Ley
 Liao
 Liddell
 Lindley
 Littman
+Liu
 Lodewyckx
 Ly
 MCMCglmm
@@ -78,9 +83,10 @@ Rouder
 SEM
 SEXIT
 SHA
-SavageDickey
 Shachar
 Speckman
+SPI
+SPIn
 Tada
 Tingley
 Un
@@ -93,6 +99,8 @@ Wetzels
 Wickham
 Wookies
 Yamamoto
+Ying
+Zheng
 al
 altough
 analsyes
@@ -104,6 +112,7 @@ bayesian
 bcplm
 behavioural
 blogpost
+bmj
 bootsrapped
 brms
 brmsfit
@@ -111,13 +120,11 @@ centred
 characterisation
 characterises
 ci
-cogpsych
-cogsci
 columbia
 compte
 containe
-contr
 cplm
+curvewise
 doi
 driiiing
 eXistence
@@ -134,7 +141,7 @@ frequentis
 frequentist's
 fullrank
 generalised
-gg
+ggdist
 ggdistribute
 github
 grano
@@ -146,9 +153,9 @@ interpretability
 interpretable
 io
 iteratively
-jasp
 jmp
 joss
+kruschke
 lavaan
 lentiful
 lm
@@ -157,7 +164,6 @@ mcmc
 modelling
 nbinom
 neq
-nl
 notin
 objets
 operationlizing
@@ -173,12 +179,15 @@ reproducibility
 richarddmorey
 riors
 rmsb
+rOpenSci
 rstanarm
 sIgnificance
 salis
 setosa
 setosas
 splinefun
+ss
+stan
 stanfit
 stanreg
 statmodeling
@@ -186,6 +195,7 @@ summarise
 summarised
 th
 treedepth
+tweedie
 un
 underbrace
 versicolor
@@ -196,5 +206,4 @@ visualisation
 visualise
 warmup
 wil
-www
 xy

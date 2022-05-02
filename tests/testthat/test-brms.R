@@ -1,6 +1,6 @@
 .runThisTest <- Sys.getenv("RunAllbayestestRTests") == "yes"
 
-if (.runThisTest && require("brms") && require("testthat") && require("insight") && require("httr")) {
+if (.runThisTest && requiet("brms") && requiet("testthat") && requiet("insight") && requiet("httr")) {
   test_that("brms", {
     skip_on_cran()
 
@@ -59,7 +59,7 @@ if (.runThisTest && require("brms") && require("testthat") && require("insight")
     model <- insight::download_model("brms_mv_2")
 
     out <- describe_posterior(model, effects = "all", components = "all", centrality = "mean", test = NULL)
-    s <- summary(model)
+    s <- suppressWarnings(summary(model))
     expect_identical(colnames(out), c(
       "Parameter", "Effects", "Mean", "CI", "CI_low", "CI_high",
       "Rhat", "ESS"

@@ -1,6 +1,6 @@
 .runThisTest <- Sys.getenv("RunAllbayestestRTests") == "yes"
 if (.runThisTest) {
-  if (require("rstanarm") && suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && require("httr") && require("insight")) {
+  if (requiet("rstanarm") && requiet("bayestestR") && requiet("httr") && requiet("insight")) {
     test_that("rstanarm", {
       skip_on_cran()
 
@@ -27,7 +27,7 @@ if (.runThisTest) {
       expect_equal(rope_range(model, verbose = FALSE)[1], -0.043, tolerance = 0.1)
 
       model <- insight::download_model("stanreg_gam_1")
-      params <- describe_posterior(model, centrality = "all", test = "all", dispersion = TRUE)
+      expect_warning(params <- describe_posterior(model, centrality = "all", test = "all", dispersion = TRUE))
       expect_equal(c(nrow(params), ncol(params)), c(4, 22))
 
       expect_s3_class(hdi(model), "data.frame")

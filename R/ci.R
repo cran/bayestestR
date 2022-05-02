@@ -8,7 +8,7 @@
 #' }
 #'
 #' @param x A `stanreg` or `brmsfit` model, or a vector representing a posterior distribution.
-#' @param method Can be ['ETI'][eti] (default), ['HDI'][hdi], ['BCI'][bci] or ['SI'][si].
+#' @param method Can be ['ETI'][eti] (default), ['HDI'][hdi], ['BCI'][bci], ['SPI'][spi] or ['SI'][si].
 #' @param ci Value or vector of probability of the CI (between 0 and 1)
 #'   to be estimated. Default to `.95` (`95%`).
 #' @inheritParams hdi
@@ -85,10 +85,12 @@ ci <- function(x, ...) {
     return(bci(x, ci = ci, effects = effects, component = component, parameters = parameters, verbose = verbose, ...))
   } else if (tolower(method) %in% c("hdi")) {
     return(hdi(x, ci = ci, effects = effects, component = component, parameters = parameters, verbose = verbose, ...))
+  } else if (tolower(method) %in% c("spi")) {
+    return(spi(x, ci = ci, effects = effects, component = component, parameters = parameters, verbose = verbose, ...))
   } else if (tolower(method) %in% c("si")) {
     return(si(x, BF = BF, effects = effects, component = component, parameters = parameters, verbose = verbose, ...))
   } else {
-    stop("`method` should be 'ETI' (for equal-tailed interval),'HDI' (for highest density interval), `BCI` (for bias corrected and accelerated bootstrap intervals) or 'SI' (for support interval).")
+    stop(insight::format_message("`method` should be 'ETI' (for equal-tailed interval),'HDI' (for highest density interval), 'BCI' (for bias corrected and accelerated bootstrap intervals), 'SPI' (for shortest probability interval) or 'SI' (for support interval)."), call. = FALSE)
   }
 }
 
@@ -104,6 +106,12 @@ ci.numeric <- function(x, ci = 0.95, method = "ETI", verbose = TRUE, BF = 1, ...
 #' @export
 ci.data.frame <- ci.numeric
 
+
+
+#' @export
+ci.draws <- function(x, ci = 0.95, method = "ETI", verbose = TRUE, BF = 1, ...) {
+  .ci_bayesian(.posterior_draws_to_df(x), ci = ci, method = method, verbose = verbose, BF = BF, ...)
+}
 
 
 #' @export

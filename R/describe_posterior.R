@@ -3,10 +3,14 @@
 #' Compute indices relevant to describe and characterize the posterior distributions.
 #'
 #' @param posteriors A vector, data frame or model of posterior draws.
+#'   **bayestestR** supports a wide range of models (see `methods("describe_posterior")`)
+#'   and not all of those are documented in the 'Usage' section, because methods
+#'   for other classes mostly resemble the arguments of the `.numeric` method.
 #' @param ci_method The type of index used for Credible Interval. Can be
-#'   `"HDI"` (default, see [bayestestR::hdi()]), `"ETI"`
-#'   (see [bayestestR::eti()]), `"BCI"` (see
-#'   [bayestestR::bci()]) or `"SI"` (see [bayestestR::si()]).
+#'   `"ETI"` (default, see [bayestestR::eti()]), `"HDI"`
+#'   (see [bayestestR::hdi()]), `"BCI"` (see
+#'   [bayestestR::bci()]), `"SPI"` (see [bayestestR::spi()]), or
+#'   `"SI"` (see [bayestestR::si()]).
 #' @param test The indices of effect existence to compute. Character (vector) or
 #'   list with one or more of these options: `"p_direction"` (or `"pd"`),
 #'   `"rope"`, `"p_map"`, `"equivalence_test"` (or `"equitest"`),
@@ -23,6 +27,10 @@
 #'   bootstrapped or Bayesian models. They will be added as additional columns
 #'   named `iter_1, iter_2, ...`. You can reshape them to a long format by
 #'   running [bayestestR::reshape_iterations()].
+#' @param bf_prior Distribution representing a prior for the computation of
+#'   Bayes factors / SI. Used if the input is a posterior, otherwise (in the
+#'   case of models) ignored.
+#' @param priors Add the prior used for each parameter.
 #'
 #' @inheritParams point_estimate
 #' @inheritParams ci
@@ -36,7 +44,7 @@
 #'
 #' @references
 #' \itemize{
-#'   \item [Comparison of Point-Estimates](https://easystats.github.io/bayestestR/articles/indicesEstimationComparison.html)
+#'   \item Makowski, D., Ben-Shachar, M. S., Chen, S. H. A., \& Lüdecke, D. (2019). *Indices of Effect Existence and Significance in the Bayesian Framework*. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
 #'   \item [Region of Practical Equivalence (ROPE)](https://easystats.github.io/bayestestR/articles/region_of_practical_equivalence.html)
 #'   \item [Bayes factors](https://easystats.github.io/bayestestR/articles/bayes_factors.html)
 #' }
@@ -91,17 +99,14 @@
 #' }
 #' }
 #' @export
-describe_posterior <- function(posteriors,
-                               centrality = "median",
-                               dispersion = FALSE,
-                               ci = 0.95,
-                               ci_method = "hdi",
-                               test = c("p_direction", "rope"),
-                               rope_range = "default",
-                               rope_ci = 0.95,
-                               keep_iterations = FALSE,
-                               ...) {
+describe_posterior <- function(posteriors, ...) {
   UseMethod("describe_posterior")
+}
+
+
+#' @export
+describe_posterior.default <- function(posteriors, ...) {
+  stop(insight::format_message(paste0("'describe_posterior()' is not yet implemented for objects of class '", class(posteriors)[1], "'.")), call. = FALSE)
 }
 
 
@@ -110,7 +115,7 @@ describe_posterior <- function(posteriors,
                                 centrality = "median",
                                 dispersion = FALSE,
                                 ci = 0.95,
-                                ci_method = "hdi",
+                                ci_method = "eti",
                                 test = c("p_direction", "rope"),
                                 rope_range = "default",
                                 rope_ci = 0.95,
@@ -145,7 +150,7 @@ describe_posterior <- function(posteriors,
   # Uncertainty
 
   if (!is.null(ci)) {
-    ci_method <- match.arg(tolower(ci_method), c("hdi", "quantile", "ci", "eti", "si", "bci", "bcai"))
+    ci_method <- match.arg(tolower(ci_method), c("hdi", "spi", "quantile", "ci", "eti", "si", "bci", "bcai"))
     if (ci_method == "si") {
       uncertainty <- ci(x, BF = BF, method = ci_method, prior = bf_prior, ...)
     } else {
@@ -178,7 +183,7 @@ describe_posterior <- function(posteriors,
     # no ROPE for multi-response models
     if (insight::is_multivariate(x)) {
       test <- setdiff(test, c("rope", "p_rope"))
-      warning("Multivariate response models are not yet supported for tests 'rope' and 'p_rope'.", call. = FALSE)
+      warning(insight::format_message("Multivariate response models are not yet supported for tests 'rope' and 'p_rope'."), call. = FALSE)
     }
 
     # MAP-based p-value
@@ -238,7 +243,7 @@ describe_posterior <- function(posteriors,
     # Equivalence test
 
     if (any(c("equivalence", "equivalence_test", "equitest") %in% test)) {
-      if (any(c("rope") %in% test)) {
+      if (any("rope" %in% test)) {
         equi_warnings <- FALSE
       } else {
         equi_warnings <- TRUE
@@ -379,12 +384,12 @@ describe_posterior <- function(posteriors,
   # column consist only of missing values, we remove those columns as well
 
   remove_columns <- ".rowid"
-  if (all(is.na(out$Effects)) || length(unique(out$Effects)) < 2) remove_columns <- c(remove_columns, "Effects")
-  if (all(is.na(out$Component)) || length(unique(out$Component)) < 2) remove_columns <- c(remove_columns, "Component")
-  if (all(is.na(out$Response)) || length(unique(out$Response)) < 2) remove_columns <- c(remove_columns, "Response")
+  if (insight::n_unique(out$Effects, na.rm = TRUE) < 2) remove_columns <- c(remove_columns, "Effects")
+  if (insight::n_unique(out$Component, na.rm = TRUE) < 2) remove_columns <- c(remove_columns, "Component")
+  if (insight::n_unique(out$Response, na.rm = TRUE) < 2) remove_columns <- c(remove_columns, "Response")
 
   # Restore columns order
-  out <- .remove_column(out[order(out$.rowid), ], remove_columns)
+  out <- datawizard::data_remove(out[order(out$.rowid), ], remove_columns, verbose = FALSE)
 
   # Add iterations
   if (keep_iterations == TRUE) {
@@ -424,15 +429,12 @@ describe_posterior <- function(posteriors,
 
 
 #' @rdname describe_posterior
-#' @param bf_prior Distribution representing a prior for the computation of
-#'   Bayes factors / SI. Used if the input is a posterior, otherwise (in the
-#'   case of models) ignored.
 #' @export
 describe_posterior.numeric <- function(posteriors,
                                        centrality = "median",
                                        dispersion = FALSE,
                                        ci = 0.95,
-                                       ci_method = "hdi",
+                                       ci_method = "eti",
                                        test = c("p_direction", "rope"),
                                        rope_range = "default",
                                        rope_ci = 0.95,
@@ -481,7 +483,7 @@ describe_posterior.bayesQR <- function(posteriors,
                                        centrality = "median",
                                        dispersion = FALSE,
                                        ci = 0.95,
-                                       ci_method = "hdi",
+                                       ci_method = "eti",
                                        test = c("p_direction", "rope"),
                                        rope_range = "default",
                                        rope_ci = 0.95,
@@ -504,7 +506,7 @@ describe_posterior.bayesQR <- function(posteriors,
   )
 
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }
@@ -526,6 +528,39 @@ describe_posterior.mcmc.list <- describe_posterior.bayesQR
 describe_posterior.BGGM <- describe_posterior.bayesQR
 
 
+#' @export
+describe_posterior.draws <- function(posteriors,
+                                     centrality = "median",
+                                     dispersion = FALSE,
+                                     ci = 0.95,
+                                     ci_method = "eti",
+                                     test = c("p_direction", "rope"),
+                                     rope_range = "default",
+                                     rope_ci = 0.95,
+                                     keep_iterations = FALSE,
+                                     bf_prior = NULL,
+                                     BF = 1,
+                                     ...) {
+  out <- .describe_posterior(
+    .posterior_draws_to_df(posteriors),
+    centrality = centrality,
+    dispersion = dispersion,
+    ci = ci,
+    ci_method = ci_method,
+    test = test,
+    rope_range = rope_range,
+    rope_ci = rope_ci,
+    keep_iterations = keep_iterations,
+    bf_prior = bf_prior,
+    BF = BF,
+    ...
+  )
+
+  class(out) <- unique(c("describe_posterior", "see_describe_posterior", class(out)))
+  out
+}
+
+
 
 
 # easystats methods ------------------------
@@ -536,7 +571,7 @@ describe_posterior.effectsize_std_params <- function(posteriors,
                                                      centrality = "median",
                                                      dispersion = FALSE,
                                                      ci = 0.95,
-                                                     ci_method = "hdi",
+                                                     ci_method = "eti",
                                                      test = c("p_direction", "rope"),
                                                      rope_range = "default",
                                                      rope_ci = 0.95,
@@ -600,7 +635,7 @@ describe_posterior.get_predicted <- function(posteriors,
                                              centrality = "median",
                                              dispersion = FALSE,
                                              ci = 0.95,
-                                             ci_method = "hdi",
+                                             ci_method = "eti",
                                              test = NULL,
                                              ...) {
   if ("iterations" %in% names(attributes(posteriors))) {
@@ -629,7 +664,7 @@ describe_posterior.emmGrid <- function(posteriors,
                                        centrality = "median",
                                        dispersion = FALSE,
                                        ci = 0.95,
-                                       ci_method = "hdi",
+                                       ci_method = "eti",
                                        test = c("p_direction", "rope"),
                                        rope_range = "default",
                                        rope_ci = 0.95,
@@ -666,7 +701,7 @@ describe_posterior.emmGrid <- function(posteriors,
 
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
 
   out
 }
@@ -683,14 +718,13 @@ describe_posterior.emm_list <- describe_posterior.emmGrid
 
 #' @inheritParams insight::get_parameters
 #' @inheritParams diagnostic_posterior
-#' @param priors Add the prior used for each parameter.
 #' @rdname describe_posterior
 #' @export
 describe_posterior.stanreg <- function(posteriors,
                                        centrality = "median",
                                        dispersion = FALSE,
                                        ci = 0.95,
-                                       ci_method = "hdi",
+                                       ci_method = "eti",
                                        test = c("p_direction", "rope"),
                                        rope_range = "default",
                                        rope_ci = 0.95,
@@ -745,7 +779,7 @@ describe_posterior.stanreg <- function(posteriors,
 
   out <- .add_clean_parameters_attribute(out, posteriors)
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }
@@ -753,14 +787,12 @@ describe_posterior.stanreg <- function(posteriors,
 
 #' @inheritParams insight::get_parameters
 #' @inheritParams diagnostic_posterior
-#' @param priors Add the prior used for each parameter.
-#' @rdname describe_posterior
 #' @export
 describe_posterior.stanmvreg <- function(posteriors,
                                          centrality = "median",
                                          dispersion = FALSE,
                                          ci = 0.95,
-                                         ci_method = "hdi",
+                                         ci_method = "eti",
                                          test = "p_direction",
                                          rope_range = "default",
                                          rope_ci = 0.95,
@@ -812,7 +844,7 @@ describe_posterior.stanmvreg <- function(posteriors,
 
   out <- .add_clean_parameters_attribute(out, posteriors)
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }
@@ -825,7 +857,7 @@ describe_posterior.stanfit <- function(posteriors,
                                        centrality = "median",
                                        dispersion = FALSE,
                                        ci = 0.95,
-                                       ci_method = "hdi",
+                                       ci_method = "eti",
                                        test = c("p_direction", "rope"),
                                        rope_range = "default",
                                        rope_ci = 0.95,
@@ -878,7 +910,7 @@ describe_posterior.brmsfit <- function(posteriors,
                                        centrality = "median",
                                        dispersion = FALSE,
                                        ci = 0.95,
-                                       ci_method = "hdi",
+                                       ci_method = "eti",
                                        test = c("p_direction", "rope"),
                                        rope_range = "default",
                                        rope_ci = 0.95,
@@ -935,7 +967,7 @@ describe_posterior.brmsfit <- function(posteriors,
 
   out <- .add_clean_parameters_attribute(out, posteriors)
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }
@@ -951,13 +983,12 @@ describe_posterior.blavaan <- describe_posterior.stanfit
 
 
 #' @inheritParams describe_posterior.stanreg
-#' @rdname describe_posterior
 #' @export
 describe_posterior.MCMCglmm <- function(posteriors,
                                         centrality = "median",
                                         dispersion = FALSE,
                                         ci = 0.95,
-                                        ci_method = "hdi",
+                                        ci_method = "eti",
                                         test = c("p_direction", "rope"),
                                         rope_range = "default",
                                         rope_ci = 0.95,
@@ -994,7 +1025,7 @@ describe_posterior.bcplm <- function(posteriors,
                                      centrality = "median",
                                      dispersion = FALSE,
                                      ci = 0.95,
-                                     ci_method = "hdi",
+                                     ci_method = "eti",
                                      test = c("p_direction", "rope"),
                                      rope_range = "default",
                                      rope_ci = 0.95,
@@ -1022,7 +1053,7 @@ describe_posterior.bcplm <- function(posteriors,
   }
 
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }
@@ -1033,7 +1064,7 @@ describe_posterior.bamlss <- function(posteriors,
                                       centrality = "median",
                                       dispersion = FALSE,
                                       ci = 0.95,
-                                      ci_method = "hdi",
+                                      ci_method = "eti",
                                       test = c("p_direction", "rope"),
                                       rope_range = "default",
                                       rope_ci = 0.95,
@@ -1058,7 +1089,7 @@ describe_posterior.bamlss <- function(posteriors,
   )
 
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }
@@ -1069,13 +1100,12 @@ describe_posterior.bamlss <- function(posteriors,
 # BayesFactor --------------------
 
 
-#' @rdname describe_posterior
 #' @export
 describe_posterior.BFBayesFactor <- function(posteriors,
                                              centrality = "median",
                                              dispersion = FALSE,
                                              ci = 0.95,
-                                             ci_method = "hdi",
+                                             ci_method = "eti",
                                              test = c("p_direction", "rope", "bf"),
                                              rope_range = "default",
                                              rope_ci = 0.95,
@@ -1145,7 +1175,7 @@ describe_posterior.BFBayesFactor <- function(posteriors,
   }
 
   attr(out, "ci_method") <- ci_method
-  attr(out, "object_name") <- .safe_deparse(substitute(posteriors))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(posteriors))
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   out
 }

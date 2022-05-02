@@ -2,7 +2,7 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.11.5
+Version: 0.12.1
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
@@ -65,14 +65,14 @@ Description: Provides utilities to describe posterior
     indices used for null-hypothesis testing (such as ROPE percentage, pd
     and Bayes factors).
 Depends: R (>= 3.4)
-Imports: insight (>= 0.14.1), datawizard (>= 0.2.0), methods, stats,
-        utils
+Imports: insight (>= 0.17.0), datawizard (>= 0.4.0), graphics, methods,
+        stats, utils
 Suggests: BayesFactor, bayesQR, blavaan, bridgesampling, brms, dplyr,
-        effectsize, emmeans, GGally, ggdist, ggplot2, ggridges, httr,
-        KernSmooth, knitr, lavaan, lme4, logspline, MASS, mclust,
-        mediation, modelbased, parameters, performance, rmarkdown,
-        rstan, rstanarm, see, spelling, stringr, testthat, tidyr,
-        tweedie
+        effectsize, emmeans, gamm4, GGally, ggdist, ggplot2, ggridges,
+        glmmTMB, httr, KernSmooth, knitr, lavaan, lme4, logspline,
+        MASS, mclust, mediation, modelbased, parameters, patchwork,
+        performance, poorman, quadprog, posterior, rmarkdown, rstan,
+        rstanarm, see, spelling, stringr, testthat, tidyr, tweedie
 License: GPL-3
 URL: https://easystats.github.io/bayestestR/
 BugReports: https://github.com/easystats/bayestestR/issues
@@ -82,7 +82,7 @@ Language: en-US
 RoxygenNote: 7.1.2
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2021-10-26 03:12:03 UTC; domma
+Packaged: 2022-05-02 04:30:22 UTC; domma
 Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
     @Dom_Makowski),
   Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>,
@@ -100,4 +100,4 @@ Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2021-10-30 14:00:02 UTC
+Date/Publication: 2022-05-02 07:40:03 UTC

@@ -48,6 +48,10 @@ p_significance <- function(x, ...) {
 }
 
 
+#' @export
+p_significance.default <- function(x, ...) {
+  stop(insight::format_message(paste0("'p_significance()' is not yet implemented for objects of class '", class(x)[1], "'.")), call. = FALSE)
+}
 
 
 #' @rdname p_significance
@@ -73,7 +77,7 @@ p_significance.numeric <- function(x, threshold = "default", ...) {
 
 #' @export
 p_significance.data.frame <- function(x, threshold = "default", ...) {
-  obj_name <- .safe_deparse(substitute(x))
+  obj_name <- insight::safe_deparse(substitute(x))
   threshold <- .select_threshold_ps(threshold = threshold)
   x <- .select_nums(x)
 
@@ -95,6 +99,12 @@ p_significance.data.frame <- function(x, threshold = "default", ...) {
   class(out) <- unique(c("p_significance", "see_p_significance", class(out)))
 
   out
+}
+
+
+#' @export
+p_significance.draws <- function(x, threshold = "default", ...) {
+  p_significance(.posterior_draws_to_df(x), threshold = threshold, ...)
 }
 
 
@@ -135,7 +145,7 @@ p_significance.parameters_simulate_model <- function(x, threshold = "default", .
 p_significance.MCMCglmm <- function(x, threshold = "default", ...) {
   nF <- x$Fixed$nfl
   out <- p_significance(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), threshold = threshold, ...)
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
@@ -143,7 +153,7 @@ p_significance.MCMCglmm <- function(x, threshold = "default", ...) {
 #' @export
 p_significance.BFBayesFactor <- function(x, threshold = "default", ...) {
   out <- p_significance(insight::get_parameters(x), threshold = threshold, ...)
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
@@ -180,22 +190,17 @@ p_significance.blrm <- p_significance.bcplm
 p_significance.BGGM <- p_significance.bcplm
 
 
-#' @rdname p_significance
 #' @export
 p_significance.emmGrid <- function(x, threshold = "default", ...) {
   xdf <- insight::get_parameters(x)
 
   out <- p_significance(xdf, threshold = threshold, ...)
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   out
 }
 
 #' @export
 p_significance.emm_list <- p_significance.emmGrid
-
-
-
-
 
 
 
@@ -216,7 +221,7 @@ p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed"
 
   attr(out, "clean_parameters") <- cleaned_parameters
   attr(out, "threshold") <- threshold
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   class(out) <- class(data)
 
   out
@@ -225,12 +230,8 @@ p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed"
 #' @export
 p_significance.stanfit <- p_significance.stanreg
 
-
 #' @export
 p_significance.blavaan <- p_significance.stanreg
-
-
-
 
 
 #' @rdname p_significance
@@ -250,7 +251,7 @@ p_significance.brmsfit <- function(x, threshold = "default", effects = c("fixed"
 
   attr(out, "clean_parameters") <- cleaned_parameters
   attr(out, "threshold") <- threshold
-  attr(out, "object_name") <- .safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
   class(out) <- class(data)
 
   out
@@ -258,7 +259,7 @@ p_significance.brmsfit <- function(x, threshold = "default", effects = c("fixed"
 
 
 
-
+# methods ---------------------------
 
 #' @rdname as.numeric.p_direction
 #' @export
@@ -276,6 +277,8 @@ as.numeric.p_significance <- function(x, ...) {
 as.double.p_significance <- as.numeric.p_significance
 
 
+
+# helpers --------------------------
 
 #' @keywords internal
 .select_threshold_ps <- function(model = NULL, threshold = "default") {

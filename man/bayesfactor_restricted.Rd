@@ -74,7 +74,11 @@ conditional model or the zero-inflated part of the model be returned? May
 be abbreviated. Only applies to \pkg{brms}-models.}
 }
 \value{
-A data frame containing the (log) Bayes factor representing evidence \emph{against} the un-restricted model.
+A data frame containing the (log) Bayes factor representing evidence
+\emph{against} the un-restricted model (Use \code{as.numeric()} to extract the
+non-log Bayes factors; see examples). (A \code{bool_results} attribute contains
+the results for each sample, indicating if they are included or not in the
+hypothesized restriction.)
 }
 \description{
 This method computes Bayes factors for comparing a model with an order restrictions on its parameters
@@ -110,15 +114,15 @@ It is important to provide the correct \code{prior} for meaningful results.
 \itemize{
 \item When \code{posterior} is a numerical vector, \code{prior} should also be a numerical vector.
 \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
-\item When \code{posterior} is a \code{stanreg} or \code{brmsfit} model: \itemize{
+\item When \code{posterior} is a \code{stanreg}, \code{brmsfit} or other supported Bayesian model: \itemize{
 \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
 \item \code{prior} can also be a model equivalent to \code{posterior} but with samples from the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
 \item \strong{Note:} When \code{posterior} is a \code{brmsfit_multiple} model, \code{prior} \strong{must} be provided.
 }
-\item When \code{posterior} is an \code{emmGrid} object: \itemize{
-\item \code{prior} should be the \code{stanreg} or \code{brmsfit} model used to create the \code{emmGrid} objects.
-\item \code{prior} can also be an \code{emmGrid} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}.
-\item \strong{Note:} When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
+\item When \code{posterior} is an \code{emmGrid} / \code{emm_list} object: \itemize{
+\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model. (\emph{This cannot be done for \code{brmsfit} models.})
+\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
 }
 }
 }
@@ -133,25 +137,45 @@ null-model) (\cite{Wetzels et al. 2011}).
 }
 
 \examples{
+set.seed(444)
 library(bayestestR)
 prior <- data.frame(
-  X = rnorm(100),
-  X1 = rnorm(100),
-  X3 = rnorm(100)
+  A = rnorm(1000),
+  B = rnorm(1000),
+  C = rnorm(1000)
 )
 
 posterior <- data.frame(
-  X = rnorm(100, .4),
-  X1 = rnorm(100, -.2),
-  X3 = rnorm(100)
+  A = rnorm(1000, .4, 0.7),
+  B = rnorm(1000, -.2, 0.4),
+  C = rnorm(1000, 0, 0.5)
 )
 
 hyps <- c(
-  "X > X1 & X1 > X3",
-  "X > X1"
+  "A > B & B > C",
+  "A > B & A > C",
+  "C > A"
 )
 
-bayesfactor_restricted(posterior, hypothesis = hyps, prior = prior)
+if (getRversion() > "3.5.0") {
+  (b <- bayesfactor_restricted(posterior, hypothesis = hyps, prior = prior))
+
+  as.numeric(b)
+
+  if (require("see") && require("patchwork")) {
+    i <- attr(b, "bool_results")[["posterior"]]
+
+    see::plots(
+      plot(estimate_density(posterior)),
+      # distribution **conditional** on the restrictions
+      plot(estimate_density(posterior[i[[hyps[1]]], ])) + ggplot2::ggtitle(hyps[1]),
+      plot(estimate_density(posterior[i[[hyps[2]]], ])) + ggplot2::ggtitle(hyps[2]),
+      plot(estimate_density(posterior[i[[hyps[3]]], ])) + ggplot2::ggtitle(hyps[3]),
+      guides = "collect"
+    )
+  }
+}
+
 \dontrun{
 # rstanarm models
 # ---------------
@@ -191,6 +215,6 @@ if (require("rstanarm") && require("emmeans")) {
 \itemize{
 \item Morey, R. D., & Wagenmakers, E. J. (2014). Simple relation between Bayesian order-restricted and point-null hypothesis tests. Statistics & Probability Letters, 92, 121-124.
 \item Morey, R. D., & Rouder, J. N. (2011). Bayes factor approaches for testing interval null hypotheses. Psychological methods, 16(4), 406.
-\item Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions. Retrived from https://richarddmorey.org/category/order-restrictions/.
+\item Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions. Retrieved from https://richarddmorey.org/category/order-restrictions/.
 }
 }

@@ -3,18 +3,14 @@
 \name{map_estimate}
 \alias{map_estimate}
 \alias{map_estimate.numeric}
-\alias{map_estimate.bayesQR}
 \alias{map_estimate.stanreg}
 \alias{map_estimate.brmsfit}
 \alias{map_estimate.data.frame}
-\alias{map_estimate.emmGrid}
 \title{Maximum A Posteriori probability estimate (MAP)}
 \usage{
 map_estimate(x, precision = 2^10, method = "kernel", ...)
 
 \method{map_estimate}{numeric}(x, precision = 2^10, method = "kernel", ...)
-
-\method{map_estimate}{bayesQR}(x, precision = 2^10, method = "kernel", ...)
 
 \method{map_estimate}{stanreg}(
   x,
@@ -38,13 +34,13 @@ map_estimate(x, precision = 2^10, method = "kernel", ...)
 )
 
 \method{map_estimate}{data.frame}(x, precision = 2^10, method = "kernel", ...)
-
-\method{map_estimate}{emmGrid}(x, precision = 2^10, method = "kernel", ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
-vectors. Can also be a Bayesian model (\code{stanreg}, \code{brmsfit},
-\code{MCMCglmm}, \code{mcmc} or \code{bcplm}) or a \code{BayesFactor} model.}
+vectors. Can also be a Bayesian model. \strong{bayestestR} supports a wide range
+of models (see, for example, \code{methods("hdi")}) and not all of those are
+documented in the 'Usage' section, because methods for other classes mostly
+resemble the arguments of the \code{.numeric} or \code{.data.frame}methods.}
 
 \item{precision}{Number of points of density data. See the \code{n} parameter in \code{density}.}
 
@@ -66,8 +62,8 @@ filtered by default, so only parameters that typically appear in the
 for the output.}
 }
 \value{
-A numeric value if \code{posterior} is a vector. If \code{posterior}
-is a model-object, returns a data frame with following columns:
+A numeric value if \code{x} is a vector. If \code{x} is a model-object,
+returns a data frame with following columns:
 \itemize{
 \item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a vector, this column is missing.
 \item \code{MAP_Estimate} The MAP estimate for the posterior or each model parameter.

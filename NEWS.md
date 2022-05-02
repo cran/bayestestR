@@ -1,3 +1,31 @@
+# bayestestR 0.12.1
+
+## Breaking
+
+* `Bayesfactor_models()` for frequentist models now relies on the updated `insight::get_loglikelihood()`. This might change some results for REML based models. See documentation.
+
+* `estimate_density()` argument `group_by` is renamed `at`.
+
+* All `distribution_*(random = FALSE)` functions now rely on `ppoints()`, which will result in slightly different results, especially with small `n`s.
+
+* Uncertainty estimation now defaults to `"eti"` (formerly was `"hdi"`).
+
+## Changes
+
+* *bayestestR* functions now support `draws` objects from package *posterior*.
+
+* `rope_range()` now handles log(normal)-families and models with log-transformed outcomes.
+
+* New function `spi()`, to compute shortest probability intervals. Furthermore, the `"spi"` option was added as new method to compute uncertainty intervals.
+
+## Bug fixes
+
+* `bci()` for some objects incorrectly returned the equal-tailed intervals.
+
+# bayestestR 0.11.5
+
+* Fixes failing tests in CRAN checks.
+
 # bayestestR 0.11.1
 
 ## New functions
@@ -17,13 +45,13 @@
 
 ## Breaking
 
-* All Bayes factors are now returned as `log(BF)` (column name `log_BF`). 
+* All Bayes factors are now returned as `log(BF)` (column name `log_BF`).
   Printing is unaffected. To retrieve the raw BFs, you can run `exp(result$log_BF)`.
 
 ## New functions
 
 * `bci()` (and its alias `bcai()`) to compute bias-corrected and accelerated
-  bootstrap intervals. Along with this new function, `ci()` and 
+  bootstrap intervals. Along with this new function, `ci()` and
   `describe_posterior()` gain a new `ci_method` type, `"bci"`.
 
 ## Changes

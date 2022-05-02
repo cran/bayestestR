@@ -1,4 +1,4 @@
-if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && require("testthat", quietly = TRUE) && require("rstanarm", quietly = TRUE) && require("brms", quietly = TRUE)) {
+if (requiet("bayestestR") && requiet("testthat") && requiet("rstanarm") && requiet("brms")) {
   test_that("rope", {
     expect_equal(as.numeric(rope(distribution_normal(1000, 0, 1), verbose = FALSE)), 0.084, tolerance = 0.01)
     expect_equal(equivalence_test(distribution_normal(1000, 0, 1))$ROPE_Equivalence, "Undecided")
@@ -19,7 +19,7 @@ if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && req
     expect_equal(rope(rnorm(1000, mean = 0, sd = 3), ci = c(.1, .5, .9), verbose = FALSE)$CI, c(.1, .5, .9))
 
     x <- equivalence_test(distribution_normal(1000, 1, 1), ci = c(.50, .99))
-    expect_equal(x$ROPE_Percentage[2], 0.0494, tolerance = 0.01)
+    expect_equal(x$ROPE_Percentage[2], 0.0484, tolerance = 0.01)
     expect_equal(x$ROPE_Equivalence[2], "Undecided")
 
     expect_error(rope(distribution_normal(1000, 0, 1), range = c(0.0, 0.1, 0.2)))
@@ -37,7 +37,7 @@ if (suppressPackageStartupMessages(require("bayestestR", quietly = TRUE)) && req
 
   .runThisTest <- Sys.getenv("RunAllbayestestRTests") == "yes"
   if (.runThisTest) {
-    if (require("insight")) {
+    if (requiet("insight")) {
       m <- insight::download_model("stanreg_merMod_5")
       p <- insight::get_parameters(m, effects = "all")
 

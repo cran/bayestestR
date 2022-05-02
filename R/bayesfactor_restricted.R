@@ -23,28 +23,52 @@
 #'
 #' @inheritSection bayesfactor_parameters Interpreting Bayes Factors
 #'
-#' @return A data frame containing the (log) Bayes factor representing evidence *against* the un-restricted model.
+#' @return A data frame containing the (log) Bayes factor representing evidence
+#'   *against* the un-restricted model (Use `as.numeric()` to extract the
+#'   non-log Bayes factors; see examples). (A `bool_results` attribute contains
+#'   the results for each sample, indicating if they are included or not in the
+#'   hypothesized restriction.)
 #'
 #' @examples
+#' set.seed(444)
 #' library(bayestestR)
 #' prior <- data.frame(
-#'   X = rnorm(100),
-#'   X1 = rnorm(100),
-#'   X3 = rnorm(100)
+#'   A = rnorm(1000),
+#'   B = rnorm(1000),
+#'   C = rnorm(1000)
 #' )
 #'
 #' posterior <- data.frame(
-#'   X = rnorm(100, .4),
-#'   X1 = rnorm(100, -.2),
-#'   X3 = rnorm(100)
+#'   A = rnorm(1000, .4, 0.7),
+#'   B = rnorm(1000, -.2, 0.4),
+#'   C = rnorm(1000, 0, 0.5)
 #' )
 #'
 #' hyps <- c(
-#'   "X > X1 & X1 > X3",
-#'   "X > X1"
+#'   "A > B & B > C",
+#'   "A > B & A > C",
+#'   "C > A"
 #' )
 #'
-#' bayesfactor_restricted(posterior, hypothesis = hyps, prior = prior)
+#' if (getRversion() > "3.5.0") {
+#'   (b <- bayesfactor_restricted(posterior, hypothesis = hyps, prior = prior))
+#'
+#'   as.numeric(b)
+#'
+#'   if (require("see") && require("patchwork")) {
+#'     i <- attr(b, "bool_results")[["posterior"]]
+#'
+#'     see::plots(
+#'       plot(estimate_density(posterior)),
+#'       # distribution **conditional** on the restrictions
+#'       plot(estimate_density(posterior[i[[hyps[1]]], ])) + ggplot2::ggtitle(hyps[1]),
+#'       plot(estimate_density(posterior[i[[hyps[2]]], ])) + ggplot2::ggtitle(hyps[2]),
+#'       plot(estimate_density(posterior[i[[hyps[3]]], ])) + ggplot2::ggtitle(hyps[3]),
+#'       guides = "collect"
+#'     )
+#'   }
+#' }
+#'
 #' \dontrun{
 #' # rstanarm models
 #' # ---------------
@@ -80,11 +104,9 @@
 #' }
 #' }
 #' @references
-#' \itemize{
-#' \item Morey, R. D., & Wagenmakers, E. J. (2014). Simple relation between Bayesian order-restricted and point-null hypothesis tests. Statistics & Probability Letters, 92, 121-124.
-#' \item Morey, R. D., & Rouder, J. N. (2011). Bayes factor approaches for testing interval null hypotheses. Psychological methods, 16(4), 406.
-#' \item Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions. Retrived from https://richarddmorey.org/category/order-restrictions/.
-#' }
+#' - Morey, R. D., & Wagenmakers, E. J. (2014). Simple relation between Bayesian order-restricted and point-null hypothesis tests. Statistics & Probability Letters, 92, 121-124.
+#' - Morey, R. D., & Rouder, J. N. (2011). Bayes factor approaches for testing interval null hypotheses. Psychological methods, 16(4), 406.
+#' - Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions. Retrieved from https://richarddmorey.org/category/order-restrictions/.
 #'
 #' @export
 bayesfactor_restricted <- function(posterior, hypothesis, prior = NULL, verbose = TRUE, ...) {
@@ -168,7 +190,7 @@ bayesfactor_restricted.data.frame <- function(posterior, hypothesis, prior = NUL
     )
   }
 
-  .get_prob <- function(x, data) {
+  .test_hypothesis <- function(x, data) {
     x_logical <- try(eval(x, envir = data), silent = TRUE)
     if (inherits(x_logical, "try-error")) {
       cnames <- colnames(data)
@@ -179,14 +201,19 @@ bayesfactor_restricted.data.frame <- function(posterior, hypothesis, prior = NUL
     } else if (!all(is.logical(x_logical))) {
       stop("Hypotheses must be logical")
     }
-    mean(x_logical)
+    x_logical
   }
 
-  posterior_p <- sapply(p_hypothesis, .get_prob, data = posterior)
-  prior_p <- sapply(p_hypothesis, .get_prob, data = prior)
 
 
+  posterior_l <- as.data.frame(lapply(p_hypothesis, .test_hypothesis, data = posterior))
+  prior_l <- as.data.frame(lapply(p_hypothesis, .test_hypothesis, data = prior))
+  colnames(posterior_l) <- colnames(prior_l) <- if (!is.null(names(hypothesis))) names(hypothesis) else hypothesis
+
+  posterior_p <- sapply(posterior_l, mean)
+  prior_p <- sapply(prior_l, mean)
   BF <- posterior_p / prior_p
+
   res <- data.frame(
     Hypothesis = hypothesis,
     p_prior = prior_p,
@@ -194,10 +221,17 @@ bayesfactor_restricted.data.frame <- function(posterior, hypothesis, prior = NUL
     log_BF = log(BF)
   )
 
+  attr(res, "bool_results") <- list(posterior = posterior_l, prior = prior_l)
   class(res) <- unique(c(
     "bayesfactor_restricted",
     class(res)
   ))
 
   res
+}
+
+
+#' @export
+bayesfactor_restricted.draws <- function(posterior, hypothesis, prior = NULL, ...) {
+  bayesfactor_restricted(.posterior_draws_to_df(posterior), hypothesis = hypothesis, prior = prior, ...)
 }

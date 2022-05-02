@@ -155,7 +155,8 @@ for the output.}
 }
 \value{
 A data frame containing the (log) Bayes factor representing evidence
-\emph{against} the null.
+\emph{against} the null  (Use \code{as.numeric()} to extract the non-log Bayes
+factors; see examples).
 }
 \description{
 This method computes Bayes factors against the null (either a point or an
@@ -231,15 +232,15 @@ It is important to provide the correct \code{prior} for meaningful results.
 \itemize{
 \item When \code{posterior} is a numerical vector, \code{prior} should also be a numerical vector.
 \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
-\item When \code{posterior} is a \code{stanreg} or \code{brmsfit} model: \itemize{
+\item When \code{posterior} is a \code{stanreg}, \code{brmsfit} or other supported Bayesian model: \itemize{
 \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
 \item \code{prior} can also be a model equivalent to \code{posterior} but with samples from the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
 \item \strong{Note:} When \code{posterior} is a \code{brmsfit_multiple} model, \code{prior} \strong{must} be provided.
 }
-\item When \code{posterior} is an \code{emmGrid} object: \itemize{
-\item \code{prior} should be the \code{stanreg} or \code{brmsfit} model used to create the \code{emmGrid} objects.
-\item \code{prior} can also be an \code{emmGrid} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}.
-\item \strong{Note:} When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
+\item When \code{posterior} is an \code{emmGrid} / \code{emm_list} object: \itemize{
+\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model. (\emph{This cannot be done for \code{brmsfit} models.})
+\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
 }
 }
 }
@@ -258,7 +259,9 @@ library(bayestestR)
 if (require("logspline")) {
   prior <- distribution_normal(1000, mean = 0, sd = 1)
   posterior <- distribution_normal(1000, mean = .5, sd = .3)
-  bayesfactor_parameters(posterior, prior)
+  (BF_pars <- bayesfactor_parameters(posterior, prior))
+
+  as.numeric(BF_pars)
 }
 \dontrun{
 # rstanarm models
@@ -273,6 +276,10 @@ if (require("rstanarm") && require("emmeans") && require("logspline")) {
   # ---------------
   group_diff <- pairs(emmeans(stan_model, ~group))
   bayesfactor_parameters(group_diff, prior = stan_model)
+
+  # Or
+  group_diff_prior <- pairs(emmeans(unupdate(stan_model), ~group))
+  bayesfactor_parameters(group_diff, prior = group_diff_prior)
 }
 
 # brms models

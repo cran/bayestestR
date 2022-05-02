@@ -43,7 +43,8 @@
 #' @inheritParams hdi
 #'
 #' @return A data frame containing the (log) Bayes factor representing evidence
-#'   *against* the null.
+#'   *against* the null  (Use `as.numeric()` to extract the non-log Bayes
+#'   factors; see examples).
 #'
 #' @note There is also a
 #'   [`plot()`-method](https://easystats.github.io/see/articles/bayestestR.html)
@@ -88,15 +89,15 @@
 #' \itemize{
 #'   \item When `posterior` is a numerical vector, `prior` should also be a numerical vector.
 #'   \item When `posterior` is a `data.frame`, `prior` should also be a `data.frame`, with matching column order.
-#'   \item When `posterior` is a `stanreg` or `brmsfit` model: \itemize{
+#'   \item When `posterior` is a `stanreg`, `brmsfit` or other supported Bayesian model: \itemize{
 #'     \item `prior` can be set to `NULL`, in which case prior samples are drawn internally.
 #'     \item `prior` can also be a model equivalent to `posterior` but with samples from the priors *only*. See [unupdate()].
 #'     \item **Note:** When `posterior` is a `brmsfit_multiple` model, `prior` **must** be provided.
 #'   }
-#'   \item When `posterior` is an `emmGrid` object: \itemize{
-#'     \item `prior` should be the `stanreg` or `brmsfit` model used to create the `emmGrid` objects.
-#'     \item `prior` can also be an `emmGrid` object equivalent to `posterior` but created with a model of priors samples *only*.
-#'     \item **Note:** When the `emmGrid` has undergone any transformations (`"log"`, `"response"`, etc.), or `regrid`ing, then `prior` must be an `emmGrid` object, as stated above.
+#'   \item When `posterior` is an `emmGrid` / `emm_list` object: \itemize{
+#'     \item `prior` should also be an `emmGrid` / `emm_list` object equivalent to `posterior` but created with a model of priors samples *only*. See [unupdate()].
+#'     \item `prior` can also be the original (posterior) *model*. If so, the function will try to update the `emmGrid` / `emm_list` to use the [unupdate()]d prior-model. (*This cannot be done for `brmsfit` models.*)
+#'     \item **Note**: When the `emmGrid` has undergone any transformations (`"log"`, `"response"`, etc.), or `regrid`ing, then `prior` must be an `emmGrid` object, as stated above.
 #'   }
 #' }
 #'
@@ -112,7 +113,9 @@
 #' if (require("logspline")) {
 #'   prior <- distribution_normal(1000, mean = 0, sd = 1)
 #'   posterior <- distribution_normal(1000, mean = .5, sd = .3)
-#'   bayesfactor_parameters(posterior, prior)
+#'   (BF_pars <- bayesfactor_parameters(posterior, prior))
+#'
+#'   as.numeric(BF_pars)
 #' }
 #' \dontrun{
 #' # rstanarm models
@@ -127,6 +130,10 @@
 #'   # ---------------
 #'   group_diff <- pairs(emmeans(stan_model, ~group))
 #'   bayesfactor_parameters(group_diff, prior = stan_model)
+#'
+#'   # Or
+#'   group_diff_prior <- pairs(emmeans(unupdate(stan_model), ~group))
+#'   bayesfactor_parameters(group_diff, prior = group_diff_prior)
 #' }
 #'
 #' # brms models
@@ -237,7 +244,7 @@ bf_rope <- bayesfactor_rope
 #' @rdname bayesfactor_parameters
 #' @export
 bayesfactor_parameters.numeric <- function(posterior, prior = NULL, direction = "two-sided", null = 0, verbose = TRUE, ...) {
-  # nm <- .safe_deparse(substitute(posterior)
+  # nm <- insight::safe_deparse(substitute(posterior)
 
   if (is.null(prior)) {
     prior <- posterior
@@ -256,7 +263,8 @@ bayesfactor_parameters.numeric <- function(posterior, prior = NULL, direction = 
   # Get BFs
   sdbf <- bayesfactor_parameters.data.frame(
     posterior = posterior, prior = prior,
-    direction = direction, null = null, ...
+    direction = direction, null = null,
+    verbose = verbose, ...
   )
   sdbf$Parameter <- NULL
   sdbf
@@ -287,7 +295,8 @@ bayesfactor_parameters.stanreg <- function(posterior,
   # Get BFs
   temp <- bayesfactor_parameters.data.frame(
     posterior = samps$posterior, prior = samps$prior,
-    direction = direction, null = null, ...
+    direction = direction, null = null,
+    verbose = verbose, ...
   )
 
   bf_val <- .prepare_output(temp, cleaned_parameters, inherits(posterior, "stanmvreg"))
@@ -325,7 +334,8 @@ bayesfactor_parameters.blavaan <- function(posterior,
   # Get BFs
   temp <- bayesfactor_parameters.data.frame(
     posterior = samps$posterior, prior = samps$prior,
-    direction = direction, null = null, ...
+    direction = direction, null = null,
+    verbose = verbose, ...
   )
 
   bf_val <- .prepare_output(temp, cleaned_parameters)
@@ -354,7 +364,8 @@ bayesfactor_parameters.emmGrid <- function(posterior,
   # Get BFs
   bayesfactor_parameters.data.frame(
     posterior = samps$posterior, prior = samps$prior,
-    direction = direction, null = null, ...
+    direction = direction, null = null,
+    verbose = verbose, ...
   )
 }
 
@@ -381,6 +392,15 @@ bayesfactor_parameters.data.frame <- function(posterior,
       " to get meaningful results."
     )
   }
+
+  if (verbose && length(null) == 1L && (nrow(posterior) < 4e4 || nrow(prior) < 4e4)) {
+    warning(
+      "Bayes factors might not be precise.\n",
+      "For precise Bayes factors, sampling at least 40,000 posterior samples is recommended.",
+      call. = FALSE
+    )
+  }
+
 
   sdbf <- numeric(ncol(posterior))
   for (par in seq_along(posterior)) {
@@ -410,6 +430,24 @@ bayesfactor_parameters.data.frame <- function(posterior,
   attr(bf_val, "plot_data") <- .make_BF_plot_data(posterior, prior, direction, null, ...)
 
   bf_val
+}
+
+
+#' @export
+bayesfactor_parameters.draws <- function(posterior,
+                                         prior = NULL,
+                                         direction = "two-sided",
+                                         null = 0,
+                                         verbose = TRUE,
+                                         ...) {
+  bayesfactor_parameters(
+    .posterior_draws_to_df(posterior),
+    prior = prior,
+    direction = direction,
+    null = null,
+    verbose = verbose,
+    ...
+  )
 }
 
 
