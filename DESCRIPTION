@@ -2,7 +2,7 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.12.1
+Version: 0.13.0
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
@@ -64,25 +64,27 @@ Description: Provides utilities to describe posterior
     Interval - HDI; Kruschke, 2015 <doi:10.1016/C2012-0-00477-2>) and
     indices used for null-hypothesis testing (such as ROPE percentage, pd
     and Bayes factors).
-Depends: R (>= 3.4)
-Imports: insight (>= 0.17.0), datawizard (>= 0.4.0), graphics, methods,
+Depends: R (>= 3.6)
+Imports: insight (>= 0.18.2), datawizard (>= 0.5.1), graphics, methods,
         stats, utils
-Suggests: BayesFactor, bayesQR, blavaan, bridgesampling, brms, dplyr,
-        effectsize, emmeans, gamm4, GGally, ggdist, ggplot2, ggridges,
-        glmmTMB, httr, KernSmooth, knitr, lavaan, lme4, logspline,
-        MASS, mclust, mediation, modelbased, parameters, patchwork,
-        performance, poorman, quadprog, posterior, rmarkdown, rstan,
-        rstanarm, see, spelling, stringr, testthat, tidyr, tweedie
+Suggests: BayesFactor, bayesQR, bayesplot, BH, blavaan, bridgesampling,
+        brms, effectsize, emmeans, gamm4, ggdist, ggplot2, glmmTMB,
+        httr, KernSmooth, knitr, lavaan, lme4, logspline, MASS, mclust,
+        mediation, modelbased, parameters, patchwork, performance,
+        quadprog, posterior, RcppEigen, rmarkdown, rstan, rstanarm,
+        see, testthat, tweedie
 License: GPL-3
 URL: https://easystats.github.io/bayestestR/
 BugReports: https://github.com/easystats/bayestestR/issues
 VignetteBuilder: knitr
 Encoding: UTF-8
 Language: en-US
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Config/testthat/edition: 3
+Config/Needs/website: rstudio/bslib, r-lib/pkgdown,
+        easystats/easystatstemplate
 NeedsCompilation: no
-Packaged: 2022-05-02 04:30:22 UTC; domma
+Packaged: 2022-09-18 00:42:48 UTC; domma
 Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
     @Dom_Makowski),
   Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>,
@@ -100,4 +102,4 @@ Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2022-05-02 07:40:03 UTC
+Date/Publication: 2022-09-18 02:46:03 UTC
