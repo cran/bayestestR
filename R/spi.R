@@ -24,16 +24,16 @@
 #' @references
 #' Liu, Y., Gelman, A., & Zheng, T. (2015). Simulation-efficient shortest probability intervals. Statistics and Computing, 25(4), 809–819. https://doi.org/10.1007/s11222-015-9563-8
 #'
-#' @examples
+#' @examplesIf requireNamespace("quadprog", quietly = TRUE)
 #' library(bayestestR)
 #'
 #' posterior <- rnorm(1000)
 #' spi(posterior)
-#' spi(posterior, ci = c(.80, .89, .95))
+#' spi(posterior, ci = c(0.80, 0.89, 0.95))
 #'
 #' df <- data.frame(replicate(4, rnorm(100)))
 #' spi(df)
-#' spi(df, ci = c(.80, .89, .95))
+#' spi(df, ci = c(0.80, 0.89, 0.95))
 #' \dontrun{
 #' library(rstanarm)
 #' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
@@ -67,7 +67,7 @@ spi.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
 #' @export
 spi.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
   dat <- .compute_interval_dataframe(x = x, ci = ci, verbose = verbose, fun = "spi")
-  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
 
@@ -129,7 +129,7 @@ spi.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
 spi.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
   out <- spi(xdf, ci = ci, verbose = verbose, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -167,7 +167,7 @@ spi.stanreg <- function(x,
   )
 
   attr(out, "clean_parameters") <- cleaned_parameters
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- unique(c("bayestestR_hdi", "see_hdi", "bayestestR_spi", class(out)))
   out
 }
@@ -208,7 +208,7 @@ spi.brmsfit <- function(x,
   )
 
   attr(out, "clean_parameters") <- cleaned_parameters
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- unique(c("bayestestR_hdi", "see_hdi", "bayestestR_spi", class(out)))
   out
 }
@@ -217,7 +217,7 @@ spi.brmsfit <- function(x,
 #' @export
 spi.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
   out <- spi(insight::get_parameters(x), ci = ci, verbose = verbose, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -229,7 +229,7 @@ spi.get_predicted <- function(x, ...) {
   } else {
     stop("No iterations present in the output.", call. = FALSE)
   }
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 

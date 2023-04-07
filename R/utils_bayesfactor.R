@@ -1,4 +1,3 @@
-
 # clean priors and posteriors ---------------------------------------------
 
 #' @keywords internal
@@ -19,7 +18,7 @@
 
   prior <- try(unupdate(prior, verbose = verbose), silent = TRUE)
   if (methods::is(prior, "try-error")) {
-    if (grepl("flat priors", prior)) {
+    if (grepl("flat priors", prior, fixed = TRUE)) {
       prior <- paste0(
         prior, "Could not therefore compute Bayes factors, as these inform about ",
         "the raltive likelihood of two 'hypotheses', and flat priors provide no ",
@@ -27,7 +26,7 @@
         "See '?bayesfactor_parameters' for more information.\n"
       )
     }
-    stop(prior, call. = FALSE)
+    insight::format_error(prior)
   }
 
   prior <- insight::get_parameters(prior, effects = effects, component = component, ...)
@@ -100,7 +99,7 @@
     prior <- try(unupdate(prior, verbose = verbose), silent = TRUE)
     if (inherits(prior, "try-error")) {
       on.exit() # undo general error message
-      if (grepl("flat priors", prior)) {
+      if (grepl("flat priors", prior, fixed = TRUE)) {
         prior <- paste0(
           prior, "Could not therefore compute Bayes factors, as these inform about ",
           "the raltive likelihood of two 'hypotheses', and flat priors provide no ",
@@ -151,7 +150,7 @@
 
     prior <- try(unupdate(prior, verbose = verbose), silent = TRUE)
     if (inherits(prior, "try-error")) {
-      if (grepl("flat priors", prior)) {
+      if (grepl("flat priors", prior, fixed = TRUE)) {
         prior <- paste0(
           prior, "Could not therefore compute Bayes factors, as these inform about ",
           "the raltive likelihood of two 'hypotheses', and flat priors provide no ",
@@ -240,8 +239,8 @@
 #' @keywords internal
 .make_terms <- function(formula) {
   sort_interactions <- function(x) {
-    if (grepl("\\:", x)) {
-      effs <- unlist(strsplit(x, "\\:"))
+    if (grepl(":", x, fixed = TRUE)) {
+      effs <- unlist(strsplit(x, ":", fixed = TRUE))
       x <- paste0(sort(effs), collapse = ":")
     }
     x
@@ -250,13 +249,13 @@
   all.terms <- attr(stats::terms(formula.f), "term.labels")
 
   # Fixed
-  fix_trms <- all.terms[!grepl("\\|", all.terms)] # no random
+  fix_trms <- all.terms[!grepl("|", all.terms, fixed = TRUE)] # no random
   if (length(fix_trms) > 0) {
     fix_trms <- sapply(fix_trms, sort_interactions)
   }
 
   # Random
-  random_parts <- paste0(all.terms[grepl("\\|", all.terms)]) # only random
+  random_parts <- paste0(grep("|", all.terms, fixed = TRUE, value = TRUE)) # only random
   if (length(random_parts) == 0) {
     return(fix_trms)
   }
@@ -272,7 +271,7 @@
     tmp_trms <- attr(stats::terms.formula(tmp_random[[i]]), "term.labels")
     tmp_trms <- sapply(tmp_trms, sort_interactions)
 
-    if (!any(unlist(strsplit(as.character(tmp_random[[i]])[[2]], " \\+ ")) == "0")) {
+    if (!any(unlist(strsplit(as.character(tmp_random[[i]])[[2]], " + ", fixed = TRUE)) == "0")) {
       tmp_trms <- c("1", tmp_trms)
     }
 
@@ -295,7 +294,7 @@
   insight::check_if_installed("logspline")
 
   estimate_samples_density <- function(samples) {
-    nm <- insight::safe_deparse(substitute(samples))
+    nm <- insight::safe_deparse_symbol(substitute(samples))
     samples <- utils::stack(samples)
     samples <- split(samples, samples$ind)
 

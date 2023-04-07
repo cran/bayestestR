@@ -50,7 +50,9 @@ p_significance <- function(x, ...) {
 
 #' @export
 p_significance.default <- function(x, ...) {
-  stop(insight::format_message(paste0("'p_significance()' is not yet implemented for objects of class '", class(x)[1], "'.")), call. = FALSE)
+  insight::format_error(
+    paste0("'p_significance()' is not yet implemented for objects of class '", class(x)[1], "'.")
+  )
 }
 
 
@@ -77,7 +79,7 @@ p_significance.numeric <- function(x, threshold = "default", ...) {
 
 #' @export
 p_significance.data.frame <- function(x, threshold = "default", ...) {
-  obj_name <- insight::safe_deparse(substitute(x))
+  obj_name <- insight::safe_deparse_symbol(substitute(x))
   threshold <- .select_threshold_ps(threshold = threshold)
   x <- .select_nums(x)
 
@@ -116,25 +118,11 @@ p_significance.parameters_simulate_model <- function(x, threshold = "default", .
   obj_name <- attr(x, "object_name")
   if (!is.null(obj_name)) {
     # first try, parent frame
-    model <- tryCatch(
-      {
-        get(obj_name, envir = parent.frame())
-      },
-      error = function(e) {
-        NULL
-      }
-    )
+    model <- .safe(get(obj_name, envir = parent.frame()))
 
     if (is.null(model)) {
       # second try, global env
-      model <- tryCatch(
-        {
-          get(obj_name, envir = globalenv())
-        },
-        error = function(e) {
-          NULL
-        }
-      )
+      model <- .safe(get(obj_name, envir = globalenv()))
     }
   }
   threshold <- .select_threshold_ps(model = model, threshold = threshold)
@@ -148,7 +136,7 @@ p_significance.parameters_simulate_model <- function(x, threshold = "default", .
 p_significance.MCMCglmm <- function(x, threshold = "default", ...) {
   nF <- x$Fixed$nfl
   out <- p_significance(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), threshold = threshold, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -156,7 +144,7 @@ p_significance.MCMCglmm <- function(x, threshold = "default", ...) {
 #' @export
 p_significance.BFBayesFactor <- function(x, threshold = "default", ...) {
   out <- p_significance(insight::get_parameters(x), threshold = threshold, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -198,7 +186,7 @@ p_significance.emmGrid <- function(x, threshold = "default", ...) {
   xdf <- insight::get_parameters(x)
 
   out <- p_significance(xdf, threshold = threshold, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -209,10 +197,16 @@ p_significance.emm_list <- p_significance.emmGrid
 
 #' @rdname p_significance
 #' @export
-p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, verbose = TRUE, ...) {
+p_significance.stanreg <- function(x,
+                                   threshold = "default",
+                                   effects = c("fixed", "random", "all"),
+                                   component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
+                                   parameters = NULL,
+                                   verbose = TRUE,
+                                   ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
-  threshold <- .select_threshold_ps(model = x, threshold = threshold)
+  threshold <- .select_threshold_ps(model = x, threshold = threshold, verbose = verbose)
 
   data <- p_significance(
     insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
@@ -224,7 +218,7 @@ p_significance.stanreg <- function(x, threshold = "default", effects = c("fixed"
 
   attr(out, "clean_parameters") <- cleaned_parameters
   attr(out, "threshold") <- threshold
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- class(data)
 
   out
@@ -239,10 +233,16 @@ p_significance.blavaan <- p_significance.stanreg
 
 #' @rdname p_significance
 #' @export
-p_significance.brmsfit <- function(x, threshold = "default", effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, verbose = TRUE, ...) {
+p_significance.brmsfit <- function(x,
+                                   threshold = "default",
+                                   effects = c("fixed", "random", "all"),
+                                   component = c("conditional", "zi", "zero_inflated", "all"),
+                                   parameters = NULL,
+                                   verbose = TRUE,
+                                   ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
-  threshold <- .select_threshold_ps(model = x, threshold = threshold)
+  threshold <- .select_threshold_ps(model = x, threshold = threshold, verbose = verbose)
 
   data <- p_significance(
     insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
@@ -254,7 +254,7 @@ p_significance.brmsfit <- function(x, threshold = "default", effects = c("fixed"
 
   attr(out, "clean_parameters") <- cleaned_parameters
   attr(out, "threshold") <- threshold
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- class(data)
 
   out
@@ -267,7 +267,7 @@ p_significance.brmsfit <- function(x, threshold = "default", effects = c("fixed"
 #' @rdname as.numeric.p_direction
 #' @export
 as.numeric.p_significance <- function(x, ...) {
-  if ("data.frame" %in% class(x)) {
+  if (inherits(x, "data.frame")) {
     return(as.numeric(as.vector(x$ps)))
   } else {
     return(as.vector(x))
@@ -284,25 +284,25 @@ as.double.p_significance <- as.numeric.p_significance
 # helpers --------------------------
 
 #' @keywords internal
-.select_threshold_ps <- function(model = NULL, threshold = "default") {
+.select_threshold_ps <- function(model = NULL, threshold = "default", verbose = TRUE) {
   # If a range is passed
   if (length(threshold) > 1) {
     if (length(unique(abs(threshold))) == 1) {
       # If symmetric range
       threshold <- abs(threshold[2])
     } else {
-      stop("`threshold` should be 'default' or a numeric value (e.g., 0.1).", call. = FALSE)
+      insight::format_error("`threshold` should be 'default' or a numeric value (e.g., 0.1).")
     }
   }
   # If default
   if (all(threshold == "default")) {
     if (!is.null(model)) {
-      threshold <- rope_range(model)[2]
+      threshold <- rope_range(model, verbose = verbose)[2]
     } else {
       threshold <- 0.1
     }
   } else if (!all(is.numeric(threshold))) {
-    stop("`threshold` should be 'default' or a numeric value (e.g., 0.1).", call. = FALSE)
+    insight::format_error("`threshold` should be 'default' or a numeric value (e.g., 0.1).")
   }
   threshold
 }

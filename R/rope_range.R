@@ -84,14 +84,13 @@ rope_range <- function(x, ...) {
 #' @rdname rope_range
 #' @export
 rope_range.default <- function(x, verbose = TRUE, ...) {
-  response <- insight::get_response(x)
+  response <- insight::get_response(x, source = "mf")
   response_transform <- insight::find_transformation(x)
-  information <- insight::model_info(x)
+  information <- insight::model_info(x, verbose = FALSE)
 
   if (insight::is_multivariate(x)) {
-    ret <- mapply(
-      function(i, j, ...) .rope_range(x, i, j), information, response, response_transform, verbose,
-      SIMPLIFY = FALSE
+    ret <- Map(
+      function(i, j, ...) .rope_range(x, i, j), information, response, response_transform, verbose
     )
     return(ret)
   } else {
@@ -100,12 +99,19 @@ rope_range.default <- function(x, verbose = TRUE, ...) {
 }
 
 
+#' @export
+rope_range.data.frame <- function(x, verbose = TRUE, ...) {
+  # to avoid errors with "get_response()" in the default method
+  c(-0.1, 0.1)
+}
+
+
 # Exceptions --------------------------------------------------------------
 
 #' @export
 rope_range.mlm <- function(x, verbose = TRUE, ...) {
-  response <- insight::get_response(x)
-  information <- insight::model_info(x)
+  response <- insight::get_response(x, source = "mf")
+  information <- insight::model_info(x, verbose = FALSE)
 
   lapply(response, function(i) .rope_range(x, information, i, response_transform = NULL, verbose))
 }
@@ -116,11 +122,6 @@ rope_range.mlm <- function(x, verbose = TRUE, ...) {
 
 
 .rope_range <- function(x, information = NULL, response = NULL, response_transform = NULL, verbose = TRUE) {
-  # if(method != "legacy") {
-  #   message("Other ROPE range methods than 'legacy' are currently not implemented. See https://github.com/easystats/bayestestR/issues/364", call. = FALSE)
-  # }
-
-
   negligible_value <- tryCatch(
     {
       if (!is.null(response_transform) && grepl("log", response_transform, fixed = TRUE)) {
@@ -163,7 +164,7 @@ rope_range.mlm <- function(x, verbose = TRUE, ...) {
     },
     error = function(e) {
       if (isTRUE(verbose)) {
-        warning("Could not estimate a good default ROPE range. Using 'c(-0.1, 0.1)'.", call. = FALSE)
+        insight::format_warning("Could not estimate a good default ROPE range. Using 'c(-0.1, 0.1)'.")
       }
       0.1
     }

@@ -20,8 +20,8 @@ si(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
   BF = 1,
   verbose = TRUE,
   effects = c("fixed", "random", "all"),
-  component = c("conditional", "location", "zi", "zero_inflated", "all", "smooth_terms",
-    "sigma", "distributional", "auxiliary"),
+  component = c("location", "conditional", "all", "smooth_terms", "sigma", "auxiliary",
+    "distributional"),
   parameters = NULL,
   ...
 )
@@ -32,8 +32,8 @@ si(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
   BF = 1,
   verbose = TRUE,
   effects = c("fixed", "random", "all"),
-  component = c("conditional", "location", "zi", "zero_inflated", "all", "smooth_terms",
-    "sigma", "distributional", "auxiliary"),
+  component = c("location", "conditional", "all", "smooth_terms", "sigma", "auxiliary",
+    "distributional"),
   parameters = NULL,
   ...
 )
@@ -44,8 +44,8 @@ si(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
   BF = 1,
   verbose = TRUE,
   effects = c("fixed", "random", "all"),
-  component = c("conditional", "location", "zi", "zero_inflated", "all", "smooth_terms",
-    "sigma", "distributional", "auxiliary"),
+  component = c("location", "conditional", "all", "smooth_terms", "sigma", "auxiliary",
+    "distributional"),
   parameters = NULL,
   ...
 )
@@ -149,6 +149,7 @@ It is important to provide the correct \code{prior} for meaningful results.
 }
 
 \examples{
+\dontshow{if (requireNamespace("logspline", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(bayestestR)
 
 prior <- distribution_normal(1000, mean = 0, sd = 1)
@@ -159,7 +160,7 @@ si(posterior, prior)
 # rstanarm models
 # ---------------
 library(rstanarm)
-contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
+contrasts(sleep$group) <- contr.equalprior_pairs # see vignette
 stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
 si(stan_model)
 si(stan_model, BF = 3)
@@ -178,12 +179,14 @@ my_custom_priors <-
   set_prior("student_t(3, 0, 1)", class = "b") +
   set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
 
-brms_model <- brm(extra ~ group + (1 | ID),
+brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
   data = sleep,
-  prior = my_custom_priors
-)
+  prior = my_custom_priors,
+  refresh = 0
+))
 si(brms_model)
 }
+\dontshow{\}) # examplesIf}
 }
 \references{
 Wagenmakers, E., Gronau, Q. F., Dablander, F., & Etz, A. (2018, November 22). The Support Interval. \doi{10.31234/osf.io/zwnxb}

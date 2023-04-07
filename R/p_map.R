@@ -1,6 +1,10 @@
 #' Bayesian p-value based on the density at the Maximum A Posteriori (MAP)
 #'
-#' Compute a Bayesian equivalent of the *p*-value, related to the odds that a parameter (described by its posterior distribution) has against the null hypothesis (*h0*) using Mills' (2014, 2017) *Objective Bayesian Hypothesis Testing* framework. It corresponds to the density value at 0 divided by the density at the Maximum A Posteriori (MAP).
+#' Compute a Bayesian equivalent of the *p*-value, related to the odds that a
+#' parameter (described by its posterior distribution) has against the null
+#' hypothesis (*h0*) using Mills' (2014, 2017) *Objective Bayesian Hypothesis
+#' Testing* framework. It corresponds to the density value at the null (e.g., 0)
+#' divided by the density at the Maximum A Posteriori (MAP).
 #'
 #' @details Note that this method is sensitive to the density estimation `method` (see the section in the examples below).
 #' \subsection{Strengths and Limitations}{
@@ -11,6 +15,7 @@
 #'
 #' @inheritParams hdi
 #' @inheritParams density_at
+#' @inheritParams pd
 #'
 #' @examples
 #' library(bayestestR)
@@ -61,7 +66,7 @@
 #' }
 #'
 #' @export
-p_map <- function(x, precision = 2^10, method = "kernel", ...) {
+p_map <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
   UseMethod("p_map")
 }
 
@@ -72,12 +77,12 @@ p_pointnull <- p_map
 
 
 #' @export
-p_map.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
+p_map.numeric <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
   # Density at MAP
   map <- attributes(map_estimate(x, precision = precision, method = method, ...))$MAP_density
 
   # Density at 0
-  d_0 <- density_at(x, 0, precision = precision, method = method, ...)
+  d_0 <- density_at(x, null, precision = precision, method = method, ...)
   if (is.na(d_0)) d_0 <- 0
 
   # Odds
@@ -89,13 +94,13 @@ p_map.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
 
 
 #' @export
-p_map.data.frame <- function(x, precision = 2^10, method = "kernel", ...) {
+p_map.data.frame <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
   x <- .select_nums(x)
 
   if (ncol(x) == 1) {
-    p_MAP <- p_map(x[, 1], precision = precision, method = method, ...)
+    p_MAP <- p_map(x[, 1], null = null, precision = precision, method = method, ...)
   } else {
-    p_MAP <- sapply(x, p_map, precision = precision, method = method, simplify = TRUE, ...)
+    p_MAP <- sapply(x, p_map, null = null, precision = precision, method = method, simplify = TRUE, ...)
   }
 
   out <- data.frame(
@@ -111,8 +116,8 @@ p_map.data.frame <- function(x, precision = 2^10, method = "kernel", ...) {
 
 
 #' @export
-p_map.draws <- function(x, precision = 2^10, method = "kernel", ...) {
-  p_map(.posterior_draws_to_df(x), precision = precision, method = method, ...)
+p_map.draws <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
+  p_map(.posterior_draws_to_df(x), null = null, precision = precision, method = method, ...)
 }
 
 #' @export
@@ -121,11 +126,11 @@ p_map.rvar <- p_map.draws
 
 
 #' @export
-p_map.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
+p_map.emmGrid <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
   xdf <- insight::get_parameters(x)
 
-  out <- p_map(xdf, precision = precision, method = method, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  out <- p_map(xdf, null = null, precision = precision, method = method, ...)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -136,17 +141,29 @@ p_map.emm_list <- p_map.emmGrid
 
 
 #' @keywords internal
-.p_map_models <- function(x, precision, method, effects, component, parameters, ...) {
-  p_map(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), precision = precision, method = method, ...)
+.p_map_models <- function(x, null, precision, method, effects, component, parameters, ...) {
+  p_map(
+    insight::get_parameters(
+      x,
+      effects = effects,
+      component = component,
+      parameters = parameters
+    ),
+    null = null,
+    precision = precision,
+    method = method,
+    ...
+  )
 }
 
 
 
 
 #' @export
-p_map.mcmc <- function(x, precision = 2^10, method = "kernel", parameters = NULL, ...) {
+p_map.mcmc <- function(x, null = 0, precision = 2^10, method = "kernel", parameters = NULL, ...) {
   out <- .p_map_models(
     x = x,
+    null = null,
     precision = precision,
     method = method,
     effects = "fixed",
@@ -175,10 +192,12 @@ p_map.BGGM <- p_map.mcmc
 
 
 #' @export
-p_map.bamlss <- function(x, precision = 2^10, method = "kernel", component = c("all", "conditional", "location"), parameters = NULL, ...) {
+p_map.bamlss <- function(x, null = 0, precision = 2^10, method = "kernel",
+                         component = c("all", "conditional", "location"), parameters = NULL, ...) {
   component <- match.arg(component)
   out <- .p_map_models(
     x = x,
+    null = null,
     precision = precision,
     method = method,
     effects = "all",
@@ -195,11 +214,13 @@ p_map.bamlss <- function(x, precision = 2^10, method = "kernel", component = c("
 
 
 #' @export
-p_map.sim.merMod <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), parameters = NULL, ...) {
+p_map.sim.merMod <- function(x, null = 0, precision = 2^10, method = "kernel",
+                             effects = c("fixed", "random", "all"), parameters = NULL, ...) {
   effects <- match.arg(effects)
 
   out <- .p_map_models(
     x = x,
+    null = null,
     precision = precision,
     method = method,
     effects = effects,
@@ -216,9 +237,11 @@ p_map.sim.merMod <- function(x, precision = 2^10, method = "kernel", effects = c
 
 
 #' @export
-p_map.sim <- function(x, precision = 2^10, method = "kernel", parameters = NULL, ...) {
+p_map.sim <- function(x, null = 0, precision = 2^10, method = "kernel",
+                      parameters = NULL, ...) {
   out <- .p_map_models(
     x = x,
+    null = null,
     precision = precision,
     method = method,
     effects = "fixed",
@@ -236,20 +259,33 @@ p_map.sim <- function(x, precision = 2^10, method = "kernel", parameters = NULL,
 
 #' @rdname p_map
 #' @export
-p_map.stanreg <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, ...) {
+p_map.stanreg <- function(x, null = 0, precision = 2^10, method = "kernel",
+                          effects = c("fixed", "random", "all"),
+                          component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
+                          parameters = NULL, ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
   cleaned_parameters <- insight::clean_parameters(x)
 
   out <- .prepare_output(
-    p_map(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), precision = precision, method = method),
+    p_map(
+      insight::get_parameters(
+        x,
+        effects = effects,
+        component = component,
+        parameters = parameters
+      ),
+      null = null,
+      precision = precision,
+      method = method
+    ),
     cleaned_parameters,
     inherits(x, "stanmvreg")
   )
 
   attr(out, "clean_parameters") <- cleaned_parameters
   class(out) <- unique(c("p_map", class(out)))
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -264,19 +300,33 @@ p_map.blavaan <- p_map.stanreg
 
 #' @rdname p_map
 #' @export
-p_map.brmsfit <- function(x, precision = 2^10, method = "kernel", effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, ...) {
+p_map.brmsfit <- function(x, null = 0, precision = 2^10, method = "kernel",
+                          effects = c("fixed", "random", "all"),
+                          component = c("conditional", "zi", "zero_inflated", "all"),
+                          parameters = NULL, ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
   cleaned_parameters <- insight::clean_parameters(x)
 
   out <- .prepare_output(
-    p_map(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), precision = precision, method = method, ...),
+    p_map(
+      insight::get_parameters(
+        x,
+        effects = effects,
+        component = component,
+        parameters = parameters
+      ),
+      null = null,
+      precision = precision,
+      method = method,
+      ...
+    ),
     cleaned_parameters
   )
 
   attr(out, "clean_parameters") <- cleaned_parameters
   class(out) <- unique(c("p_map", class(out)))
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -285,28 +335,28 @@ p_map.brmsfit <- function(x, precision = 2^10, method = "kernel", effects = c("f
 
 
 #' @export
-p_map.BFBayesFactor <- function(x, precision = 2^10, method = "kernel", ...) {
-  out <- p_map(insight::get_parameters(x), precision = precision, method = method, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+p_map.BFBayesFactor <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
+  out <- p_map(insight::get_parameters(x), null = null, precision = precision, method = method, ...)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
 
 
 #' @export
-p_map.MCMCglmm <- function(x, precision = 2^10, method = "kernel", ...) {
+p_map.MCMCglmm <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
   nF <- x$Fixed$nfl
-  out <- p_map(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), precision = precision, method = method, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  out <- p_map(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), null = null, precision = precision, method = method, ...)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
 
 
 #' @export
-p_map.bayesQR <- function(x, precision = 2^10, method = "kernel", ...) {
-  out <- p_map(insight::get_parameters(x), precision = precision, method = method, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+p_map.bayesQR <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
+  out <- p_map(insight::get_parameters(x), null = null, precision = precision, method = method, ...)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -317,7 +367,7 @@ p_map.bayesQR <- function(x, precision = 2^10, method = "kernel", ...) {
 #' @method as.numeric p_map
 #' @export
 as.numeric.p_map <- function(x, ...) {
-  if ("data.frame" %in% class(x)) {
+  if (inherits(x, "data.frame")) {
     return(as.numeric(as.vector(x$p_MAP)))
   } else {
     return(as.vector(x))

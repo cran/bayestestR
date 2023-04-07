@@ -68,7 +68,11 @@ A data frame with following columns:
 }
 }
 \description{
-Compute the \strong{Equal-Tailed Interval (ETI)} of posterior distributions using the quantiles method. The probability of being below this interval is equal to the probability of being above it. The ETI can be used in the context of uncertainty characterisation of posterior distributions as \strong{Credible Interval (CI)}.
+Compute the \strong{Equal-Tailed Interval (ETI)} of posterior distributions using
+the quantiles method. The probability of being below this interval is equal
+to the probability of being above it. The ETI can be used in the context of
+uncertainty characterisation of posterior distributions as
+\strong{Credible Interval (CI)}.
 }
 \details{
 Unlike equal-tailed intervals (see \code{eti()}) that typically exclude \verb{2.5\%}
@@ -121,16 +125,16 @@ library(bayestestR)
 
 posterior <- rnorm(1000)
 eti(posterior)
-eti(posterior, ci = c(.80, .89, .95))
+eti(posterior, ci = c(0.80, 0.89, 0.95))
 
 df <- data.frame(replicate(4, rnorm(100)))
 eti(df)
-eti(df, ci = c(.80, .89, .95))
+eti(df, ci = c(0.80, 0.89, 0.95))
 \dontrun{
 library(rstanarm)
 model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
 eti(model)
-eti(model, ci = c(.80, .89, .95))
+eti(model, ci = c(0.80, 0.89, 0.95))
 
 library(emmeans)
 eti(emtrends(model, ~1, "wt"))
@@ -138,12 +142,12 @@ eti(emtrends(model, ~1, "wt"))
 library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 eti(model)
-eti(model, ci = c(.80, .89, .95))
+eti(model, ci = c(0.80, 0.89, 0.95))
 
 library(BayesFactor)
 bf <- ttestBF(x = rnorm(100, 1, 1))
 eti(bf)
-eti(bf, ci = c(.80, .89, .95))
+eti(bf, ci = c(0.80, 0.89, 0.95))
 }
 
 }

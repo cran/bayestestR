@@ -12,7 +12,11 @@ sexit_thresholds(x, ...)
 \item{...}{Currently not used.}
 }
 \description{
-This function attempts at automatically finding suitable default values for a "significant" (i.e., non-negligible) and "large" effect. This is to be used with care, and the chosen threshold should always be explicitly reported and justified. See the detail section in \code{\link[=sexit]{sexit()}} for more information.
+This function attempts at automatically finding suitable default
+values for a "significant" (i.e., non-negligible) and "large" effect. This is
+to be used with care, and the chosen threshold should always be explicitly
+reported and justified. See the detail section in \code{\link[=sexit]{sexit()}} for more
+information.
 }
 \examples{
 sexit_thresholds(rnorm(1000))

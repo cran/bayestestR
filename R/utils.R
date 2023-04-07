@@ -1,3 +1,8 @@
+# small wrapper around this commonly used try-catch
+.safe <- function(code, on_error = NULL) {
+  tryCatch(code, error = function(e) on_error)
+}
+
 # select rows where values in "variable" match "value"
 #' @keywords internal
 .select_rows <- function(data, variable, value) {
@@ -13,7 +18,9 @@
 
 #' @keywords internal
 .get_direction <- function(direction) {
-  if (length(direction) > 1) warning("Using first 'direction' value.", call. = FALSE)
+  if (length(direction) > 1) {
+    insight::format_warning("Using first 'direction' value.")
+  }
 
   if (is.numeric(direction[1])) {
     return(sign(direction[1]))
@@ -70,12 +77,12 @@
     remove_cols <- c("Group", "Cleaned_Parameter", "Response", "Function", ".roworder")
   }
   merge_by <- intersect(merge_by, colnames(temp))
-  temp$.roworder <- 1:nrow(temp)
+  temp$.roworder <- seq_len(nrow(temp))
   out <- merge(x = temp, y = cleaned_parameters, by = merge_by, all.x = TRUE)
   # hope this works for stanmvreg...
   if ((isTRUE(is_stan_mv) || isTRUE(is_brms_mv)) && all(is.na(out$Effects)) && all(is.na(out$Component))) {
-    out$Effects <- cleaned_parameters$Effects[1:nrow(out)]
-    out$Component <- cleaned_parameters$Component[1:nrow(out)]
+    out$Effects <- cleaned_parameters$Effects[seq_len(nrow(out))]
+    out$Component <- cleaned_parameters$Component[seq_len(nrow(out))]
   }
   # this here is required for multiple response models...
   if (all(is.na(out$Effects)) || all(is.na(out$Component))) {
@@ -93,7 +100,7 @@
   if (is.null(ncol(y))) {
     return(x)
   }
-  x$.rowid <- 1:nrow(x)
+  x$.rowid <- seq_len(nrow(x))
   x <- merge(x, y, by = by, all = all)
   datawizard::data_remove(x[order(x$.rowid), ], ".rowid", verbose = FALSE)
 }

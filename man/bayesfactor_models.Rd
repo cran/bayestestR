@@ -63,7 +63,9 @@ analysis with \code{bayesfactor_inclusion}).
 \item \code{stanreg} models must have been fitted with a defined \code{diagnostic_file}.
 }
 \item For \code{BFBayesFactor}, \code{bayesfactor_models()} is mostly a wraparound \code{BayesFactor::extractBF()}.
-\item For all other model types, Bayes factors are computed using the BIC approximation. Note that BICs are extracted from using \link[insight:get_loglikelihood]{insight::get_loglikelihood}, see documentation there for options for dealing with transformed responses and REML estimation.
+\item For all other model types, Bayes factors are computed using the BIC approximation.
+Note that BICs are extracted from using \link[insight:get_loglikelihood]{insight::get_loglikelihood}, see documentation
+there for options for dealing with transformed responses and REML estimation.
 }
 
 In order to correctly and precisely estimate Bayes factors, a rule of thumb
@@ -78,7 +80,8 @@ are detected, \code{bayesfactor_models()} gives a warning.
 See also \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
 }
 \note{
-There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
+There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method}
+implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 }
 \section{Interpreting Bayes Factors}{
 
@@ -144,7 +147,7 @@ if (require("rstanarm")) {
     family = gaussian(),
     diagnostic_file = file.path(tempdir(), "df2.csv")
   )
-  bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0)
+  bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0, verbose = FALSE)
 }
 
 
@@ -152,15 +155,15 @@ if (require("rstanarm")) {
 # --------------------
 # (note the save_pars MUST be set to save_pars(all = TRUE) in order to work)
 if (require("brms")) {
-  brm1 <- brm(Sepal.Length ~ 1, data = iris, save_all_pars = TRUE)
-  brm2 <- brm(Sepal.Length ~ Species, data = iris, save_all_pars = TRUE)
+  brm1 <- brm(Sepal.Length ~ 1, data = iris, save_pars = save_pars(all = TRUE))
+  brm2 <- brm(Sepal.Length ~ Species, data = iris, save_pars = save_pars(all = TRUE))
   brm3 <- brm(
     Sepal.Length ~ Species + Petal.Length,
     data = iris,
     save_pars = save_pars(all = TRUE)
   )
 
-  bayesfactor_models(brm1, brm2, brm3, denominator = 1)
+  bayesfactor_models(brm1, brm2, brm3, denominator = 1, verbose = FALSE)
 }
 
 
@@ -176,14 +179,21 @@ if (require("BayesFactor")) {
   bayesfactor_models(BF) # basically the same
 }
 }
+
 }
 \references{
 \itemize{
-\item Gronau, Q. F., Singmann, H., & Wagenmakers, E. J. (2017). Bridgesampling: An R package for estimating normalizing constants. arXiv preprint arXiv:1710.08162.
-\item Kass, R. E., and Raftery, A. E. (1995). Bayes Factors. Journal of the American Statistical Association, 90(430), 773-795.
-\item Robert, C. P. (2016). The expected demise of the Bayes factor. Journal of Mathematical Psychology, 72, 33–37.
-\item Wagenmakers, E. J. (2007). A practical solution to the pervasive problems of p values. Psychonomic bulletin & review, 14(5), 779-804.
-\item Wetzels, R., Matzke, D., Lee, M. D., Rouder, J. N., Iverson, G. J., and Wagenmakers, E.-J. (2011). Statistical Evidence in Experimental Psychology: An Empirical Comparison Using 855 t Tests. Perspectives on Psychological Science, 6(3), 291–298. \doi{10.1177/1745691611406923}
+\item Gronau, Q. F., Singmann, H., & Wagenmakers, E. J. (2017). Bridgesampling: An R package for estimating
+normalizing constants. arXiv preprint arXiv:1710.08162.
+\item Kass, R. E., and Raftery, A. E. (1995). Bayes Factors. Journal of the American Statistical Association,
+90(430), 773-795.
+\item Robert, C. P. (2016). The expected demise of the Bayes factor. Journal of Mathematical Psychology,
+72, 33–37.
+\item Wagenmakers, E. J. (2007). A practical solution to the pervasive problems of p values.
+Psychonomic bulletin & review, 14(5), 779-804.
+\item Wetzels, R., Matzke, D., Lee, M. D., Rouder, J. N., Iverson, G. J., and Wagenmakers, E.-J. (2011).
+Statistical Evidence in Experimental Psychology: An Empirical Comparison Using 855 t Tests.
+Perspectives on Psychological Science, 6(3), 291–298. \doi{10.1177/1745691611406923}
 }
 }
 \author{

@@ -259,7 +259,7 @@ library(bayestestR)
 if (require("logspline")) {
   prior <- distribution_normal(1000, mean = 0, sd = 1)
   posterior <- distribution_normal(1000, mean = .5, sd = .3)
-  (BF_pars <- bayesfactor_parameters(posterior, prior))
+  (BF_pars <- bayesfactor_parameters(posterior, prior, verbose = FALSE))
 
   as.numeric(BF_pars)
 }
@@ -268,18 +268,22 @@ if (require("logspline")) {
 # ---------------
 if (require("rstanarm") && require("emmeans") && require("logspline")) {
   contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
-  stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
-  bayesfactor_parameters(stan_model)
+  stan_model <- suppressWarnings(stan_lmer(
+    extra ~ group + (1 | ID),
+    data = sleep,
+    refresh = 0
+  ))
+  bayesfactor_parameters(stan_model, verbose = FALSE)
   bayesfactor_parameters(stan_model, null = rope_range(stan_model))
 
   # emmGrid objects
   # ---------------
   group_diff <- pairs(emmeans(stan_model, ~group))
-  bayesfactor_parameters(group_diff, prior = stan_model)
+  bayesfactor_parameters(group_diff, prior = stan_model, verbose = FALSE)
 
   # Or
   group_diff_prior <- pairs(emmeans(unupdate(stan_model), ~group))
-  bayesfactor_parameters(group_diff, prior = group_diff_prior)
+  bayesfactor_parameters(group_diff, prior = group_diff_prior, verbose = FALSE)
 }
 
 # brms models
@@ -290,11 +294,12 @@ if (require("brms")) {
     set_prior("student_t(3, 0, 1)", class = "b") +
     set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
 
-  brms_model <- brm(extra ~ group + (1 | ID),
+  brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
     data = sleep,
-    prior = my_custom_priors
-  )
-  bayesfactor_parameters(brms_model)
+    prior = my_custom_priors,
+    refresh = 0
+  ))
+  bayesfactor_parameters(brms_model, verbose = FALSE)
 }
 }
 }

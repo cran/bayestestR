@@ -96,14 +96,14 @@ map_estimate.mcmc.list <- map_estimate.bayesQR
 
   out <- data.frame(
     Parameter = colnames(x),
-    MAP_Estimate = unlist(l),
+    MAP_Estimate = unlist(l, use.names = FALSE),
     stringsAsFactors = FALSE,
     row.names = NULL
   )
 
   out <- .add_clean_parameters_attribute(out, x)
   attr(out, "MAP_density") <- sapply(l, attr, "MAP_density")
-  attr(out, "object_name") <- deparse(substitute(x), width.cutoff = 500)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   attr(out, "centrality") <- "map"
   class(out) <- unique(c("map_estimate", "see_point_estimate", class(out)))
   out
@@ -174,7 +174,7 @@ map_estimate.get_predicted <- function(x, ...) {
   if ("iterations" %in% names(attributes(x))) {
     map_estimate(as.data.frame(t(attributes(x)$iterations)), ...)
   } else {
-    stop("No iterations present in the output.", call. = FALSE)
+    insight::format_error("No iterations present in the output.")
   }
 }
 

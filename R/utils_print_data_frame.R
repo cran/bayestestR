@@ -14,9 +14,12 @@
     if (anyNA(x$split)) {
       x$split[is.na(x$split)] <- "{other}"
     }
-    out <- lapply(split(x, f = x$split), function(i) {
-      datawizard::data_remove(i, c("split", "Component", "Effects"), verbose = FALSE)
-    })
+    out <- lapply(
+      split(x, f = x$split),
+      datawizard::data_remove,
+      select = c("split", "Component", "Effects"),
+      verbose = FALSE
+    )
   }
 
   for (i in names(out)) {
@@ -63,7 +66,7 @@
       # remove ".1" etc. suffix
       out[[i]]$Parameter <- gsub("(.*)(\\.)(\\d)$", "\\1 \\3", out[[i]]$Parameter)
       # remove "__zi"
-      out[[i]]$Parameter <- gsub("__zi", "", out[[i]]$Parameter)
+      out[[i]]$Parameter <- gsub("__zi", "", out[[i]]$Parameter, fixed = TRUE)
     }
 
     if (length(out) > 1) {

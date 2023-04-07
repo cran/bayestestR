@@ -22,7 +22,8 @@
 #'   model.
 #' @inheritParams hdi
 #'
-#' @note There is also a [`plot()`-method](https://easystats.github.io/see/articles/bayestestR.html) implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
+#' @note There is also a [`plot()`-method](https://easystats.github.io/see/articles/bayestestR.html)
+#' implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
 #' @details
 #' If the passed models are supported by \pkg{insight} the DV of all models will be tested for equality
@@ -33,7 +34,9 @@
 #'   - `brmsfit` models must have been fitted with `save_pars = save_pars(all = TRUE)`.
 #'   - `stanreg` models must have been fitted with a defined `diagnostic_file`.
 #' - For `BFBayesFactor`, `bayesfactor_models()` is mostly a wraparound `BayesFactor::extractBF()`.
-#' - For all other model types, Bayes factors are computed using the BIC approximation. Note that BICs are extracted from using [insight::get_loglikelihood], see documentation there for options for dealing with transformed responses and REML estimation.
+#' - For all other model types, Bayes factors are computed using the BIC approximation.
+#'   Note that BICs are extracted from using [insight::get_loglikelihood], see documentation
+#'   there for options for dealing with transformed responses and REML estimation.
 #'
 #' In order to correctly and precisely estimate Bayes factors, a rule of thumb
 #' are the 4 P's: **P**roper **P**riors and **P**lentiful
@@ -107,7 +110,7 @@
 #'     family = gaussian(),
 #'     diagnostic_file = file.path(tempdir(), "df2.csv")
 #'   )
-#'   bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0)
+#'   bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0, verbose = FALSE)
 #' }
 #'
 #'
@@ -115,15 +118,15 @@
 #' # --------------------
 #' # (note the save_pars MUST be set to save_pars(all = TRUE) in order to work)
 #' if (require("brms")) {
-#'   brm1 <- brm(Sepal.Length ~ 1, data = iris, save_all_pars = TRUE)
-#'   brm2 <- brm(Sepal.Length ~ Species, data = iris, save_all_pars = TRUE)
+#'   brm1 <- brm(Sepal.Length ~ 1, data = iris, save_pars = save_pars(all = TRUE))
+#'   brm2 <- brm(Sepal.Length ~ Species, data = iris, save_pars = save_pars(all = TRUE))
 #'   brm3 <- brm(
 #'     Sepal.Length ~ Species + Petal.Length,
 #'     data = iris,
 #'     save_pars = save_pars(all = TRUE)
 #'   )
 #'
-#'   bayesfactor_models(brm1, brm2, brm3, denominator = 1)
+#'   bayesfactor_models(brm1, brm2, brm3, denominator = 1, verbose = FALSE)
 #' }
 #'
 #'
@@ -139,14 +142,24 @@
 #'   bayesfactor_models(BF) # basically the same
 #' }
 #' }
+#'
 #' @references
-#' \itemize{
-#'   \item Gronau, Q. F., Singmann, H., & Wagenmakers, E. J. (2017). Bridgesampling: An R package for estimating normalizing constants. arXiv preprint arXiv:1710.08162.
-#'   \item Kass, R. E., and Raftery, A. E. (1995). Bayes Factors. Journal of the American Statistical Association, 90(430), 773-795.
-#'   \item Robert, C. P. (2016). The expected demise of the Bayes factor. Journal of Mathematical Psychology, 72, 33–37.
-#'   \item Wagenmakers, E. J. (2007). A practical solution to the pervasive problems of p values. Psychonomic bulletin & review, 14(5), 779-804.
-#'   \item Wetzels, R., Matzke, D., Lee, M. D., Rouder, J. N., Iverson, G. J., and Wagenmakers, E.-J. (2011). Statistical Evidence in Experimental Psychology: An Empirical Comparison Using 855 t Tests. Perspectives on Psychological Science, 6(3), 291–298. \doi{10.1177/1745691611406923}
-#' }
+#' - Gronau, Q. F., Singmann, H., & Wagenmakers, E. J. (2017). Bridgesampling: An R package for estimating
+#'   normalizing constants. arXiv preprint arXiv:1710.08162.
+#'
+#' - Kass, R. E., and Raftery, A. E. (1995). Bayes Factors. Journal of the American Statistical Association,
+#'   90(430), 773-795.
+#'
+#' - Robert, C. P. (2016). The expected demise of the Bayes factor. Journal of Mathematical Psychology,
+#'   72, 33–37.
+#'
+#' - Wagenmakers, E. J. (2007). A practical solution to the pervasive problems of p values.
+#'   Psychonomic bulletin & review, 14(5), 779-804.
+#'
+#' - Wetzels, R., Matzke, D., Lee, M. D., Rouder, J. N., Iverson, G. J., and Wagenmakers, E.-J. (2011).
+#'   Statistical Evidence in Experimental Psychology: An Empirical Comparison Using 855 t Tests.
+#'   Perspectives on Psychological Science, 6(3), 291–298. \doi{10.1177/1745691611406923}
+#'
 #' @export
 bayesfactor_models <- function(..., denominator = 1, verbose = TRUE) {
   UseMethod("bayesfactor_models")
@@ -181,7 +194,7 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
 
   # Get formula / model names
   # supported models
-  supported_models <- sapply(mods, insight::is_model_supported)
+  supported_models <- vapply(mods, insight::is_model_supported, TRUE)
   if (all(supported_models)) {
     temp_forms <- sapply(mods, .find_full_formula)
 
@@ -198,34 +211,25 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
     were_checked <- inherits(objects, "ListModels")
 
     # Validate response
-    if (were_checked && verbose &&
-      !isTRUE(attr(objects, "same_response"))) {
-      warning(
-        insight::format_message(
-          "When comparing models, please note that probably not all models were fit from same data."
-        ),
-        call. = FALSE
+    if (were_checked && verbose && !isTRUE(attr(objects, "same_response"))) {
+      insight::format_warning(
+        "When comparing models, please note that probably not all models were fit from same data."
       )
     }
 
     # Get BIC
     if (were_checked && estimator == "REML" &&
-      any(sapply(mods, insight::is_mixed_model)) &&
-      !isTRUE(attr(objects, "same_fixef"))) {
-      # estimator <- "ML"
-      if (verbose) {
-        warning(
-          insight::format_message(
-            "Information criteria (like BIC) based on REML fits (i.e. `estimator=\"REML\"`)",
-            "are not recommended for comparison between models with different fixed effects.",
-            "Concider setting `estimator=\"ML\"`."
-          ),
-          call. = FALSE
-        )
-      }
+      any(vapply(mods, insight::is_mixed_model, TRUE)) &&
+      !isTRUE(attr(objects, "same_fixef")) &&
+      verbose) {
+      insight::format_warning(
+        "Information criteria (like BIC) based on REML fits (i.e. `estimator=\"REML\"`)",
+        "are not recommended for comparison between models with different fixed effects.",
+        "Concider setting `estimator=\"ML\"`."
+      )
     }
   } else if (verbose) {
-    message("Unable to validate that all models were fit with the same data.")
+    insight::format_alert("Unable to validate that all models were fit with the same data.")
   }
 
   mBIC <- tryCatch(sapply(mods, function(m) {
@@ -263,11 +267,10 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
     if (is.null(alg$iterations)) alg$iterations <- alg$sample
     (alg$iterations - alg$warmup) * alg$chains
   })
-  if (any(n_samps < 4e4)) {
-    warning(
-      "Bayes factors might not be precise.\n",
-      "For precise Bayes factors, sampling at least 40,000 posterior samples is recommended.",
-      call. = FALSE, immediate. = TRUE
+  if (any(n_samps < 4e4) && verbose) {
+    insight::format_warning(
+      "Bayes factors might not be precise.",
+      "For precise Bayes factors, sampling at least 40,000 posterior samples is recommended."
     )
   }
 
@@ -300,17 +303,10 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
   )
 
   if (!all(from_same_data_as_den)) {
-    stop("Models were not computed from the same data.", call. = FALSE)
+    insight::format_error("Models were not computed from the same data.")
   }
 
-  # Get BF
-  if (verbose) {
-    message("Computation of Bayes factors: estimating marginal likelihood, please wait...")
-  }
-
-  mML <- lapply(mods, function(x) {
-    bridgesampling::bridge_sampler(x, silent = TRUE)
-  })
+  mML <- lapply(mods, .get_marglik, verbose = verbose)
 
   mBFs <- sapply(mML, function(x) {
     bf <- bridgesampling::bf(x, mML[[denominator]], log = TRUE)
@@ -329,11 +325,11 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
 
 .bayesfactor_models_stan_SEM <- function(mods, denominator, verbose = TRUE) {
   utils::capture.output(
-    suppressWarnings(
+    suppressWarnings({
       mBFs <- sapply(mods, function(m) {
         blavaan::blavCompare(m, mods[[denominator]])[["bf"]][1]
       })
-    )
+    })
   )
 
   res <- data.frame(
@@ -380,7 +376,6 @@ bayesfactor_models.brmsfit <- function(..., denominator = 1, verbose = TRUE) {
   .bayesfactor_models_stan(mods, denominator = denominator, verbose = verbose)
 }
 
-
 #' @export
 bayesfactor_models.blavaan <- function(..., denominator = 1, verbose = TRUE) {
   insight::check_if_installed("blavaan")
@@ -408,7 +403,7 @@ bayesfactor_models.BFBayesFactor <- function(..., verbose = TRUE) {
   mBFs <- c(0, BayesFactor::extractBF(models, TRUE, TRUE))
   mforms <- sapply(c(models@denominator, models@numerator), function(x) x@shortName)
 
-  if (!"BFlinearModel" %in% class(models@denominator)) {
+  if (!inherits(models@denominator, "BFlinearModel")) {
     mforms <- .clean_non_linBF_mods(mforms)
   } else {
     mforms[mforms == "Intercept only"] <- "1"
@@ -423,7 +418,7 @@ bayesfactor_models.BFBayesFactor <- function(..., verbose = TRUE) {
   .bf_models_output(res,
     denominator = 1,
     bf_method = "JZS (BayesFactor)",
-    unsupported_models = !"BFlinearModel" %in% class(models@denominator)
+    unsupported_models = !inherits(models@denominator, "BFlinearModel")
   )
 }
 
@@ -513,7 +508,11 @@ as.matrix.bayesfactor_models <- function(x, ...) {
 
 
 #' @keywords internal
-.bf_models_output <- function(res, denominator = 1, bf_method = "method", unsupported_models = FALSE, model_names = NULL) {
+.bf_models_output <- function(res,
+                              denominator = 1,
+                              bf_method = "method",
+                              unsupported_models = FALSE,
+                              model_names = NULL) {
   attr(res, "denominator") <- denominator
   attr(res, "BF_method") <- bf_method
   attr(res, "unsupported_models") <- unsupported_models
@@ -551,12 +550,12 @@ as.matrix.bayesfactor_models <- function(x, ...) {
       m_txt <- character(length = length(m_names))
 
       ## Detect types ##
-      is_null <- grepl("^Null", m_names)
-      is_rho <- grepl("rho", m_names)
-      is_mu <- grepl("mu", m_names)
-      is_d <- grepl("d", m_names)
-      is_p <- grepl("p", m_names)
-      is_range <- grepl("<", m_names)
+      is_null <- startsWith(m_names, "Null")
+      is_rho <- grepl("rho", m_names, fixed = TRUE)
+      is_mu <- grepl("mu", m_names, fixed = TRUE)
+      is_d <- grepl("d", m_names, fixed = TRUE)
+      is_p <- grepl("p", m_names, fixed = TRUE)
+      is_range <- grepl("<", m_names, fixed = TRUE)
 
       ## Range Alts ##
       m_txt[!is_null & is_range] <-
@@ -564,35 +563,35 @@ as.matrix.bayesfactor_models <- function(x, ...) {
 
       ## Null models + Not nulls ##
       if (any(is_d & is_p)) {
-        is_null <- !grepl("^Non", m_names)
+        is_null <- !startsWith(m_names, "Non")
         temp <- m_names[is_null][1]
         mi <- gregexpr("\\(.*\\)", temp)
-        aa <- unlist(regmatches(temp, m = mi))
+        aa <- unlist(regmatches(temp, m = mi), use.names = FALSE)
 
-        m_txt[is_null] <- sub("a=", "a = ", aa)
-        m_txt[!is_null & !is_range] <- sub("a=", "a != ", aa)
+        m_txt[is_null] <- sub("a=", "a = ", aa, fixed = TRUE)
+        m_txt[!is_null & !is_range] <- sub("a=", "a != ", aa, fixed = TRUE)
       } else if (any(is_rho)) {
         m_txt[is_null] <- "rho = 0"
         m_txt[!is_null & !is_range] <- "rho != 0"
-        m_txt <- sub("<rho<", " < rho < ", m_txt)
+        m_txt <- sub("<rho<", " < rho < ", m_txt, fixed = TRUE)
       } else if (any(is_d | is_mu)) {
         m_txt[is_null] <- "d = 0"
         m_txt[!is_null & !is_range] <- "d != 0"
-        m_txt <- sub("<d<", " < d < ", m_txt)
+        m_txt <- sub("<d<", " < d < ", m_txt, fixed = TRUE)
       } else if (any(is_p)) {
         temp <- m_names[is_null][1]
         mi <- gregexpr("[0-9|\\.]+", temp)
-        pp <- unlist(regmatches(temp, m = mi))
+        pp <- unlist(regmatches(temp, m = mi), use.names = FALSE)
 
         m_txt[is_null] <- paste0("p = ", pp)
         m_txt[!is_null & !is_range] <- paste0("p != ", pp)
-        m_txt <- sub("<p<", " < p < ", m_txt)
+        m_txt <- sub("<p<", " < p < ", m_txt, fixed = TRUE)
       } else {
         stop("!", call. = FALSE)
       }
 
       ## wrap with () for readability ##
-      is_wrapped <- grepl("\\(", m_txt)
+      is_wrapped <- grepl("(", m_txt, fixed = TRUE)
       m_txt[!is_wrapped] <- paste0("(", m_txt[!is_wrapped], ")")
 
       return(m_txt)
@@ -601,4 +600,19 @@ as.matrix.bayesfactor_models <- function(x, ...) {
       return(m_names)
     }
   )
+}
+
+#' @keywords internal
+.get_marglik <- function(mod, verbose, ...) {
+  # Add a check here for brmsfit object to avoid unnecessary computation of the ML
+  if (inherits(mod, "brmsfit") && "marglik" %in% names(mod$criteria)) {
+    return(stats::median(mod$criteria$marglik$logml))
+  }
+
+  # Else... Get marginal likelihood
+  if (verbose) {
+    message("Computation of Marginal Likelihood: estimating marginal likelihood, please wait...")
+  }
+  # Should probably allow additional arguments such as reps or cores to for bridge_sampler
+  bridgesampling::bridge_sampler(mod, silent = TRUE)
 }

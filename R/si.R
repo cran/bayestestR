@@ -41,7 +41,7 @@
 #' Note that if the level of requested support is higher than observed in the data, the
 #' interval will be `[NA,NA]`.
 #'
-#' @examples
+#' @examplesIf requireNamespace("logspline", quietly = TRUE)
 #' library(bayestestR)
 #'
 #' prior <- distribution_normal(1000, mean = 0, sd = 1)
@@ -52,7 +52,7 @@
 #' # rstanarm models
 #' # ---------------
 #' library(rstanarm)
-#' contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
+#' contrasts(sleep$group) <- contr.equalprior_pairs # see vignette
 #' stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
 #' si(stan_model)
 #' si(stan_model, BF = 3)
@@ -71,10 +71,11 @@
 #'   set_prior("student_t(3, 0, 1)", class = "b") +
 #'   set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
 #'
-#' brms_model <- brm(extra ~ group + (1 | ID),
+#' brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
 #'   data = sleep,
-#'   prior = my_custom_priors
-#' )
+#'   prior = my_custom_priors,
+#'   refresh = 0
+#' ))
 #' si(brms_model)
 #' }
 #' @references
@@ -91,11 +92,11 @@ si.numeric <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) {
   if (is.null(prior)) {
     prior <- posterior
     if (verbose) {
-      warning(insight::format_message(
+      insight::format_warning(
         "Prior not specified!",
         "Support intervals ('si') can only be computed for Bayesian models with proper priors.",
         "Please specify priors (with column order matching 'posterior')."
-      ), call. = FALSE)
+      )
     }
   }
   prior <- data.frame(X = prior)
@@ -115,7 +116,7 @@ si.numeric <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) {
 si.stanreg <- function(posterior, prior = NULL,
                        BF = 1, verbose = TRUE,
                        effects = c("fixed", "random", "all"),
-                       component = c("conditional", "location", "zi", "zero_inflated", "all", "smooth_terms", "sigma", "distributional", "auxiliary"),
+                       component = c("location", "conditional", "all", "smooth_terms", "sigma", "auxiliary", "distributional"),
                        parameters = NULL,
                        ...) {
   cleaned_parameters <- insight::clean_parameters(posterior)
@@ -137,7 +138,7 @@ si.stanreg <- function(posterior, prior = NULL,
   out <- .prepare_output(temp, cleaned_parameters, inherits(posterior, "stanmvreg"))
 
   attr(out, "ci_method") <- "SI"
-  attr(out, "object_name") <- insight::safe_deparse(substitute(posterior))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(posterior))
   class(out) <- class(temp)
   attr(out, "plot_data") <- attr(temp, "plot_data")
 
@@ -169,7 +170,7 @@ si.emmGrid <- function(posterior, prior = NULL,
   )
 
   attr(out, "ci_method") <- "SI"
-  attr(out, "object_name") <- insight::safe_deparse(substitute(posterior))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(posterior))
   out
 }
 
@@ -182,14 +183,14 @@ si.stanfit <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, effects 
   out <- si(insight::get_parameters(posterior, effects = effects),
     prior = prior, BF = BF, verbose = verbose
   )
-  attr(out, "object_name") <- insight::safe_deparse(substitute(posterior))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(posterior))
   out
 }
 
 #' @export
 si.get_predicted <- function(posterior, ...) {
   out <- si(as.data.frame(t(posterior)), ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(posterior))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(posterior))
   out
 }
 
@@ -199,23 +200,22 @@ si.get_predicted <- function(posterior, ...) {
 si.data.frame <- function(posterior, prior = NULL, BF = 1, verbose = TRUE, ...) {
   if (is.null(prior)) {
     prior <- posterior
-    warning(insight::format_message(
+    insight::format_warning(
       "Prior not specified!",
       "Support intervals ('si') can only be computed for Bayesian models with proper priors.",
       "Please specify priors (with column order matching 'posterior')."
-    ), call. = FALSE)
+    )
   }
 
   if (verbose && (nrow(posterior) < 4e4 || nrow(prior) < 4e4)) {
-    warning(
-      "Support intervals might not be precise.\n",
-      "For precise support intervals, sampling at least 40,000 posterior samples is recommended.",
-      call. = FALSE
+    insight::format_warning(
+      "Support intervals might not be precise.",
+      "For precise support intervals, sampling at least 40,000 posterior samples is recommended."
     )
   }
 
   out <- lapply(BF, function(BFi) {
-    .si.data.frame(posterior, prior, BFi)
+    .si.data.frame(posterior, prior, BFi, verbose = verbose)
   })
   out <- do.call(rbind, out)
 
@@ -240,12 +240,14 @@ si.rvar <- si.draws
 
 # Helper ------------------------------------------------------------------
 
-.si.data.frame <- function(posterior, prior, BF, ...) {
+.si.data.frame <- function(posterior, prior, BF, verbose = TRUE, ...) {
   sis <- matrix(NA, nrow = ncol(posterior), ncol = 2)
   for (par in seq_along(posterior)) {
     sis[par, ] <- .si(posterior[[par]],
       prior[[par]],
-      BF = BF, ...
+      BF = BF,
+      verbose = verbose,
+      ...
     )
   }
 
@@ -261,7 +263,7 @@ si.rvar <- si.draws
 
 
 #' @keywords internal
-.si <- function(posterior, prior, BF = 1, extend_scale = 0.05, precision = 2^8, ...) {
+.si <- function(posterior, prior, BF = 1, extend_scale = 0.05, precision = 2^8, verbose = TRUE, ...) {
   insight::check_if_installed("logspline")
 
   if (isTRUE(all.equal(prior, posterior))) {
@@ -290,9 +292,9 @@ si.rvar <- si.draws
 
   crit <- relative_d >= BF
 
-  cp <- rle(c(stats::na.omit(crit)))
-  if (length(cp$lengths) > 3) {
-    warning("More than 1 SI detected. Plot the result to investigate.", call. = FALSE)
+  cp <- rle(stats::na.omit(crit))
+  if (length(cp$lengths) > 3 && verbose) {
+    insight::format_warning("More than 1 SI detected. Plot the result to investigate.")
   }
 
   x_supported <- stats::na.omit(x_axis[crit])

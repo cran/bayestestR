@@ -37,7 +37,8 @@
 #'   )
 #'   check_prior(model, method = "gelman")
 #'   check_prior(model, method = "lakeland")
-#'   plot(si(model)) # can provide visual confirmation to the Lakeland method
+#'   # can provide visual confirmation to the Lakeland method
+#'   plot(si(model, verbose = FALSE))
 #' }
 #' }
 #' @references https://statmodeling.stat.columbia.edu/2019/08/10/
@@ -146,7 +147,7 @@ check_prior.blavaan <- check_prior.brmsfit
     priors <- priors[common_columns]
     posteriors <- posteriors[common_columns]
     if (verbose) {
-      warning("Parameters and priors could not be fully matched. Only returning results for parameters with matching priors.", call. = FALSE)
+      insight::format_warning("Parameters and priors could not be fully matched. Only returning results for parameters with matching priors.")
     }
   }
 
@@ -158,7 +159,7 @@ check_prior.blavaan <- check_prior.brmsfit
   })
 
   if (any(all_missing) && verbose) {
-    warning("Some priors could not be simulated.", call. = FALSE)
+    insight::format_warning("Some priors could not be simulated.")
   }
 
   .gelman <- function(prior, posterior) {
@@ -175,7 +176,7 @@ check_prior.blavaan <- check_prior.brmsfit
     if (all(is.na(prior))) {
       "not determinable"
     } else {
-      hdi <- hdi(prior, ci = .95)
+      hdi <- hdi(prior, ci = 0.95)
       r <- rope(posterior, ci = 1, range = c(hdi$CI_low, hdi$CI_high))
       if (as.numeric(r) > 0.99) {
         "informative"
@@ -190,7 +191,7 @@ check_prior.blavaan <- check_prior.brmsfit
   } else if (method == "lakeland") {
     result <- mapply(.lakeland, priors, posteriors)
   } else {
-    stop("method should be 'gelman' or 'lakeland'.", call. = FALSE)
+    insight::format_error("method should be 'gelman' or 'lakeland'.")
   }
 
   data.frame(

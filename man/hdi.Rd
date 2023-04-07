@@ -129,7 +129,7 @@ There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{
 library(bayestestR)
 
 posterior <- rnorm(1000)
-hdi(posterior, ci = .89)
+hdi(posterior, ci = 0.89)
 hdi(posterior, ci = c(.80, .90, .95))
 
 df <- data.frame(replicate(4, rnorm(100)))
@@ -173,6 +173,6 @@ Other ci:
 \code{\link{spi}()}
 }
 \author{
-Credits go to \href{https://rdrr.io/cran/ggdistribute/src/R/stats.R}{ggdistribute} and \href{https://github.com/mikemeredith/HDInterval}{HDInterval}.
+Credits go to \strong{ggdistribute} and \href{https://github.com/mikemeredith/HDInterval}{\strong{HDInterval}}.
 }
 \concept{ci}

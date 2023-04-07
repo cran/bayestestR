@@ -64,13 +64,17 @@
 #' # compare only matched models:
 #' bayesfactor_inclusion(BF, match_models = TRUE)
 #' }
-#' @references
-#' \itemize{
-#'   \item Hinne, M., Gronau, Q. F., van den Bergh, D., and Wagenmakers, E. (2019, March 25). A conceptual introduction to Bayesian Model Averaging. \doi{10.31234/osf.io/wgb64}
-#'   \item Clyde, M. A., Ghosh, J., & Littman, M. L. (2011). Bayesian adaptive sampling for variable selection and model averaging. Journal of Computational and Graphical Statistics, 20(1), 80-101.
-#'   \item Mathot, S. (2017). Bayes like a Baws: Interpreting Bayesian Repeated Measures in JASP [Blog post](https://www.cogsci.nl/blog/interpreting-bayesian-repeated-measures-in-jasp).
-#' }
 #'
+#' @references
+#' - Hinne, M., Gronau, Q. F., van den Bergh, D., and Wagenmakers, E. (2019, March 25).
+#'   A conceptual introduction to Bayesian Model Averaging. \doi{10.31234/osf.io/wgb64}
+#'
+#' - Clyde, M. A., Ghosh, J., & Littman, M. L. (2011). Bayesian adaptive sampling
+#'   for variable selection and model averaging. Journal of Computational and Graphical Statistics,
+#'   20(1), 80-101.
+#'
+#' - Mathot, S. (2017). Bayes like a Baws: Interpreting Bayesian Repeated Measures in JASP.
+#'   [Blog post](https://www.cogsci.nl/blog/interpreting-bayesian-repeated-measures-in-jasp).
 #'
 #' @export
 bayesfactor_inclusion <- function(models,
@@ -90,7 +94,9 @@ bayesfactor_inclusion.bayesfactor_models <- function(models,
                                                      prior_odds = NULL,
                                                      ...) {
   if (isTRUE(attr(models, "unsupported_models"))) {
-    stop("Can not compute inclusion Bayes factors - passed models are not (yet) supported.", call. = FALSE)
+    insight::format_error(
+      "Can not compute inclusion Bayes factors - passed models are not (yet) supported."
+    )
   }
 
   # Build Models Table #
@@ -99,12 +105,12 @@ bayesfactor_inclusion.bayesfactor_models <- function(models,
 
   # Build Interaction Matrix #
   if (isTRUE(match_models)) {
-    effects.matrix <- as.matrix(df.model[, -c(1:3)])
+    effects.matrix <- as.matrix(df.model[, -(1:3)])
 
     df.interaction <- data.frame(effnames, stringsAsFactors = FALSE)
 
     for (eff in effnames) {
-      df.interaction[, eff] <- sapply(effnames, function(x) .includes_interaction(x, eff))
+      df.interaction[, eff] <- sapply(effnames, .includes_interaction, effnames = eff)
     }
     rownames(df.interaction) <- effnames
     df.interaction <- as.matrix(df.interaction[, -1])
@@ -179,10 +185,10 @@ bayesfactor_inclusion.BFBayesFactor <- function(models,
 
 #' @keywords internal
 .includes_interaction <- function(eff, effnames) {
-  eff_b <- strsplit(eff, "\\:")
-  effnames_b <- strsplit(effnames, "\\:")
+  eff_b <- strsplit(eff, ":", fixed = TRUE)
+  effnames_b <- strsplit(effnames, ":", fixed = TRUE)
 
-  is_int <- sapply(effnames_b, function(x) length(x) > 1)
+  is_int <- vapply(effnames_b, function(x) length(x) > 1, TRUE)
 
   temp <- logical(length(effnames))
 

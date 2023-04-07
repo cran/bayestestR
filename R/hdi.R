@@ -82,7 +82,7 @@
 #' library(bayestestR)
 #'
 #' posterior <- rnorm(1000)
-#' hdi(posterior, ci = .89)
+#' hdi(posterior, ci = 0.89)
 #' hdi(posterior, ci = c(.80, .90, .95))
 #'
 #' df <- data.frame(replicate(4, rnorm(100)))
@@ -107,7 +107,7 @@
 #' hdi(bf)
 #' hdi(bf, ci = c(.80, .90, .95))
 #' }
-#' @author Credits go to [ggdistribute](https://rdrr.io/cran/ggdistribute/src/R/stats.R) and [HDInterval](https://github.com/mikemeredith/HDInterval).
+#' @author Credits go to **ggdistribute** and [**HDInterval**](https://github.com/mikemeredith/HDInterval).
 #'
 #' @references \itemize{
 #'   \item Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press.
@@ -122,7 +122,7 @@ hdi <- function(x, ...) {
 
 #' @export
 hdi.default <- function(x, ...) {
-  stop(insight::format_message(paste0("'hdi()' is not yet implemented for objects of class '", class(x)[1], "'.")), call. = FALSE)
+  insight::format_error(paste0("'hdi()' is not yet implemented for objects of class '", class(x)[1], "'."))
 }
 
 
@@ -142,7 +142,7 @@ hdi.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
 #' @export
 hdi.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
   dat <- .compute_interval_dataframe(x = x, ci = ci, verbose = verbose, fun = "hdi")
-  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
 
@@ -150,7 +150,7 @@ hdi.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
 #' @export
 hdi.draws <- function(x, ci = 0.95, verbose = TRUE, ...) {
   dat <- .compute_interval_dataframe(x = .posterior_draws_to_df(x), ci = ci, verbose = verbose, fun = "hdi")
-  attr(dat, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(dat, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
 
@@ -164,7 +164,7 @@ hdi.MCMCglmm <- function(x, ci = 0.95, verbose = TRUE, ...) {
   nF <- x$Fixed$nfl
   d <- as.data.frame(x$Sol[, 1:nF, drop = FALSE])
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = ci_fun)
-  attr(dat, "data") <- deparse(substitute(x), width.cutoff = 500)
+  attr(dat, "data") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
 
@@ -180,7 +180,7 @@ hdi.bamlss <- function(x,
   d <- insight::get_parameters(x, component = component)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = ci_fun)
   dat <- .add_clean_parameters_attribute(dat, x)
-  attr(dat, "data") <- insight::safe_deparse(substitute(x))
+  attr(dat, "data") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
 
@@ -190,7 +190,7 @@ hdi.mcmc <- function(x, ci = 0.95, verbose = TRUE, ...) {
   ci_fun <- .check_ci_fun(list(...))
   d <- as.data.frame(x)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = ci_fun)
-  attr(dat, "data") <- insight::safe_deparse(substitute(x))
+  attr(dat, "data") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
 
@@ -200,7 +200,7 @@ hdi.bcplm <- function(x, ci = 0.95, verbose = TRUE, ...) {
   ci_fun <- .check_ci_fun(list(...))
   d <- insight::get_parameters(x)
   dat <- .compute_interval_dataframe(x = d, ci = ci, verbose = verbose, fun = ci_fun)
-  attr(dat, "data") <- insight::safe_deparse(substitute(x))
+  attr(dat, "data") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
 
@@ -260,7 +260,7 @@ hdi.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
 hdi.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
   out <- hdi(xdf, ci = ci, verbose = verbose, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -298,7 +298,7 @@ hdi.stanreg <- function(x,
   )
 
   attr(out, "clean_parameters") <- cleaned_parameters
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- unique(c("bayestestR_hdi", "see_hdi", class(out)))
   out
 }
@@ -339,7 +339,7 @@ hdi.brmsfit <- function(x,
   )
 
   attr(out, "clean_parameters") <- cleaned_parameters
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- unique(c("bayestestR_hdi", "see_hdi", class(out)))
   out
 }
@@ -348,7 +348,7 @@ hdi.brmsfit <- function(x,
 #' @export
 hdi.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
   out <- hdi(insight::get_parameters(x), ci = ci, verbose = verbose, ...)
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -358,9 +358,9 @@ hdi.get_predicted <- function(x, ...) {
   if ("iterations" %in% names(attributes(x))) {
     out <- hdi(as.data.frame(t(attributes(x)$iterations)), ...)
   } else {
-    stop("No iterations present in the output.", call. = FALSE)
+    insight::format_error("No iterations present in the output.")
   }
-  attr(out, "object_name") <- insight::safe_deparse(substitute(x))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -383,7 +383,7 @@ hdi.get_predicted <- function(x, ...) {
 
   if (window_size < 2) {
     if (verbose) {
-      warning("`ci` is too small or x does not contain enough data points, returning NAs.", call. = FALSE)
+      insight::format_warning("`ci` is too small or x does not contain enough data points, returning NAs.")
     }
     return(data.frame(
       "CI" = ci,
@@ -396,7 +396,7 @@ hdi.get_predicted <- function(x, ...) {
 
   if (nCIs < 1) {
     if (verbose) {
-      warning("`ci` is too large or x does not contain enough data points, returning NAs.", call. = FALSE)
+      insight::format_warning("`ci` is too large or x does not contain enough data points, returning NAs.")
     }
     return(data.frame(
       "CI" = ci,
@@ -414,7 +414,7 @@ hdi.get_predicted <- function(x, ...) {
   if (n_candies > 1) {
     if (any(diff(sort(min_i)) != 1)) {
       if (verbose) {
-        warning("Identical densities found along different segments of the distribution, choosing rightmost.", call. = FALSE)
+        insight::format_warning("Identical densities found along different segments of the distribution, choosing rightmost.")
       }
       min_i <- max(min_i)
     } else {

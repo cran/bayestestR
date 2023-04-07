@@ -1,4 +1,28 @@
-# bayestestR 0.12.x
+# bayestestR 0.13.1
+
+## Changes
+
+* Improved speed performance when functions are called using `do.call()`.
+
+* Improved speed performance to `bayesfactor_models()` for `brmsfit` objects
+  that already included a `marglik` element in the model object.
+  
+## New functionality
+
+* `as.logical()` for `bayesfactor_restricted()` results, extracts the boolean
+  vector(s) the mark which draws are part of the order restriction.
+
+## Bug fixes
+
+* `p_map()` gains a new `null` argument to specify any non-0 nulls.
+
+* Fixed non-working examples for `ci(method = "SI")`.
+
+* Fixed wrong calculation of rope range for model objects in `describe_posterior()`.
+
+* Some smaller bug fixes.
+
+# bayestestR 0.13.0
 
 ## Breaking
 
@@ -514,7 +538,7 @@
 - `hdi()` returned multiple class attributes (#72)
 
 - Printing results from `hdi()` failed when `ci`-argument had fractional parts
-  for percentage values (e.g. `ci = .995`).
+  for percentage values (e.g. `ci = 0.995`).
 
 - `plot.equivalence_test()` did not work properly for *brms*-models (#76).
 

@@ -48,7 +48,7 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
     data <- insight::get_data(model)
   }
 
-  info <- insight::model_info(model)
+  info <- insight::model_info(model, verbose = FALSE)
   formula <- insight::find_formula(model)
   family <- insight::get_family(model)
   if (inherits(family, "brmsfamily")) {
@@ -67,9 +67,7 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
   }
 
   if (inherits(freq, "error")) {
-    stop(insight::format_message(
-      "Model could not be automatically converted to frequentist model."
-    ), call. = FALSE)
+    insight::format_error("Model could not be automatically converted to frequentist model.")
   } else {
     return(freq)
   }

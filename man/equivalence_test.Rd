@@ -50,7 +50,8 @@ each response variable. Vector names should correspond to the name of the respon
 variables. If \code{"default"} and input is a vector, the range is set to \code{c(-0.1, 0.1)}. If \code{"default"} and input is a Bayesian model,
 \code{\link[=rope_range]{rope_range()}} is used.}
 
-\item{ci}{The Credible Interval (CI) probability, corresponding to the proportion of HDI, to use for the percentage in ROPE.}
+\item{ci}{The Credible Interval (CI) probability, corresponding to the
+proportion of HDI, to use for the percentage in ROPE.}
 
 \item{verbose}{Toggle off warnings.}
 
@@ -145,7 +146,6 @@ print(test, digits = 4)
 library(rstanarm)
 model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 equivalence_test(model)
-equivalence_test(model, ci = c(.50, 1))
 
 # plot result
 test <- equivalence_test(model)
@@ -157,12 +157,10 @@ equivalence_test(emtrends(model, ~1, "wt"))
 library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 equivalence_test(model)
-equivalence_test(model, ci = c(.50, .99))
 
 library(BayesFactor)
 bf <- ttestBF(x = rnorm(100, 1, 1))
-equivalence_test(bf)
-equivalence_test(bf, ci = c(.50, .99))
+# equivalence_test(bf)
 }
 }
 \references{

@@ -2,9 +2,8 @@
 # bayestestR <img src='man/figures/logo.png' align="right" height="139" />
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.01541/status.svg)](https://doi.org/10.21105/joss.01541)
-[![downloads](http://cranlogs.r-pkg.org/badges/bayestestR)](https://cran.r-project.org/package=bayestestR)
-[![total](https://cranlogs.r-pkg.org/badges/grand-total/bayestestR)](https://cranlogs.r-pkg.org/)
 [![status](https://tinyverse.netlify.com/badge/bayestestR)](https://CRAN.R-project.org/package=bayestestR)
+[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 
 ***Become a Bayesian master you will***
 
@@ -58,18 +57,20 @@ Once you have downloaded the package, you can then load it using:
 library("bayestestR")
 ```
 
+> **Tip**
+>
+> **Instead of `library(datawizard)`, use `library(easystats)`.** **This
+> will make all features of the easystats-ecosystem available.**
+>
+> **To stay updated, use `easystats::install_latest()`.**
+
 ## Documentation
 
-[![Documentation](https://img.shields.io/badge/documentation-bayestestR-orange.svg?colorB=E91E63)](https://easystats.github.io/bayestestR/)
-[![Blog](https://img.shields.io/badge/blog-easystats-orange.svg?colorB=FF9800)](https://easystats.github.io/blog/posts/)
-[![Features](https://img.shields.io/badge/features-bayestestR-orange.svg?colorB=2196F3)](https://easystats.github.io/bayestestR/reference/index.html)
-
-Click on the buttons above to access the package
-[documentation](https://easystats.github.io/bayestestR/) and the
-[easystats blog](https://easystats.github.io/blog/posts/), and check-out
+Access the package
+[documentation](https://easystats.github.io/bayestestR/) and check-out
 these vignettes:
 
-#### Tutorials
+### Tutorials
 
 - [Get Started with Bayesian
   Analysis](https://easystats.github.io/bayestestR/articles/bayestestR.html)
@@ -80,7 +81,7 @@ these vignettes:
 - [Example 3: Become a Bayesian
   master](https://easystats.github.io/bayestestR/articles/example3.html)
 
-#### Articles
+### Articles
 
 - [Credible Intervals
   (CI)](https://easystats.github.io/bayestestR/articles/credible_interval.html)
@@ -153,13 +154,14 @@ cited below at once.
 describe_posterior(
   rnorm(10000),
   centrality = "median",
-  test = c("p_direction", "p_significance")
+  test = c("p_direction", "p_significance"),
+  verbose = FALSE
 )
 ## Summary of Posterior Distribution
 ## 
-## Parameter |   Median |        95% CI |     pd |   ps
-## ----------------------------------------------------
-## Posterior | 5.58e-03 | [-1.99, 1.94] | 50.25% | 0.46
+## Parameter | Median |        95% CI |     pd |   ps
+## --------------------------------------------------
+## Posterior |   0.01 | [-1.97, 1.99] | 50.58% | 0.47
 ```
 
 `describe_posterior()` works for many objects, including more complex
@@ -237,7 +239,7 @@ describe_posterior(
 
 *bayestestR* also includes [**many other
 features**](https://easystats.github.io/bayestestR/reference/index.html)
-useful for your Bayesian analsyes. Here are some more examples:
+useful for your Bayesian analyses. Here are some more examples:
 
 ## Point-estimates
 
@@ -287,10 +289,10 @@ posterior distributions.
 ``` r
 posterior <- distribution_chisquared(10000, 4)
 
-hdi(posterior, ci = .89)
+hdi(posterior, ci = 0.89)
 ## 89% HDI: [0.18, 7.63]
 
-eti(posterior, ci = .89)
+eti(posterior, ci = 0.89)
 ## 89% ETI: [0.75, 9.25]
 ```
 
@@ -390,7 +392,7 @@ Kuriyal, & Grasman, 2010).
 prior <- distribution_normal(10000, mean = 0, sd = 1)
 posterior <- distribution_normal(10000, mean = 1, sd = 0.7)
 
-bayesfactor_parameters(posterior, prior, direction = "two-sided", null = 0)
+bayesfactor_parameters(posterior, prior, direction = "two-sided", null = 0, verbose = FALSE)
 ## Bayes Factor (Savage-Dickey density ratio)
 ## 
 ## BF  
@@ -458,7 +460,7 @@ Compute the density of a given point of a distribution.
 
 ``` r
 density_at(rnorm(1000, 1, 1), 1)
-## [1] 0.38
+## [1] 0.39
 ```
 
 ## Code of Conduct
@@ -477,7 +479,7 @@ line-spacing="2">
 
 Kruschke, J. K. (2018). Rejecting or accepting parameter values in
 Bayesian estimation. *Advances in Methods and Practices in Psychological
-Science*, *1*(2), 270–280. <https://doi.org/10.1177/2515245918771304>
+Science*, *1*(2), 270–280.
 
 </div>
 
