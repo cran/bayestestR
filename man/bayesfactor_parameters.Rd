@@ -36,7 +36,7 @@ bayesfactor_rope(
   posterior,
   prior = NULL,
   direction = "two-sided",
-  null = rope_range(posterior),
+  null = rope_range(posterior, verbose = FALSE),
   verbose = TRUE,
   ...
 )
@@ -63,7 +63,7 @@ bf_rope(
   posterior,
   prior = NULL,
   direction = "two-sided",
-  null = rope_range(posterior),
+  null = rope_range(posterior, verbose = FALSE),
   verbose = TRUE,
   ...
 )
@@ -234,13 +234,18 @@ It is important to provide the correct \code{prior} for meaningful results.
 \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
 \item When \code{posterior} is a \code{stanreg}, \code{brmsfit} or other supported Bayesian model: \itemize{
 \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
-\item \code{prior} can also be a model equivalent to \code{posterior} but with samples from the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be a model equivalent to \code{posterior} but with samples from
+the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
 \item \strong{Note:} When \code{posterior} is a \code{brmsfit_multiple} model, \code{prior} \strong{must} be provided.
 }
 \item When \code{posterior} is an \code{emmGrid} / \code{emm_list} object: \itemize{
-\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
-\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model. (\emph{This cannot be done for \code{brmsfit} models.})
-\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
+\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but
+created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to
+update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model.
+(\emph{This cannot be done for \code{brmsfit} models.})
+\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.),
+or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
 }
 }
 }
@@ -255,53 +260,54 @@ null-model) (\cite{Wetzels et al. 2011}).
 }
 
 \examples{
+\dontshow{if (require("logspline")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(bayestestR)
-if (require("logspline")) {
-  prior <- distribution_normal(1000, mean = 0, sd = 1)
-  posterior <- distribution_normal(1000, mean = .5, sd = .3)
-  (BF_pars <- bayesfactor_parameters(posterior, prior, verbose = FALSE))
+prior <- distribution_normal(1000, mean = 0, sd = 1)
+posterior <- distribution_normal(1000, mean = .5, sd = .3)
+(BF_pars <- bayesfactor_parameters(posterior, prior, verbose = FALSE))
 
-  as.numeric(BF_pars)
-}
-\dontrun{
+as.numeric(BF_pars)
+\dontshow{\}) # examplesIf}
+\dontshow{if (require("rstanarm") && require("emmeans") && require("logspline")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 # rstanarm models
 # ---------------
-if (require("rstanarm") && require("emmeans") && require("logspline")) {
-  contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
-  stan_model <- suppressWarnings(stan_lmer(
-    extra ~ group + (1 | ID),
-    data = sleep,
-    refresh = 0
-  ))
-  bayesfactor_parameters(stan_model, verbose = FALSE)
-  bayesfactor_parameters(stan_model, null = rope_range(stan_model))
+contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
+stan_model <- suppressWarnings(stan_lmer(
+  extra ~ group + (1 | ID),
+  data = sleep,
+  refresh = 0
+))
+bayesfactor_parameters(stan_model, verbose = FALSE)
+bayesfactor_parameters(stan_model, null = rope_range(stan_model))
 
-  # emmGrid objects
-  # ---------------
-  group_diff <- pairs(emmeans(stan_model, ~group))
-  bayesfactor_parameters(group_diff, prior = stan_model, verbose = FALSE)
+# emmGrid objects
+# ---------------
+group_diff <- pairs(emmeans(stan_model, ~group, data = sleep))
+bayesfactor_parameters(group_diff, prior = stan_model, verbose = FALSE)
 
-  # Or
-  group_diff_prior <- pairs(emmeans(unupdate(stan_model), ~group))
-  bayesfactor_parameters(group_diff, prior = group_diff_prior, verbose = FALSE)
+# Or
+# group_diff_prior <- pairs(emmeans(unupdate(stan_model), ~group))
+# bayesfactor_parameters(group_diff, prior = group_diff_prior, verbose = FALSE)
 }
-
+\dontshow{\}) # examplesIf}
+\dontshow{if (require("brms") && require("logspline")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # brms models
 # -----------
-if (require("brms")) {
-  contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
-  my_custom_priors <-
-    set_prior("student_t(3, 0, 1)", class = "b") +
-    set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
+\dontrun{
+contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
+my_custom_priors <-
+  set_prior("student_t(3, 0, 1)", class = "b") +
+  set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
 
-  brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
-    data = sleep,
-    prior = my_custom_priors,
-    refresh = 0
-  ))
-  bayesfactor_parameters(brms_model, verbose = FALSE)
+brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
+  data = sleep,
+  prior = my_custom_priors,
+  refresh = 0
+))
+bayesfactor_parameters(brms_model, verbose = FALSE)
 }
-}
+\dontshow{\}) # examplesIf}
 }
 \references{
 \itemize{

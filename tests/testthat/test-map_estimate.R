@@ -1,12 +1,20 @@
 # numeric ----------------------
 test_that("map_estimate", {
-  skip_if_offline()
-  skip_if_not_or_load_if_installed("rstanarm")
-
-  expect_equal(
-    as.numeric(map_estimate(distribution_normal(1000))),
-    0,
-    tolerance = 0.01
+  x <- distribution_normal(1000, 1)
+  MAP <- map_estimate(x)
+  expect_equal(as.numeric(MAP), 0.997, tolerance = 0.001, ignore_attr = TRUE)
+  expect_s3_class(MAP, "map_estimate")
+  expect_s3_class(MAP, "data.frame")
+  expect_identical(dim(MAP), c(1L, 2L))
+  expect_identical(
+    capture.output(print(MAP)),
+    c(
+      "MAP Estimate",
+      "",
+      "Parameter | MAP_Estimate",
+      "------------------------",
+      "x         |         1.00"
+    )
   )
 })
 

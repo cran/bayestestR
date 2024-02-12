@@ -7,7 +7,8 @@
 sexit(x, significant = "default", large = "default", ci = 0.95, ...)
 }
 \arguments{
-\item{x}{Vector representing a posterior distribution. Can also be a Bayesian model (\code{stanreg}, \code{brmsfit} or \code{BayesFactor}).}
+\item{x}{A vector representing a posterior distribution, a data frame of
+posterior draws (samples be parameter). Can also be a Bayesian model.}
 
 \item{significant, large}{The threshold values to use for significant and
 large probabilities. If left to 'default', will be selected through
@@ -110,7 +111,7 @@ The three values for existence, significance and size provide a useful descripti
 \item{The 3 indices are very low: this suggests that the effect is null with high confidence (the posterior is closely centred around 0).}}}
 }
 \examples{
-\dontrun{
+\donttest{
 library(bayestestR)
 
 s <- sexit(rnorm(1000, -1, 1))
@@ -122,10 +123,10 @@ s
 print(s, summary = TRUE)
 
 if (require("rstanarm")) {
-  model <- rstanarm::stan_glm(mpg ~ wt * cyl,
+  model <- suppressWarnings(rstanarm::stan_glm(mpg ~ wt * cyl,
     data = mtcars,
     iter = 400, refresh = 0
-  )
+  ))
   s <- sexit(model)
   s
   print(s, summary = TRUE)

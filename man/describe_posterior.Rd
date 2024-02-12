@@ -7,10 +7,10 @@
 \alias{describe_posterior.brmsfit}
 \title{Describe Posterior Distributions}
 \usage{
-describe_posterior(posteriors, ...)
+describe_posterior(posterior, ...)
 
 \method{describe_posterior}{numeric}(
-  posteriors,
+  posterior,
   centrality = "median",
   dispersion = FALSE,
   ci = 0.95,
@@ -21,11 +21,12 @@ describe_posterior(posteriors, ...)
   keep_iterations = FALSE,
   bf_prior = NULL,
   BF = 1,
+  verbose = TRUE,
   ...
 )
 
 \method{describe_posterior}{stanreg}(
-  posteriors,
+  posterior,
   centrality = "median",
   dispersion = FALSE,
   ci = 0.95,
@@ -42,11 +43,12 @@ describe_posterior(posteriors, ...)
     "distributional", "auxiliary"),
   parameters = NULL,
   BF = 1,
+  verbose = TRUE,
   ...
 )
 
 \method{describe_posterior}{brmsfit}(
-  posteriors,
+  posterior,
   centrality = "median",
   dispersion = FALSE,
   ci = 0.95,
@@ -63,23 +65,29 @@ describe_posterior(posteriors, ...)
   parameters = NULL,
   BF = 1,
   priors = FALSE,
+  verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{posteriors}{A vector, data frame or model of posterior draws.
+\item{posterior}{A vector, data frame or model of posterior draws.
 \strong{bayestestR} supports a wide range of models (see \code{methods("describe_posterior")})
 and not all of those are documented in the 'Usage' section, because methods
 for other classes mostly resemble the arguments of the \code{.numeric} method.}
 
 \item{...}{Additional arguments to be passed to or from methods.}
 
-\item{centrality}{The point-estimates (centrality indices) to compute.  Character (vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"} or \code{"all"}.}
+\item{centrality}{The point-estimates (centrality indices) to compute. Character
+(vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"}
+(see \code{\link[=map_estimate]{map_estimate()}}), \code{"trimmed"} (which is just \code{mean(x, trim = threshold)}),
+\code{"mode"} or \code{"all"}.}
 
-\item{dispersion}{Logical, if \code{TRUE}, computes indices of dispersion related to the estimate(s) (\code{SD} and \code{MAD} for \code{mean} and \code{median}, respectively).}
+\item{dispersion}{Logical, if \code{TRUE}, computes indices of dispersion related
+to the estimate(s) (\code{SD} and \code{MAD} for \code{mean} and \code{median}, respectively).
+Dispersion is not available for \code{"MAP"} or \code{"mode"} centrality indices.}
 
 \item{ci}{Value or vector of probability of the CI (between 0 and 1)
-to be estimated. Default to \code{.95} (\verb{95\%}).}
+to be estimated. Default to \code{0.95} (\verb{95\%}).}
 
 \item{ci_method}{The type of index used for Credible Interval. Can be
 \code{"ETI"} (default, see \code{\link[=eti]{eti()}}), \code{"HDI"}
@@ -112,6 +120,8 @@ Bayes factors / SI. Used if the input is a posterior, otherwise (in the
 case of models) ignored.}
 
 \item{BF}{The amount of support required to be included in the support interval.}
+
+\item{verbose}{Toggle off warnings.}
 
 \item{diagnostic}{Diagnostic metrics to compute.  Character (vector) or list
 with one or more of these options: \code{"ESS"}, \code{"Rhat"}, \code{"MCSE"} or \code{"all"}.}
@@ -169,11 +179,13 @@ if (require("logspline")) {
     describe_posterior(df, keep_iterations = TRUE, verbose = FALSE)
   ))
 }
-\dontrun{
+\donttest{
 # rstanarm models
 # -----------------------------------------------
 if (require("rstanarm") && require("emmeans")) {
-  model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+  model <- suppressWarnings(
+    stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+  )
   describe_posterior(model)
   describe_posterior(model, centrality = "all", dispersion = TRUE, test = "all")
   describe_posterior(model, ci = c(0.80, 0.90))

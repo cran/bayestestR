@@ -5,6 +5,7 @@
 \alias{eti.numeric}
 \alias{eti.stanreg}
 \alias{eti.brmsfit}
+\alias{eti.get_predicted}
 \title{Equal-Tailed Interval (ETI)}
 \usage{
 eti(x, ...)
@@ -31,6 +32,8 @@ eti(x, ...)
   verbose = TRUE,
   ...
 )
+
+\method{eti}{get_predicted}(x, ci = 0.95, use_iterations = FALSE, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
@@ -58,11 +61,17 @@ that should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
+
+\item{use_iterations}{Logical, if \code{TRUE} and \code{x} is a \code{get_predicted} object,
+(returned by \code{\link[insight:get_predicted]{insight::get_predicted()}}), the function is applied to the
+iterations instead of the predictions. This only applies to models that return
+iterations for predicted values (e.g., \code{brmsfit} models).}
 }
 \value{
 A data frame with following columns:
 \itemize{
-\item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a vector, this column is missing.
+\item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a
+vector, this column is missing.
 \item \code{CI} The probability of the credible interval.
 \item \code{CI_low}, \code{CI_high} The lower and upper credible interval limits for the parameters.
 }
@@ -81,20 +90,22 @@ from each tail of the distribution and always include the median, the HDI is
 distributions. While this can be useful to better represent the credibility
 mass of a distribution, the HDI also has some limitations. See \code{\link[=spi]{spi()}} for
 details.
-\cr \cr
+
 The \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{\verb{95\%} or \verb{89\%} Credible Intervals (CI)}
-are two reasonable ranges to characterize the uncertainty related to the estimation (see \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{here} for a discussion about the differences between these two values).
-\cr
+are two reasonable ranges to characterize the uncertainty related to the
+estimation (see \href{https://easystats.github.io/bayestestR/articles/credible_interval.html}{here}
+for a discussion about the differences between these two values).
+
 The \verb{89\%} intervals (\code{ci = 0.89}) are deemed to be more stable than, for
-instance, \verb{95\%} intervals (\cite{Kruschke, 2014}). An effective sample size
+instance, \verb{95\%} intervals (\emph{Kruschke, 2014}). An effective sample size
 of at least 10.000 is recommended if one wants to estimate \verb{95\%} intervals
-with high precision (\cite{Kruschke, 2014, p. 183ff}). Unfortunately, the
+with high precision (\emph{Kruschke, 2014, p. 183ff}). Unfortunately, the
 default number of posterior samples for most Bayes packages (e.g., \code{rstanarm}
 or \code{brms}) is only 4.000 (thus, you might want to increase it when fitting
 your model). Moreover, 89 indicates the arbitrariness of interval limits -
 its only remarkable property is being the highest prime number that does not
-exceed the already unstable \verb{95\%} threshold (\cite{McElreath, 2015}).
-\cr
+exceed the already unstable \verb{95\%} threshold (\emph{McElreath, 2015}).
+
 However, \verb{95\%} has some \href{https://easystats.github.io/blog/posts/bayestestr_95/}{advantages too}. For instance, it
 shares (in the case of a normal posterior distribution) an intuitive
 relationship with the standard deviation and it conveys a more accurate image
@@ -102,17 +113,17 @@ of the (artificial) bounds of the distribution. Also, because it is wider, it
 makes analyses more conservative (i.e., the probability of covering 0 is
 larger for the \verb{95\%} CI than for lower ranges such as \verb{89\%}), which is a good
 thing in the context of the reproducibility crisis.
-\cr \cr
+
 A \verb{95\%} equal-tailed interval (ETI) has \verb{2.5\%} of the distribution on either
 side of its limits. It indicates the 2.5th percentile and the 97.5h
 percentile. In symmetric distributions, the two methods of computing credible
 intervals, the ETI and the \link[=hdi]{HDI}, return similar results.
-\cr \cr
+
 This is not the case for skewed distributions. Indeed, it is possible that
 parameter values in the ETI have lower credibility (are less probable) than
 parameter values outside the ETI. This property seems undesirable as a summary
 of the credible values in a distribution.
-\cr \cr
+
 On the other hand, the ETI range does change when transformations are applied
 to the distribution (for instance, for a log odds scale to probabilities):
 the lower and higher bounds of the transformed distribution will correspond
@@ -121,6 +132,7 @@ On the contrary, applying transformations to the distribution will change
 the resulting HDI.
 }
 \examples{
+\dontshow{if (require("rstanarm") && require("emmeans") && require("brms") && require("BayesFactor")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(bayestestR)
 
 posterior <- rnorm(1000)
@@ -130,26 +142,24 @@ eti(posterior, ci = c(0.80, 0.89, 0.95))
 df <- data.frame(replicate(4, rnorm(100)))
 eti(df)
 eti(df, ci = c(0.80, 0.89, 0.95))
-\dontrun{
-library(rstanarm)
-model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+\donttest{
+model <- suppressWarnings(
+  rstanarm::stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+)
 eti(model)
 eti(model, ci = c(0.80, 0.89, 0.95))
 
-library(emmeans)
-eti(emtrends(model, ~1, "wt"))
+eti(emmeans::emtrends(model, ~1, "wt", data = mtcars))
 
-library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 eti(model)
 eti(model, ci = c(0.80, 0.89, 0.95))
 
-library(BayesFactor)
-bf <- ttestBF(x = rnorm(100, 1, 1))
+bf <- BayesFactor::ttestBF(x = rnorm(100, 1, 1))
 eti(bf)
 eti(bf, ci = c(0.80, 0.89, 0.95))
 }
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 Other ci: 

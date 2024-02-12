@@ -4,10 +4,8 @@
 #' and statistics, in which a trend appears in several different groups of data
 #' but disappears or reverses when these groups are combined.
 #'
-#' @param n The number of observations for each group to be generated (minimum
-#'   4).
-#' @param groups Number of groups (groups can be participants, clusters,
-#'   anything).
+#' @param n The number of observations for each group to be generated (minimum 4).
+#' @param groups Number of groups (groups can be participants, clusters, anything).
 #' @param difference Difference between groups.
 #' @param group_prefix The prefix of the group name (e.g., "G_1", "G_2", "G_3", ...).
 #' @inheritParams simulate_correlation
@@ -30,7 +28,7 @@ simulate_simpson <- function(n = 100,
                              difference = 1,
                              group_prefix = "G_") {
   if (n <= 3) {
-    stop("The number of observation `n` should be higher than 3", call. = FALSE)
+    insight::format_error("The number of observations `n` should be larger than 3.")
   }
 
   data <- data.frame()

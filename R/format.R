@@ -1,6 +1,6 @@
 #' @export
 format.describe_posterior <- function(x,
-                                      cp,
+                                      cp = NULL,
                                       digits = 2,
                                       format = "text",
                                       ci_string = "CI",
@@ -12,6 +12,11 @@ format.describe_posterior <- function(x,
     att <- attributes(x)
     x <- datawizard::reshape_ci(x)
     attributes(x) <- utils::modifyList(att, attributes(x))
+  }
+
+  # validation check
+  if (is.null(digits)) {
+    digits <- 2
   }
 
   # format columns and values of data frame
@@ -68,6 +73,11 @@ format.bayestestR_eti <- format.describe_posterior
 #' @export
 format.bayestestR_si <- format.describe_posterior
 
+#' @export
+format.equivalence_test <- format.describe_posterior
+
+#' @export
+format.rope <- format.describe_posterior
 
 
 

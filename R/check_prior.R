@@ -21,7 +21,7 @@
 #'   determined).
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(bayestestR)
 #' if (require("rstanarm")) {
 #'   model <- stan_glm(mpg ~ wt + am, data = mtcars, chains = 1, refresh = 0)
@@ -108,7 +108,7 @@ check_prior.blavaan <- check_prior.brmsfit
                          method = "gelman",
                          verbose = TRUE,
                          cleaned_parameters = NULL) {
-  # sanity check for matching parameters. Some weird priors like
+  # validation check for matching parameters. Some weird priors like
   # rstanarm's R2 prior might cause problems
 
   if (!is.null(cleaned_parameters) && ncol(priors) != ncol(posteriors)) {
@@ -147,16 +147,16 @@ check_prior.blavaan <- check_prior.brmsfit
     priors <- priors[common_columns]
     posteriors <- posteriors[common_columns]
     if (verbose) {
-      insight::format_warning("Parameters and priors could not be fully matched. Only returning results for parameters with matching priors.")
+      insight::format_warning(
+        "Parameters and priors could not be fully matched. Only returning results for parameters with matching priors."
+      )
     }
   }
 
 
   # for priors whose distribution cannot be simulated, prior values are
   # all NA. Catch those, and warn user
-  all_missing <- sapply(priors, function(i) {
-    all(is.na(i))
-  })
+  all_missing <- vapply(priors, function(i) all(is.na(i)), TRUE)
 
   if (any(all_missing) && verbose) {
     insight::format_warning("Some priors could not be simulated.")

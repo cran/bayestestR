@@ -1,38 +1,42 @@
 #' Maximum A Posteriori probability estimate (MAP)
 #'
-#' Find the **Highest Maximum A Posteriori probability estimate (MAP)** of a posterior, i.e., the value associated with the highest probability density (the "peak" of the posterior distribution). In other words, it is an estimation of the *mode* for continuous parameters. Note that this function relies on [estimate_density], which by default uses a different smoothing bandwidth (`"SJ"`) compared to the legacy default implemented the base R [density] function (`"nrd0"`).
+#' Find the **Highest Maximum A Posteriori probability estimate (MAP)** of a
+#' posterior, i.e., the value associated with the highest probability density
+#' (the "peak" of the posterior distribution). In other words, it is an estimation
+#' of the *mode* for continuous parameters. Note that this function relies on
+#' [`estimate_density()`], which by default uses a different smoothing bandwidth
+#' (`"SJ"`) compared to the legacy default implemented the base R [`density()`]
+#' function (`"nrd0"`).
 #'
 #' @inheritParams hdi
 #' @inheritParams estimate_density
 #'
 #' @return A numeric value if `x` is a vector. If `x` is a model-object,
 #' returns a data frame with following columns:
-#'   \itemize{
-#'     \item `Parameter` The model parameter(s), if `x` is a model-object. If `x` is a vector, this column is missing.
-#'     \item `MAP_Estimate` The MAP estimate for the posterior or each model parameter.
-#'   }
 #'
-#' @examples
-#' \dontrun{
+#' - `Parameter`: The model parameter(s), if `x` is a model-object. If `x` is a
+#'   vector, this column is missing.
+#' - `MAP_Estimate`: The MAP estimate for the posterior or each model parameter.
+#'
+#' @examplesIf require("rstanarm") && require("brms")
+#' \donttest{
 #' library(bayestestR)
 #'
 #' posterior <- rnorm(10000)
 #' map_estimate(posterior)
 #'
 #' plot(density(posterior))
-#' abline(v = map_estimate(posterior), col = "red")
+#' abline(v = as.numeric(map_estimate(posterior)), col = "red")
 #'
-#' library(rstanarm)
 #' model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 #' map_estimate(model)
 #'
-#' library(brms)
 #' model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 #' map_estimate(model)
 #' }
 #'
 #' @export
-map_estimate <- function(x, precision = 2^10, method = "kernel", ...) {
+map_estimate <- function(x, ...) {
   UseMethod("map_estimate")
 }
 
@@ -43,21 +47,21 @@ map_estimate <- function(x, precision = 2^10, method = "kernel", ...) {
 #' @rdname map_estimate
 #' @export
 map_estimate.numeric <- function(x, precision = 2^10, method = "kernel", ...) {
-  d <- estimate_density(x, precision = precision, method = method, ...)
-
-  hdp_x <- d$x[which.max(d$y)]
-  hdp_y <- max(d$y)
-
-  out <- hdp_x
-  attr(out, "MAP_density") <- hdp_y
-
+  out <- map_estimate(data.frame(x = x),
+    precision,
+    method = method, ...
+  )
   attr(out, "data") <- x
-  attr(out, "centrality") <- "map"
-  class(out) <- unique(c("map_estimate", "see_point_estimate", class(out)))
-
   out
 }
 
+.map_estimate <- function(x, precision = 2^10, method = "kernel", ...) {
+  d <- estimate_density(x, precision = precision, method = method, ...)
+
+  out <- d$x[which.max(d$y)]
+  attr(out, "MAP_density") <- max(d$y)
+  out
+}
 
 
 # other models -----------------------
@@ -92,7 +96,7 @@ map_estimate.mcmc.list <- map_estimate.bayesQR
 
 #' @keywords internal
 .map_estimate_models <- function(x, precision, method, ...) {
-  l <- sapply(x, map_estimate, precision = precision, method = method, simplify = FALSE, ...)
+  l <- sapply(x, .map_estimate, precision = precision, method = method, simplify = FALSE, ...)
 
   out <- data.frame(
     Parameter = colnames(x),
@@ -169,13 +173,36 @@ map_estimate.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
 map_estimate.emm_list <- map_estimate.emmGrid
 
 
+#' @rdname map_estimate
 #' @export
-map_estimate.get_predicted <- function(x, ...) {
-  if ("iterations" %in% names(attributes(x))) {
-    map_estimate(as.data.frame(t(attributes(x)$iterations)), ...)
+map_estimate.get_predicted <- function(x,
+                                       precision = 2^10,
+                                       method = "kernel",
+                                       use_iterations = FALSE,
+                                       verbose = TRUE,
+                                       ...) {
+  if (isTRUE(use_iterations)) {
+    if ("iterations" %in% names(attributes(x))) {
+      out <- map_estimate(
+        as.data.frame(t(attributes(x)$iterations)),
+        precision = precision,
+        method = method,
+        verbose = verbose,
+        ...
+      )
+    } else {
+      insight::format_error("No iterations present in the output.")
+    }
+    attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   } else {
-    insight::format_error("No iterations present in the output.")
+    out <- map_estimate(as.numeric(x),
+      precision = precision,
+      method = method,
+      verbose = verbose,
+      ...
+    )
   }
+  out
 }
 
 

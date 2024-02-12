@@ -91,13 +91,18 @@
 #'   \item When `posterior` is a `data.frame`, `prior` should also be a `data.frame`, with matching column order.
 #'   \item When `posterior` is a `stanreg`, `brmsfit` or other supported Bayesian model: \itemize{
 #'     \item `prior` can be set to `NULL`, in which case prior samples are drawn internally.
-#'     \item `prior` can also be a model equivalent to `posterior` but with samples from the priors *only*. See [unupdate()].
+#'     \item `prior` can also be a model equivalent to `posterior` but with samples from
+#'     the priors *only*. See [unupdate()].
 #'     \item **Note:** When `posterior` is a `brmsfit_multiple` model, `prior` **must** be provided.
 #'   }
 #'   \item When `posterior` is an `emmGrid` / `emm_list` object: \itemize{
-#'     \item `prior` should also be an `emmGrid` / `emm_list` object equivalent to `posterior` but created with a model of priors samples *only*. See [unupdate()].
-#'     \item `prior` can also be the original (posterior) *model*. If so, the function will try to update the `emmGrid` / `emm_list` to use the [unupdate()]d prior-model. (*This cannot be done for `brmsfit` models.*)
-#'     \item **Note**: When the `emmGrid` has undergone any transformations (`"log"`, `"response"`, etc.), or `regrid`ing, then `prior` must be an `emmGrid` object, as stated above.
+#'     \item `prior` should also be an `emmGrid` / `emm_list` object equivalent to `posterior` but
+#'     created with a model of priors samples *only*. See [unupdate()].
+#'     \item `prior` can also be the original (posterior) *model*. If so, the function will try to
+#'     update the `emmGrid` / `emm_list` to use the [unupdate()]d prior-model.
+#'     (*This cannot be done for `brmsfit` models.*)
+#'     \item **Note**: When the `emmGrid` has undergone any transformations (`"log"`, `"response"`, etc.),
+#'     or `regrid`ing, then `prior` must be an `emmGrid` object, as stated above.
 #'   }
 #' }
 #'
@@ -108,54 +113,53 @@
 #' Bayes factor smaller than 1/3 indicates substantial evidence in favor of the
 #' null-model) (\cite{Wetzels et al. 2011}).
 #'
-#' @examples
+#' @examplesIf require("logspline")
 #' library(bayestestR)
-#' if (require("logspline")) {
-#'   prior <- distribution_normal(1000, mean = 0, sd = 1)
-#'   posterior <- distribution_normal(1000, mean = .5, sd = .3)
-#'   (BF_pars <- bayesfactor_parameters(posterior, prior, verbose = FALSE))
+#' prior <- distribution_normal(1000, mean = 0, sd = 1)
+#' posterior <- distribution_normal(1000, mean = .5, sd = .3)
+#' (BF_pars <- bayesfactor_parameters(posterior, prior, verbose = FALSE))
 #'
-#'   as.numeric(BF_pars)
-#' }
-#' \dontrun{
+#' as.numeric(BF_pars)
+#'
+#' @examplesIf require("rstanarm") && require("emmeans") && require("logspline")
+#' \donttest{
 #' # rstanarm models
 #' # ---------------
-#' if (require("rstanarm") && require("emmeans") && require("logspline")) {
-#'   contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
-#'   stan_model <- suppressWarnings(stan_lmer(
-#'     extra ~ group + (1 | ID),
-#'     data = sleep,
-#'     refresh = 0
-#'   ))
-#'   bayesfactor_parameters(stan_model, verbose = FALSE)
-#'   bayesfactor_parameters(stan_model, null = rope_range(stan_model))
+#' contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
+#' stan_model <- suppressWarnings(stan_lmer(
+#'   extra ~ group + (1 | ID),
+#'   data = sleep,
+#'   refresh = 0
+#' ))
+#' bayesfactor_parameters(stan_model, verbose = FALSE)
+#' bayesfactor_parameters(stan_model, null = rope_range(stan_model))
 #'
-#'   # emmGrid objects
-#'   # ---------------
-#'   group_diff <- pairs(emmeans(stan_model, ~group))
-#'   bayesfactor_parameters(group_diff, prior = stan_model, verbose = FALSE)
+#' # emmGrid objects
+#' # ---------------
+#' group_diff <- pairs(emmeans(stan_model, ~group, data = sleep))
+#' bayesfactor_parameters(group_diff, prior = stan_model, verbose = FALSE)
 #'
-#'   # Or
-#'   group_diff_prior <- pairs(emmeans(unupdate(stan_model), ~group))
-#'   bayesfactor_parameters(group_diff, prior = group_diff_prior, verbose = FALSE)
+#' # Or
+#' # group_diff_prior <- pairs(emmeans(unupdate(stan_model), ~group))
+#' # bayesfactor_parameters(group_diff, prior = group_diff_prior, verbose = FALSE)
 #' }
-#'
+#' @examplesIf require("brms") && require("logspline")
 #' # brms models
 #' # -----------
-#' if (require("brms")) {
-#'   contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
-#'   my_custom_priors <-
-#'     set_prior("student_t(3, 0, 1)", class = "b") +
-#'     set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
+#' \dontrun{
+#' contrasts(sleep$group) <- contr.equalprior_pairs # see vingette
+#' my_custom_priors <-
+#'   set_prior("student_t(3, 0, 1)", class = "b") +
+#'   set_prior("student_t(3, 0, 1)", class = "sd", group = "ID")
 #'
-#'   brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
-#'     data = sleep,
-#'     prior = my_custom_priors,
-#'     refresh = 0
-#'   ))
-#'   bayesfactor_parameters(brms_model, verbose = FALSE)
+#' brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
+#'   data = sleep,
+#'   prior = my_custom_priors,
+#'   refresh = 0
+#' ))
+#' bayesfactor_parameters(brms_model, verbose = FALSE)
 #' }
-#' }
+#'
 #' @references
 #' \itemize{
 #' \item Wagenmakers, E. J., Lodewyckx, T., Kuriyal, H., and Grasman, R. (2010).
@@ -198,8 +202,8 @@ bayesfactor_pointnull <- function(posterior,
                                   null = 0,
                                   verbose = TRUE,
                                   ...) {
-  if (length(null) > 1 && verbose) {
-    message("'null' is a range - computing a ROPE based Bayes factor.")
+  if (length(null) > 1L && verbose) {
+    insight::format_alert("`null` is a range - computing a ROPE based Bayes factor.")
   }
 
   bayesfactor_parameters(
@@ -217,7 +221,7 @@ bayesfactor_pointnull <- function(posterior,
 bayesfactor_rope <- function(posterior,
                              prior = NULL,
                              direction = "two-sided",
-                             null = rope_range(posterior),
+                             null = rope_range(posterior, verbose = FALSE),
                              verbose = TRUE,
                              ...) {
   if (length(null) < 2 && verbose) {
@@ -248,7 +252,12 @@ bf_rope <- bayesfactor_rope
 
 #' @rdname bayesfactor_parameters
 #' @export
-bayesfactor_parameters.numeric <- function(posterior, prior = NULL, direction = "two-sided", null = 0, verbose = TRUE, ...) {
+bayesfactor_parameters.numeric <- function(posterior,
+                                           prior = NULL,
+                                           direction = "two-sided",
+                                           null = 0,
+                                           verbose = TRUE,
+                                           ...) {
   # nm <- insight::safe_deparse(substitute(posterior)
 
   if (is.null(prior)) {
@@ -290,9 +299,8 @@ bayesfactor_parameters.stanreg <- function(posterior,
   component <- match.arg(component)
 
   samps <- .clean_priors_and_posteriors(posterior, prior,
-    verbose = verbose,
     effects = effects, component = component,
-    parameters = parameters
+    parameters = parameters, verbose = verbose
   )
 
   # Get BFs
@@ -306,7 +314,8 @@ bayesfactor_parameters.stanreg <- function(posterior,
 
   class(bf_val) <- class(temp)
   attr(bf_val, "clean_parameters") <- cleaned_parameters
-  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis") # don't change the name of this attribute - it is used only internally for "see" and printing
+  # don't change the name of this attribute - it is used only internally for "see" and printing
+  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis")
   attr(bf_val, "direction") <- attr(temp, "direction")
   attr(bf_val, "plot_data") <- attr(temp, "plot_data")
 
@@ -345,7 +354,8 @@ bayesfactor_parameters.blavaan <- function(posterior,
 
   class(bf_val) <- class(temp)
   attr(bf_val, "clean_parameters") <- cleaned_parameters
-  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis") # don't change the name of this attribute - it is used only internally for "see" and printing
+  # don't change the name of this attribute - it is used only internally for "see" and printing
+  attr(bf_val, "hypothesis") <- attr(temp, "hypothesis")
   attr(bf_val, "direction") <- attr(temp, "direction")
   attr(bf_val, "plot_data") <- attr(temp, "plot_data")
 
@@ -360,15 +370,20 @@ bayesfactor_parameters.emmGrid <- function(posterior,
                                            null = 0,
                                            verbose = TRUE,
                                            ...) {
-  samps <- .clean_priors_and_posteriors(posterior, prior,
+  samps <- .clean_priors_and_posteriors(
+    posterior,
+    prior,
     verbose = verbose
   )
 
   # Get BFs
   bayesfactor_parameters.data.frame(
-    posterior = samps$posterior, prior = samps$prior,
-    direction = direction, null = null,
-    verbose = verbose, ...
+    posterior = samps$posterior,
+    prior = samps$prior,
+    direction = direction,
+    null = null,
+    verbose = verbose,
+    ...
   )
 }
 
@@ -404,9 +419,9 @@ bayesfactor_parameters.data.frame <- function(posterior,
   }
 
 
-  sdbf <- numeric(ncol(posterior))
+  sdlogbf <- numeric(ncol(posterior))
   for (par in seq_along(posterior)) {
-    sdbf[par] <- .bayesfactor_parameters(
+    sdlogbf[par] <- .logbayesfactor_parameters(
       posterior[[par]],
       prior[[par]],
       direction = direction,
@@ -417,7 +432,7 @@ bayesfactor_parameters.data.frame <- function(posterior,
 
   bf_val <- data.frame(
     Parameter = colnames(posterior),
-    log_BF = log(sdbf),
+    log_BF = sdlogbf,
     stringsAsFactors = FALSE
   )
 
@@ -457,23 +472,23 @@ bayesfactor_parameters.rvar <- bayesfactor_parameters.draws
 
 
 #' @keywords internal
-.bayesfactor_parameters <- function(posterior,
-                                    prior,
-                                    direction = 0,
-                                    null = 0,
-                                    ...) {
+.logbayesfactor_parameters <- function(posterior,
+                                       prior,
+                                       direction = 0,
+                                       null = 0,
+                                       ...) {
   stopifnot(length(null) %in% c(1, 2))
 
   if (isTRUE(all.equal(posterior, prior))) {
-    return(1)
+    return(0)
   }
 
   insight::check_if_installed("logspline")
 
   if (length(null) == 1) {
-    relative_density <- function(samples) {
+    relative_loglikelihood <- function(samples) {
       f_samples <- .logspline(samples, ...)
-      d_samples <- logspline::dlogspline(null, f_samples)
+      d_samples <- logspline::dlogspline(null, f_samples, log = TRUE)
 
       if (direction < 0) {
         norm_samples <- logspline::plogspline(null, f_samples)
@@ -483,36 +498,29 @@ bayesfactor_parameters.rvar <- bayesfactor_parameters.draws
         norm_samples <- 1
       }
 
-      d_samples / norm_samples
+      d_samples - log(norm_samples)
     }
-
-    return(relative_density(prior) / relative_density(posterior))
   } else if (length(null) == 2) {
     null <- sort(null)
     null[is.infinite(null)] <- 1.797693e+308 * sign(null[is.infinite(null)])
 
-    f_prior <- .logspline(prior, ...)
-    f_posterior <- .logspline(posterior, ...)
+    relative_loglikelihood <- function(samples) {
+      f_samples <- .logspline(samples, ...)
+      p_samples <- diff(logspline::plogspline(null, f_samples))
 
-    h0_prior <- diff(logspline::plogspline(null, f_prior))
-    h0_post <- diff(logspline::plogspline(null, f_posterior))
+      if (direction < 0) {
+        norm_samples <- logspline::plogspline(min(null), f_samples)
+      } else if (direction > 0) {
+        norm_samples <- 1 - logspline::plogspline(max(null), f_samples)
+      } else {
+        norm_samples <- 1 - p_samples
+      }
 
-    BF_null_full <- h0_post / h0_prior
-
-    if (direction < 0) {
-      h1_prior <- logspline::plogspline(min(null), f_prior)
-      h1_post <- logspline::plogspline(min(null), f_posterior)
-    } else if (direction > 0) {
-      h1_prior <- 1 - logspline::plogspline(max(null), f_prior)
-      h1_post <- 1 - logspline::plogspline(max(null), f_posterior)
-    } else {
-      h1_prior <- 1 - h0_prior
-      h1_post <- 1 - h0_post
+      log(p_samples) - log(norm_samples)
     }
-    BF_alt_full <- h1_post / h1_prior
-
-    return(BF_alt_full / BF_null_full)
   }
+
+  relative_loglikelihood(prior) - relative_loglikelihood(posterior)
 }
 
 # Bad Methods -------------------------------------------------------------

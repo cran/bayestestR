@@ -8,38 +8,33 @@
 #' @param REML For mixed effects, should models be estimated using
 #'   restricted maximum likelihood (REML) (`TRUE`, default) or maximum
 #'   likelihood (`FALSE`)?
-#' @examples
+#' @examplesIf require("rstanarm")
 #' \donttest{
 #' # Rstanarm ----------------------
-#' if (require("rstanarm")) {
-#'   # Simple regressions
-#'   model <- stan_glm(Sepal.Length ~ Species,
-#'     data = iris, chains = 2, refresh = 0
-#'   )
-#'   bayesian_as_frequentist(model)
-#' }
-#' }
+#' # Simple regressions
+#' model <- rstanarm::stan_glm(Sepal.Length ~ Species,
+#'   data = iris, chains = 2, refresh = 0
+#' )
+#' bayesian_as_frequentist(model)
 #'
-#' \dontrun{
-#' if (require("rstanarm")) {
-#'   model <- stan_glm(vs ~ mpg,
-#'     family = "binomial",
-#'     data = mtcars, chains = 2, refresh = 0
-#'   )
-#'   bayesian_as_frequentist(model)
+#' model <- rstanarm::stan_glm(vs ~ mpg,
+#'   family = "binomial",
+#'   data = mtcars, chains = 2, refresh = 0
+#' )
+#' bayesian_as_frequentist(model)
 #'
-#'   # Mixed models
-#'   model <- stan_glmer(Sepal.Length ~ Petal.Length + (1 | Species),
-#'     data = iris, chains = 2, refresh = 0
-#'   )
-#'   bayesian_as_frequentist(model)
+#' # Mixed models
+#' model <- rstanarm::stan_glmer(
+#'   Sepal.Length ~ Petal.Length + (1 | Species),
+#'   data = iris, chains = 2, refresh = 0
+#' )
+#' bayesian_as_frequentist(model)
 #'
-#'   model <- stan_glmer(vs ~ mpg + (1 | cyl),
-#'     family = "binomial",
-#'     data = mtcars, chains = 2, refresh = 0
-#'   )
-#'   bayesian_as_frequentist(model)
-#' }
+#' model <- rstanarm::stan_glmer(vs ~ mpg + (1 | cyl),
+#'   family = "binomial",
+#'   data = mtcars, chains = 2, refresh = 0
+#' )
+#' bayesian_as_frequentist(model)
 #' }
 #'
 #' @export
@@ -84,10 +79,7 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
   # subset,
   # knots,
   # meta-analysis
-  if (info$is_dispersion ||
-    info$is_zero_inflated ||
-    info$is_zeroinf ||
-    info$is_hurdle) {
+  if (info$is_dispersion || info$is_zero_inflated || info$is_zeroinf || info$is_hurdle) {
     insight::check_if_installed("glmmTMB")
 
     cond_formula <- .rebuild_cond_formula(formula)
@@ -124,6 +116,7 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
     )
   } else if (info$is_mixed) {
     insight::check_if_installed("lme4")
+    insight::check_if_installed("glmmTMB")
 
     cond_formula <- .rebuild_cond_formula(formula)
     if (info$is_linear) {
@@ -135,6 +128,7 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
         error = function(e) e
       )
     } else {
+      ## TODO: check if beta/Gamma are correctly captured
       freq <- tryCatch(
         lme4::glmer(
           formula = cond_formula,
@@ -143,6 +137,16 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
         ),
         error = function(e) e
       )
+      if (inherits(freq, "error")) {
+        freq <- tryCatch(
+          glmmTMB::glmmTMB(
+            formula = cond_formula,
+            family = family,
+            data = data
+          ),
+          error = function(e) e
+        )
+      }
     }
   } else {
     if (info$is_linear) {

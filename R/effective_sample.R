@@ -15,10 +15,12 @@
 #'   \item Bürkner, P. C. (2017). brms: An R package for Bayesian multilevel models using Stan. Journal of Statistical Software, 80(1), 1-28
 #' }
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf require("rstanarm")
+#' \donttest{
 #' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+#' model <- suppressWarnings(
+#'   stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+#' )
 #' effective_sample(model)
 #' }
 #' @export

@@ -5,9 +5,11 @@
 #' \cr \cr
 #' The `bf_*` function is an alias of the main function.
 #' \cr \cr
-#' \strong{For more info, in particular on specifying correct priors for factors with more than 2 levels, see [the Bayes factors vignette](https://easystats.github.io/bayestestR/articles/bayes_factors.html).}
+#' \strong{For more info, in particular on specifying correct priors for factors with more than 2 levels,
+#' see [the Bayes factors vignette](https://easystats.github.io/bayestestR/articles/bayes_factors.html).}
 #'
-#' @param posterior A `stanreg` / `brmsfit` object, `emmGrid` or a data frame - representing a posterior distribution(s) from (see Details).
+#' @param posterior A `stanreg` / `brmsfit` object, `emmGrid` or a data frame - representing
+#' a posterior distribution(s) from (see Details).
 #' @param hypothesis A character vector specifying the restrictions as logical conditions (see examples below).
 #' @param prior An object representing a prior distribution (see Details).
 #' @inheritParams hdi
@@ -33,15 +35,15 @@
 #' set.seed(444)
 #' library(bayestestR)
 #' prior <- data.frame(
-#'   A = rnorm(1000),
-#'   B = rnorm(1000),
-#'   C = rnorm(1000)
+#'   A = rnorm(500),
+#'   B = rnorm(500),
+#'   C = rnorm(500)
 #' )
 #'
 #' posterior <- data.frame(
-#'   A = rnorm(1000, .4, 0.7),
-#'   B = rnorm(1000, -.2, 0.4),
-#'   C = rnorm(1000, 0, 0.5)
+#'   A = rnorm(500, .4, 0.7),
+#'   B = rnorm(500, -.2, 0.4),
+#'   C = rnorm(500, 0, 0.5)
 #' )
 #'
 #' hyps <- c(
@@ -68,7 +70,7 @@
 #' )
 #'
 #' @examplesIf require("rstanarm")
-#' \dontrun{
+#' \donttest{
 #' # rstanarm models
 #' # ---------------
 #' data("mtcars")
@@ -86,7 +88,7 @@
 #' }
 #'
 #' @examplesIf require("rstanarm") && require("emmeans")
-#' \dontrun{
+#' \donttest{
 #' # emmGrid objects
 #' # ---------------
 #' # replicating http://bayesfactor.blogspot.com/2015/01/multiple-comparisons-with-bayesfactor-2.html
@@ -94,7 +96,7 @@
 #' contrasts(disgust$condition) <- contr.equalprior_pairs # see vignette
 #' fit_model <- rstanarm::stan_glm(score ~ condition, data = disgust, family = gaussian())
 #'
-#' em_condition <- emmeans::emmeans(fit_model, ~condition)
+#' em_condition <- emmeans::emmeans(fit_model, ~condition, data = disgust)
 #' hyps <- c("lemon < control & control < sulfur")
 #'
 #' bayesfactor_restricted(em_condition, prior = fit_model, hypothesis = hyps)
@@ -107,9 +109,12 @@
 #' }
 #'
 #' @references
-#' - Morey, R. D., & Wagenmakers, E. J. (2014). Simple relation between Bayesian order-restricted and point-null hypothesis tests. Statistics & Probability Letters, 92, 121-124.
-#' - Morey, R. D., & Rouder, J. N. (2011). Bayes factor approaches for testing interval null hypotheses. Psychological methods, 16(4), 406.
-#' - Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions. Retrieved from https://richarddmorey.org/category/order-restrictions/.
+#' - Morey, R. D., & Wagenmakers, E. J. (2014). Simple relation between Bayesian order-restricted and
+#' point-null hypothesis tests. Statistics & Probability Letters, 92, 121-124.
+#' - Morey, R. D., & Rouder, J. N. (2011). Bayes factor approaches for testing interval null hypotheses.
+#' Psychological methods, 16(4), 406.
+#' - Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions.
+#' Retrieved from https://richarddmorey.org/category/order-restrictions/.
 #'
 #' @export
 bayesfactor_restricted <- function(posterior, hypothesis, prior = NULL, verbose = TRUE, ...) {
@@ -131,7 +136,7 @@ bayesfactor_restricted.stanreg <- function(posterior, hypothesis, prior = NULL,
   component <- match.arg(component)
 
   samps <- .clean_priors_and_posteriors(posterior, prior,
-    effects, component,
+    effects = effects, component = component,
     verbose = verbose
   )
 
@@ -212,17 +217,17 @@ bayesfactor_restricted.data.frame <- function(posterior, hypothesis, prior = NUL
 
   posterior_l <- as.data.frame(lapply(p_hypothesis, .test_hypothesis, data = posterior))
   prior_l <- as.data.frame(lapply(p_hypothesis, .test_hypothesis, data = prior))
-  colnames(posterior_l) <- colnames(prior_l) <- if (!is.null(names(hypothesis))) names(hypothesis) else hypothesis
+  colnames(posterior_l) <- colnames(prior_l) <- if (is.null(names(hypothesis))) hypothesis else names(hypothesis)
 
   posterior_p <- sapply(posterior_l, mean)
   prior_p <- sapply(prior_l, mean)
-  BF <- posterior_p / prior_p
+  log_BF <- log(posterior_p) - log(prior_p)
 
   res <- data.frame(
     Hypothesis = hypothesis,
     p_prior = prior_p,
     p_posterior = posterior_p,
-    log_BF = log(BF)
+    log_BF = log_BF
   )
 
   attr(res, "bool_results") <- list(posterior = posterior_l, prior = prior_l)

@@ -7,10 +7,11 @@
 \alias{si.brmsfit}
 \alias{si.blavaan}
 \alias{si.emmGrid}
+\alias{si.get_predicted}
 \alias{si.data.frame}
 \title{Compute Support Intervals}
 \usage{
-si(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
+si(posterior, ...)
 
 \method{si}{numeric}(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
 
@@ -52,6 +53,15 @@ si(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
 
 \method{si}{emmGrid}(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
 
+\method{si}{get_predicted}(
+  posterior,
+  prior = NULL,
+  BF = 1,
+  use_iterations = FALSE,
+  verbose = TRUE,
+  ...
+)
+
 \method{si}{data.frame}(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
 }
 \arguments{
@@ -59,14 +69,14 @@ si(posterior, prior = NULL, BF = 1, verbose = TRUE, ...)
 \code{emmGrid} or a data frame - representing a posterior distribution(s)
 from (see 'Details').}
 
+\item{...}{Arguments passed to and from other methods. (Can be used to pass
+arguments to internal \code{\link[logspline:logspline]{logspline::logspline()}}.)}
+
 \item{prior}{An object representing a prior distribution (see 'Details').}
 
 \item{BF}{The amount of support required to be included in the support interval.}
 
 \item{verbose}{Toggle off warnings.}
-
-\item{...}{Arguments passed to and from other methods. (Can be used to pass
-arguments to internal \code{\link[logspline:logspline]{logspline::logspline()}}.)}
 
 \item{effects}{Should results for fixed effects, random effects or both be
 returned? Only applies to mixed models. May be abbreviated.}
@@ -80,10 +90,15 @@ that should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
+
+\item{use_iterations}{Logical, if \code{TRUE} and \code{x} is a \code{get_predicted} object,
+(returned by \code{\link[insight:get_predicted]{insight::get_predicted()}}), the function is applied to the
+iterations instead of the predictions. This only applies to models that return
+iterations for predicted values (e.g., \code{brmsfit} models).}
 }
 \value{
 A data frame containing the lower and upper bounds of the SI.
-\cr
+
 Note that if the level of requested support is higher than observed in the data, the
 interval will be \verb{[NA,NA]}.
 }
@@ -93,30 +108,34 @@ than average, by some degree \emph{k}; these are values of the parameter that ar
 updating factor greater or equal than \emph{k}. From the perspective of the Savage-Dickey Bayes factor, testing
 against a point null hypothesis for any value within the support interval will yield a Bayes factor smaller
 than \emph{1/k}.
-\cr \cr
-\strong{For more info, in particular on specifying correct priors for factors with more than 2 levels,
-see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
 }
 \details{
+\strong{For more info, in particular on specifying correct priors for factors with more than 2 levels,
+see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
+
 This method is used to compute support intervals based on prior and posterior distributions.
 For the computation of support intervals, the model priors must be proper priors (at the very least
 they should be \emph{not flat}, and it is preferable that they be \emph{informative} - note
 that by default, \code{brms::brm()} uses flat priors for fixed-effects; see example below).
-
-\subsection{Choosing a value of \code{BF}}{
-The choice of \code{BF} (the level of support) depends on what we want our interval to represent:
-\itemize{
-\item A \code{BF} = 1 contains values whose credibility is not decreased by observing the data.
-\item A \code{BF} > 1 contains values who received more impressive support from the data.
-\item A \code{BF} < 1 contains values whose credibility has \emph{not} been impressively decreased by observing the data.
-Testing against values outside this interval will produce a Bayes factor larger than 1/\code{BF} in support of
-the alternative. E.g., if an SI (BF = 1/3) excludes 0, the Bayes factor against the point-null will be larger than 3.
-}
-}
 }
 \note{
 There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 }
+\section{Choosing a value of \code{BF}}{
+
+The choice of \code{BF} (the level of support) depends on what we want our interval
+to represent:
+\itemize{
+\item A \code{BF} = 1 contains values whose credibility is not decreased by observing the data.
+\item A \code{BF} > 1 contains values who received more impressive support from the data.
+\item A \code{BF} < 1 contains values whose credibility has \emph{not} been impressively
+decreased by observing the data. Testing against values outside this interval
+will produce a Bayes factor larger than 1/\code{BF} in support of the alternative.
+E.g., if an SI (BF = 1/3) excludes 0, the Bayes factor against the point-null
+will be larger than 3.
+}
+}
+
 \section{Setting the correct \code{prior}}{
 
 For the computation of Bayes factors, the model priors must be proper priors
@@ -137,39 +156,44 @@ It is important to provide the correct \code{prior} for meaningful results.
 \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
 \item When \code{posterior} is a \code{stanreg}, \code{brmsfit} or other supported Bayesian model: \itemize{
 \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
-\item \code{prior} can also be a model equivalent to \code{posterior} but with samples from the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be a model equivalent to \code{posterior} but with samples from
+the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
 \item \strong{Note:} When \code{posterior} is a \code{brmsfit_multiple} model, \code{prior} \strong{must} be provided.
 }
 \item When \code{posterior} is an \code{emmGrid} / \code{emm_list} object: \itemize{
-\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
-\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model. (\emph{This cannot be done for \code{brmsfit} models.})
-\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
+\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but
+created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to
+update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model.
+(\emph{This cannot be done for \code{brmsfit} models.})
+\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.),
+or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
 }
 }
 }
 
 \examples{
-\dontshow{if (requireNamespace("logspline", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (require("logspline") && require("rstanarm") && require("brms") && require("emmeans")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(bayestestR)
 
 prior <- distribution_normal(1000, mean = 0, sd = 1)
-posterior <- distribution_normal(1000, mean = .5, sd = .3)
+posterior <- distribution_normal(1000, mean = 0.5, sd = 0.3)
 
-si(posterior, prior)
-\dontrun{
+si(posterior, prior, verbose = FALSE)
+\donttest{
 # rstanarm models
 # ---------------
 library(rstanarm)
 contrasts(sleep$group) <- contr.equalprior_pairs # see vignette
 stan_model <- stan_lmer(extra ~ group + (1 | ID), data = sleep)
-si(stan_model)
-si(stan_model, BF = 3)
+si(stan_model, verbose = FALSE)
+si(stan_model, BF = 3, verbose = FALSE)
 
 # emmGrid objects
 # ---------------
 library(emmeans)
 group_diff <- pairs(emmeans(stan_model, ~group))
-si(group_diff, prior = stan_model)
+si(group_diff, prior = stan_model, verbose = FALSE)
 
 # brms models
 # -----------
@@ -184,12 +208,13 @@ brms_model <- suppressWarnings(brm(extra ~ group + (1 | ID),
   prior = my_custom_priors,
   refresh = 0
 ))
-si(brms_model)
+si(brms_model, verbose = FALSE)
 }
 \dontshow{\}) # examplesIf}
 }
 \references{
-Wagenmakers, E., Gronau, Q. F., Dablander, F., & Etz, A. (2018, November 22). The Support Interval. \doi{10.31234/osf.io/zwnxb}
+Wagenmakers, E., Gronau, Q. F., Dablander, F., & Etz, A. (2018, November 22).
+The Support Interval. \doi{10.31234/osf.io/zwnxb}
 }
 \seealso{
 Other ci: 

@@ -22,7 +22,7 @@ bf_models(..., denominator = 1, verbose = TRUE)
 \item{...}{Fitted models (see details), all fit on the same data, or a single
 \code{BFBayesFactor} object (see 'Details'). Ignored in \code{as.matrix()},
 \code{update()}. If the following named arguments are present, they are passed
-to \link[insight:get_loglikelihood]{insight::get_loglikelihood} (see details):
+to \code{\link[insight:get_loglikelihood]{insight::get_loglikelihood()}} (see details):
 \itemize{
 \item \code{estimator} (defaults to \code{"ML"})
 \item \code{check_response}  (defaults to \code{FALSE})
@@ -53,9 +53,9 @@ This function computes or extracts Bayes factors from fitted models.
 The \verb{bf_*} function is an alias of the main function.
 }
 \details{
-If the passed models are supported by \pkg{insight} the DV of all models will be tested for equality
-(else this is assumed to be true), and the models' terms will be extracted (allowing for follow-up
-analysis with \code{bayesfactor_inclusion}).
+If the passed models are supported by \strong{insight} the DV of all models will
+be tested for equality (else this is assumed to be true), and the models'
+terms will be extracted (allowing for follow-up analysis with \code{bayesfactor_inclusion}).
 \itemize{
 \item For \code{brmsfit} or \code{stanreg} models, Bayes factors are computed using the \CRANpkg{bridgesampling} package.
 \itemize{
@@ -74,9 +74,9 @@ are the 4 P's: \strong{P}roper \strong{P}riors and \strong{P}lentiful
 testing is substantially larger than for estimation (the default of 4000
 samples may not be enough in many cases). A conservative rule of thumb is to
 obtain 10 times more samples than would be required for estimation
-(\cite{Gronau, Singmann, & Wagenmakers, 2017}). If less than 40,000 samples
+(\emph{Gronau, Singmann, & Wagenmakers, 2017}). If less than 40,000 samples
 are detected, \code{bayesfactor_models()} gives a warning.
-\cr \cr
+
 See also \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.
 }
 \note{
@@ -93,6 +93,7 @@ null-model) (\cite{Wetzels et al. 2011}).
 }
 
 \examples{
+\dontshow{if (require("lme4") && require("BayesFactor") && require("rstanarm") && require("brms")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # With lm objects:
 # ----------------
 lm1 <- lm(mpg ~ 1, data = mtcars)
@@ -103,83 +104,74 @@ lm4 <- lm(mpg ~ hp * drat, data = mtcars)
 # bayesfactor_models(lm2, lm3, lm4, denominator = lm1) # same result
 # bayesfactor_models(lm1, lm2, lm3, lm4, denominator = lm1) # same result
 
-
 update(BFM, reference = "bottom")
 as.matrix(BFM)
 as.numeric(BFM)
-
 
 lm2b <- lm(sqrt(mpg) ~ hp, data = mtcars)
 # Set check_response = TRUE for transformed responses
 bayesfactor_models(lm2b, denominator = lm2, check_response = TRUE)
 
-\dontrun{
+\donttest{
 # With lmerMod objects:
 # ---------------------
-if (require("lme4")) {
-  lmer1 <- lmer(Sepal.Length ~ Petal.Length + (1 | Species), data = iris)
-  lmer2 <- lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species), data = iris)
-  lmer3 <- lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species) + (1 | Petal.Width),
-    data = iris
-  )
-  bayesfactor_models(lmer1, lmer2, lmer3,
-    denominator = 1,
-    estimator = "REML"
-  )
-}
+lmer1 <- lme4::lmer(Sepal.Length ~ Petal.Length + (1 | Species), data = iris)
+lmer2 <- lme4::lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species), data = iris)
+lmer3 <- lme4::lmer(
+  Sepal.Length ~ Petal.Length + (Petal.Length | Species) + (1 | Petal.Width),
+  data = iris
+)
+bayesfactor_models(lmer1, lmer2, lmer3,
+  denominator = 1,
+  estimator = "REML"
+)
 
 # rstanarm models
 # ---------------------
 # (note that a unique diagnostic_file MUST be specified in order to work)
-if (require("rstanarm")) {
-  stan_m0 <- stan_glm(Sepal.Length ~ 1,
-    data = iris,
-    family = gaussian(),
-    diagnostic_file = file.path(tempdir(), "df0.csv")
-  )
-  stan_m1 <- stan_glm(Sepal.Length ~ Species,
-    data = iris,
-    family = gaussian(),
-    diagnostic_file = file.path(tempdir(), "df1.csv")
-  )
-  stan_m2 <- stan_glm(Sepal.Length ~ Species + Petal.Length,
-    data = iris,
-    family = gaussian(),
-    diagnostic_file = file.path(tempdir(), "df2.csv")
-  )
-  bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0, verbose = FALSE)
-}
+stan_m0 <- suppressWarnings(rstanarm::stan_glm(Sepal.Length ~ 1,
+  data = iris,
+  family = gaussian(),
+  diagnostic_file = file.path(tempdir(), "df0.csv")
+))
+stan_m1 <- suppressWarnings(rstanarm::stan_glm(Sepal.Length ~ Species,
+  data = iris,
+  family = gaussian(),
+  diagnostic_file = file.path(tempdir(), "df1.csv")
+))
+stan_m2 <- suppressWarnings(rstanarm::stan_glm(Sepal.Length ~ Species + Petal.Length,
+  data = iris,
+  family = gaussian(),
+  diagnostic_file = file.path(tempdir(), "df2.csv")
+))
+bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0, verbose = FALSE)
 
 
 # brms models
 # --------------------
 # (note the save_pars MUST be set to save_pars(all = TRUE) in order to work)
-if (require("brms")) {
-  brm1 <- brm(Sepal.Length ~ 1, data = iris, save_pars = save_pars(all = TRUE))
-  brm2 <- brm(Sepal.Length ~ Species, data = iris, save_pars = save_pars(all = TRUE))
-  brm3 <- brm(
-    Sepal.Length ~ Species + Petal.Length,
-    data = iris,
-    save_pars = save_pars(all = TRUE)
-  )
+brm1 <- brms::brm(Sepal.Length ~ 1, data = iris, save_pars = save_pars(all = TRUE))
+brm2 <- brms::brm(Sepal.Length ~ Species, data = iris, save_pars = save_pars(all = TRUE))
+brm3 <- brms::brm(
+  Sepal.Length ~ Species + Petal.Length,
+  data = iris,
+  save_pars = save_pars(all = TRUE)
+)
 
-  bayesfactor_models(brm1, brm2, brm3, denominator = 1, verbose = FALSE)
-}
+bayesfactor_models(brm1, brm2, brm3, denominator = 1, verbose = FALSE)
 
 
 # BayesFactor
 # ---------------------------
-if (require("BayesFactor")) {
-  data(puzzles)
-  BF <- anovaBF(RT ~ shape * color + ID,
-    data = puzzles,
-    whichRandom = "ID", progress = FALSE
-  )
-  BF
-  bayesfactor_models(BF) # basically the same
+data(puzzles)
+BF <- BayesFactor::anovaBF(RT ~ shape * color + ID,
+  data = puzzles,
+  whichRandom = "ID", progress = FALSE
+)
+BF
+bayesfactor_models(BF) # basically the same
 }
-}
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 \itemize{

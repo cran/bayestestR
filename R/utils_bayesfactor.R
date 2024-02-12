@@ -1,15 +1,14 @@
 # clean priors and posteriors ---------------------------------------------
 
 #' @keywords internal
-.clean_priors_and_posteriors <- function(posterior, prior,
-                                         verbose = TRUE, ...) {
+.clean_priors_and_posteriors <- function(posterior, prior, ...) {
   UseMethod(".clean_priors_and_posteriors")
 }
 
 #' @keywords internal
 .clean_priors_and_posteriors.stanreg <- function(posterior, prior,
                                                  verbose = TRUE,
-                                                 effects, component, ...) {
+                                                 ...) {
   # Get Priors
   if (is.null(prior)) {
     prior <- posterior
@@ -29,8 +28,8 @@
     insight::format_error(prior)
   }
 
-  prior <- insight::get_parameters(prior, effects = effects, component = component, ...)
-  posterior <- insight::get_parameters(posterior, effects = effects, component = component, ...)
+  prior <- insight::get_parameters(prior, ...)
+  posterior <- insight::get_parameters(posterior, ...)
 
   list(
     posterior = posterior,
@@ -65,34 +64,31 @@
 #' @keywords internal
 .clean_priors_and_posteriors.emmGrid <- function(posterior,
                                                  prior,
-                                                 verbose = TRUE) {
+                                                 verbose = TRUE,
+                                                 ...) {
   insight::check_if_installed("emmeans")
 
   if (is.null(prior)) {
     prior <- posterior
-    warning(
-      "Prior not specified! ",
-      "Please provide the original model to get meaningful results."
-    )
+    insight::format_warning("Prior not specified! Please provide the original model to get meaningful results.")
   }
 
 
   if (!inherits(prior, "emmGrid")) {
     # then is it a model
     on.exit(
-      stop(
+      insight::format_error(paste0(
         "Unable to reconstruct prior estimates.\n",
         "Perhaps the emmGrid object has been transformed or regrid()-ed?\n",
         "See function details.\n\n",
         "Instead, you can reestimate the emmGrid with a prior model, Try:\n",
         "\tprior_model <- unupdate(mode)\n",
-        "\tprior_emmgrid <- emmeans(prior_model, ...) # pass this as the 'prior' argument.",
-        call. = FALSE
-      )
+        "\tprior_emmgrid <- emmeans(prior_model, ...) # pass this as the 'prior' argument."
+      ))
     )
 
     if (inherits(prior, "brmsfit")) {
-      stop("Cannot rebuild prior emmGrid from a brmsfit model.", call. = FALSE)
+      insight::format_error("Cannot rebuild prior emmGrid from a brmsfit model.")
     }
 
 
@@ -107,16 +103,14 @@
           "See '?bayesfactor_parameters' for more information.\n"
         )
       }
-      stop(prior, call. = FALSE)
+      insight::format_error(prior)
     }
 
-    prior <- emmeans::ref_grid(prior)
+    prior <- suppressWarnings(emmeans::ref_grid(prior))
     prior <- prior@post.beta
 
     if (!isTRUE(all.equal(colnames(prior), colnames(posterior@post.beta)))) {
-      stop("post.beta and prior.beta are non-conformable arguments.",
-        call. = FALSE
-      )
+      insight::format_error("post.beta and prior.beta are non-conformable arguments.")
     }
     prior <- stats::update(posterior, post.beta = prior)
     on.exit() # undo general error message
@@ -132,20 +126,17 @@
 }
 
 .clean_priors_and_posteriors.emm_list <- function(posterior, prior,
-                                                  verbose = TRUE) {
+                                                  verbose = TRUE, ...) {
   if (is.null(prior)) {
     prior <- posterior
-    warning(
-      "Prior not specified! ",
-      "Please provide the original model to get meaningful results."
-    )
+    insight::format_warning("Prior not specified! Please provide the original model to get meaningful results.")
   }
 
   if (!inherits(prior, "emm_list")) {
     # prior is a model
 
     if (inherits(prior, "brmsfit")) {
-      stop("Cannot rebuild prior emm_list from a brmsfit model.", call. = FALSE)
+      insight::format_error("Cannot rebuild prior emm_list from a brmsfit model.")
     }
 
     prior <- try(unupdate(prior, verbose = verbose), silent = TRUE)
@@ -158,7 +149,7 @@
           "See '?bayesfactor_parameters' for more information.\n"
         )
       }
-      stop(prior, call. = FALSE)
+      insight::format_error(prior)
     }
   }
   # prior is now a model, or emm_list
@@ -199,11 +190,10 @@
 
   # Prior and post odds
   Modelnames <- BFGrid$Model
-  if (!is.null(priorOdds)) {
-    priorOdds <- c(1, priorOdds)
-  } else {
-    priorOdds <- rep(1, length(Modelnames))
+  if (is.null(priorOdds)) {
+    priorOdds <- rep(1, length(Modelnames) - 1)
   }
+  priorOdds <- c(1, priorOdds)
 
   prior_logodds <- log(priorOdds)
   posterior_logodds <- prior_logodds + BFGrid$log_BF
@@ -356,7 +346,7 @@
     samplesX <- do.call("rbind", samplesX)
 
     samplesX$Distribution <- point0$Distribution <- nm
-    rownames(samplesX) <- rownames(point0) <- c()
+    rownames(samplesX) <- rownames(point0) <- NULL
 
     list(samplesX, point0)
   }

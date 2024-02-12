@@ -4,30 +4,30 @@
 #' @inheritParams diagnostic_posterior
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(333)
 #'
 #' if (require("brms", quietly = TRUE)) {
-#'   model <- brm(mpg ~ wt * cyl * vs,
+#'   model <- suppressWarnings(brm(mpg ~ wt * cyl * vs,
 #'     data = mtcars,
 #'     iter = 100, control = list(adapt_delta = 0.80),
 #'     refresh = 0
-#'   )
+#'   ))
 #'   diagnostic_draws(model)
 #' }
 #' }
 #'
 #' @export
-diagnostic_draws <- function(posteriors, ...) {
+diagnostic_draws <- function(posterior, ...) {
   UseMethod("diagnostic_draws")
 }
 
 
 #' @export
-diagnostic_draws.brmsfit <- function(posteriors, ...) {
+diagnostic_draws.brmsfit <- function(posterior, ...) {
   insight::check_if_installed("brms")
 
-  data <- brms::nuts_params(posteriors)
+  data <- brms::nuts_params(posterior)
   data$idvar <- paste0(data$Chain, "_", data$Iteration)
   out <- stats::reshape(
     data,
@@ -37,7 +37,7 @@ diagnostic_draws.brmsfit <- function(posteriors, ...) {
     direction = "wide"
   )
   out$idvar <- NULL
-  out <- merge(out, brms::log_posterior(posteriors), by = c("Chain", "Iteration"), sort = FALSE)
+  out <- merge(out, brms::log_posterior(posterior), by = c("Chain", "Iteration"), sort = FALSE)
 
   # Rename
   names(out)[names(out) == "Value.accept_stat__"] <- "Acceptance_Rate"

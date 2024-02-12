@@ -5,14 +5,16 @@
 #' @inheritParams effective_sample
 #' @param n Size of the simulated prior distributions.
 #'
-#' @seealso [unupdate()] for directly sampling from the prior
+#' @seealso [`unupdate()`] for directly sampling from the prior
 #'   distribution (useful for complex priors and designs).
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(bayestestR)
 #' if (require("rstanarm")) {
-#'   model <- stan_glm(mpg ~ wt + am, data = mtcars, chains = 1, refresh = 0)
+#'   model <- suppressWarnings(
+#'     stan_glm(mpg ~ wt + am, data = mtcars, chains = 1, refresh = 0)
+#'   )
 #'   simulate_prior(model)
 #' }
 #' }
@@ -66,7 +68,7 @@ simulate_prior.brmsfit <- function(model,
     effects = effects,
     component = component,
     parameters = parameters,
-    verbose = verbose,
+    verbose = verbose
   )
 
   .simulate_prior(priors, n = n, verbose = verbose)
@@ -127,7 +129,7 @@ simulate_prior.bcplm <- function(model, n = 1000, verbose = TRUE, ...) {
   }
 
   if (sim_error_msg && verbose) {
-    warning(paste0("Can't simulate priors from a ", prior$Distribution, " distribution."), call. = FALSE)
+    insight::format_warning(paste0("Can't simulate priors from a ", prior$Distribution, " distribution."))
   }
 
   simulated$.bamboozled <- NULL

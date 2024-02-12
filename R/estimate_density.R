@@ -1,22 +1,34 @@
 #' Density Estimation
 #'
-#' This function is a wrapper over different methods of density estimation. By default, it uses the base R `density` with by default uses a different smoothing bandwidth (`"SJ"`) from the legacy default implemented the base R `density` function (`"nrd0"`). However, Deng and Wickham suggest that `method = "KernSmooth"` is the fastest and the most accurate.
+#' This function is a wrapper over different methods of density estimation. By
+#' default, it uses the base R `density` with by default uses a different smoothing
+#' bandwidth (`"SJ"`) from the legacy default implemented the base R `density`
+#' function (`"nrd0"`). However, Deng and Wickham suggest that `method = "KernSmooth"`
+#' is the fastest and the most accurate.
 #'
 #' @inheritParams hdi
 #' @inheritParams stats::density
-#' @param bw See the eponymous argument in `density`. Here, the default has been changed for `"SJ"`, which is recommended.
-#' @param ci The confidence interval threshold. Only used when `method = "kernel"`. This feature is experimental, use with caution.
-#' @param method Density estimation method. Can be `"kernel"` (default), `"logspline"` or `"KernSmooth"`.
+#' @param bw See the eponymous argument in `density`. Here, the default has been
+#' changed for `"SJ"`, which is recommended.
+#' @param ci The confidence interval threshold. Only used when `method = "kernel"`.
+#' This feature is experimental, use with caution.
+#' @param method Density estimation method. Can be `"kernel"` (default), `"logspline"`
+#' or `"KernSmooth"`.
 #' @param precision Number of points of density data. See the `n` parameter in `density`.
 #' @param extend Extend the range of the x axis by a factor of `extend_scale`.
-#' @param extend_scale Ratio of range by which to extend the x axis. A value of `0.1` means that the x axis will be extended by `1/10` of the range of the data.
-#' @param select Character vector of column names. If NULL (the default), all numeric variables will be selected. Other arguments from [datawizard::find_columns()] (such as `exclude`) can also be used.
-#' @param at Optional character vector. If not `NULL` and input is a data frame, density estimation is performed for each group (subsets) indicated by `at`. See examples.
+#' @param extend_scale Ratio of range by which to extend the x axis. A value of `0.1`
+#' means that the x axis will be extended by `1/10` of the range of the data.
+#' @param select Character vector of column names. If NULL (the default), all
+#' numeric variables will be selected. Other arguments from [datawizard::find_columns()]
+#' (such as `exclude`) can also be used.
+#' @param at Optional character vector. If not `NULL` and input is a data frame,
+#' density estimation is performed for each group (subsets) indicated by `at`.
+#' See examples.
 #' @param group_by Deprecated in favour of `at`.
 #'
 #' @note There is also a [`plot()`-method](https://easystats.github.io/see/articles/bayestestR.html) implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
-#' @examplesIf requireNamespace("logspline", quietly = TRUE) && requireNamespace("KernSmooth", quietly = TRUE) && requireNamespace("mclust", quietly = TRUE)
+#' @examplesIf require("logspline") && require("KernSmooth") && require("mclust") && require("emmeans") && require("rstanarm") && require("brms")
 #' library(bayestestR)
 #'
 #' set.seed(1)
@@ -60,15 +72,17 @@
 #' # Grouped data
 #' head(estimate_density(iris, at = "Species"))
 #' head(estimate_density(iris$Petal.Width, at = iris$Species))
-#' \dontrun{
+#' \donttest{
 #' # rstanarm models
 #' # -----------------------------------------------
 #' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+#' model <- suppressWarnings(
+#'   stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+#' )
 #' head(estimate_density(model))
 #'
 #' library(emmeans)
-#' head(estimate_density(emtrends(model, ~1, "wt")))
+#' head(estimate_density(emtrends(model, ~1, "wt", data = mtcars)))
 #'
 #' # brms models
 #' # -----------------------------------------------
@@ -150,9 +164,6 @@ estimate_density.default <- function(x, ...) {
 
 # Methods -----------------------------------------------------------------
 
-
-
-
 #' @export
 estimate_density.numeric <- function(x,
                                      method = "kernel",
@@ -175,9 +186,10 @@ estimate_density.numeric <- function(x,
 
   if (!is.null(at)) {
     if (length(at) == 1) {
-      insight::format_error(
-        "`at` must be either the name of a group column if a data frame is entered as input, or in this case (where a single vector was passed) a vector of same length."
-      )
+      insight::format_error(paste0(
+        "`at` must be either the name of a group column if a data frame is entered as input,",
+        " or in this case (where a single vector was passed) a vector of same length."
+      ))
     }
     out <- estimate_density(
       data.frame(V1 = x, Group = at, stringsAsFactors = FALSE),
@@ -208,9 +220,6 @@ estimate_density.numeric <- function(x,
 }
 
 
-
-
-
 #' @rdname estimate_density
 #' @export
 estimate_density.data.frame <- function(x,
@@ -226,7 +235,10 @@ estimate_density.data.frame <- function(x,
                                         ...) {
   # Sanity
   if (!is.null(group_by)) {
-    insight::format_warning("The 'group_by' argument is deprecated and might be removed in a future update. Please replace by 'at'.")
+    insight::format_warning(paste0(
+      "The `group_by` argument is deprecated and might be removed in a future update.",
+      " Please replace by `at`."
+    ))
     at <- group_by
   }
 
@@ -272,7 +284,17 @@ estimate_density.data.frame <- function(x,
 
 
 #' @export
-estimate_density.draws <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ci = NULL, select = NULL, at = NULL, group_by = NULL, ...) {
+estimate_density.draws <- function(x,
+                                   method = "kernel",
+                                   precision = 2^10,
+                                   extend = FALSE,
+                                   extend_scale = 0.1,
+                                   bw = "SJ",
+                                   ci = NULL,
+                                   select = NULL,
+                                   at = NULL,
+                                   group_by = NULL,
+                                   ...) {
   estimate_density(
     .posterior_draws_to_df(x),
     method = method,
@@ -290,47 +312,54 @@ estimate_density.draws <- function(x, method = "kernel", precision = 2^10, exten
 estimate_density.rvar <- estimate_density.draws
 
 
-.estimate_density_df <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ci = NULL, select = NULL, ...) {
-  # TODO: replace by exposed select argument
-  if (is.null(select)) {
-    x <- .select_nums(x)
-  } else {
-    x <- datawizard::data_select(x, select, ...)
-  }
-
-  out <- sapply(x, estimate_density, method = method, precision = precision, extend = extend, extend_scale = extend_scale, bw = bw, ci = ci, simplify = FALSE)
-  for (i in names(out)) {
-    if (nrow(out[[i]]) == 0) {
-      insight::format_warning(paste0("'", i, "', or one of its 'at' groups, is empty and has no density information."))
-    } else {
-      out[[i]]$Parameter <- i
-    }
-  }
-  out <- do.call(rbind, out)
-
-  row.names(out) <- NULL
-  out[, c("Parameter", "x", "y")]
-}
-
-
 #' @export
-estimate_density.grouped_df <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ci = NULL, select = NULL, ...) {
+estimate_density.grouped_df <- function(x,
+                                        method = "kernel",
+                                        precision = 2^10,
+                                        extend = FALSE,
+                                        extend_scale = 0.1,
+                                        bw = "SJ",
+                                        ci = NULL,
+                                        select = NULL,
+                                        ...) {
   groups <- .group_vars(x)
   ungrouped_x <- as.data.frame(x)
 
   xlist <- split(ungrouped_x, ungrouped_x[groups])
 
   out <- lapply(names(xlist), function(group) {
-    dens <- estimate_density(xlist[[group]], method = method, precision = precision, extend = extend, extend_scale = extend_scale, bw = bw, ci = ci, select = select, ...)
+    dens <- estimate_density(
+      xlist[[group]],
+      method = method,
+      precision = precision,
+      extend = extend,
+      extend_scale = extend_scale,
+      bw = bw,
+      ci = ci,
+      select = select,
+      ...
+    )
     dens$Group <- group
     dens
   })
   do.call(rbind, out)
 }
 
+# to avoid class conflicts - e.g., numeric variables imported with the
+# haven package are of class "haven_labelled" and "double", which causes
+# problems with the generic or numeric method.
 
 #' @export
-estimate_density.emmGrid <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", ...) {
+estimate_density.double <- estimate_density.numeric
+
+#' @export
+estimate_density.emmGrid <- function(x,
+                                     method = "kernel",
+                                     precision = 2^10,
+                                     extend = FALSE,
+                                     extend_scale = 0.1,
+                                     bw = "SJ",
+                                     ...) {
   x <- insight::get_parameters(x)
 
   out <- estimate_density(x,
@@ -346,15 +375,31 @@ estimate_density.emmGrid <- function(x, method = "kernel", precision = 2^10, ext
 estimate_density.emm_list <- estimate_density.emmGrid
 
 
-
 #' @export
-estimate_density.stanreg <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, ...) {
+estimate_density.stanreg <- function(x,
+                                     method = "kernel",
+                                     precision = 2^10,
+                                     extend = FALSE,
+                                     extend_scale = 0.1,
+                                     bw = "SJ",
+                                     effects = c("fixed", "random", "all"),
+                                     component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
+                                     parameters = NULL,
+                                     ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  out <- estimate_density(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), method = method, precision = precision, extend = extend, extend_scale = extend_scale, bw = bw, ...)
-  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out <- estimate_density(
+    insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
+    method = method,
+    precision = precision,
+    extend = extend,
+    extend_scale = extend_scale,
+    bw = bw,
+    ...
+  )
 
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- .set_density_class(out)
   out
 }
@@ -366,40 +411,82 @@ estimate_density.stanfit <- estimate_density.stanreg
 estimate_density.blavaan <- estimate_density.stanreg
 
 
-
 #' @export
-estimate_density.brmsfit <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, ...) {
+estimate_density.brmsfit <- function(x,
+                                     method = "kernel",
+                                     precision = 2^10,
+                                     extend = FALSE,
+                                     extend_scale = 0.1,
+                                     bw = "SJ",
+                                     effects = c("fixed", "random", "all"),
+                                     component = c("conditional", "zi", "zero_inflated", "all"),
+                                     parameters = NULL,
+                                     ...) {
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  out <- estimate_density(insight::get_parameters(x, effects = effects, component = component, parameters = parameters), method = method, precision = precision, extend = extend, extend_scale = extend_scale, bw = bw, ...)
-  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out <- estimate_density(
+    insight::get_parameters(x, effects = effects, component = component, parameters = parameters),
+    method = method,
+    precision = precision,
+    extend = extend,
+    extend_scale = extend_scale,
+    bw = bw,
+    ...
+  )
 
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- .set_density_class(out)
   out
 }
 
 
-
-
 #' @export
-estimate_density.MCMCglmm <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", parameters = NULL, ...) {
+estimate_density.MCMCglmm <- function(x,
+                                      method = "kernel",
+                                      precision = 2^10,
+                                      extend = FALSE,
+                                      extend_scale = 0.1,
+                                      bw = "SJ",
+                                      parameters = NULL,
+                                      ...) {
   nF <- x$Fixed$nfl
-  out <- estimate_density(as.data.frame(x$Sol[, 1:nF, drop = FALSE]), method = method, precision = precision, extend = extend, extend_scale = extend_scale, bw = bw, ...)
-  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out <- estimate_density(
+    as.data.frame(x$Sol[, 1:nF, drop = FALSE]),
+    method = method,
+    precision = precision,
+    extend = extend,
+    extend_scale = extend_scale,
+    bw = bw,
+    ...
+  )
 
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- .set_density_class(out)
   out
 }
 
 
-
-
 #' @export
-estimate_density.mcmc <- function(x, method = "kernel", precision = 2^10, extend = FALSE, extend_scale = 0.1, bw = "SJ", parameters = NULL, ...) {
-  out <- estimate_density(insight::get_parameters(x, parameters = parameters), method = method, precision = precision, extend = extend, extend_scale = extend_scale, bw = bw, ...)
-  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+estimate_density.mcmc <- function(x,
+                                  method = "kernel",
+                                  precision = 2^10,
+                                  extend = FALSE,
+                                  extend_scale = 0.1,
+                                  bw = "SJ",
+                                  parameters = NULL,
+                                  ...) {
+  out <- estimate_density(
+    insight::get_parameters(x, parameters = parameters),
+    method = method,
+    precision = precision,
+    extend = extend,
+    extend_scale = extend_scale,
+    bw = bw,
+    ...
+  )
 
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   class(out) <- .set_density_class(out)
   out
 }
@@ -458,6 +545,48 @@ as.data.frame.density <- function(x, ...) {
 }
 
 
+# helper ------------------
+
+.estimate_density_df <- function(x,
+                                 method = "kernel",
+                                 precision = 2^10,
+                                 extend = FALSE,
+                                 extend_scale = 0.1,
+                                 bw = "SJ",
+                                 ci = NULL,
+                                 select = NULL,
+                                 ...) {
+  # TODO: replace by exposed select argument
+  if (is.null(select)) {
+    x <- .select_nums(x)
+  } else {
+    x <- datawizard::data_select(x, select, ...)
+  }
+
+  out <- sapply(
+    x,
+    estimate_density,
+    method = method,
+    precision = precision,
+    extend = extend,
+    extend_scale = extend_scale,
+    bw = bw,
+    ci = ci,
+    simplify = FALSE
+  )
+
+  for (i in names(out)) {
+    if (nrow(out[[i]]) == 0) {
+      insight::format_warning(paste0("'", i, "', or one of its 'at' groups, is empty and has no density information."))
+    } else {
+      out[[i]]$Parameter <- i
+    }
+  }
+  out <- do.call(rbind, out)
+
+  row.names(out) <- NULL
+  out[, c("Parameter", "x", "y")]
+}
 
 
 
@@ -481,10 +610,6 @@ density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
   density <- estimate_density(posterior, precision = precision, method = method, ...)
   stats::approx(density$x, density$y, xout = x)$y
 }
-
-
-
-
 
 
 # Different functions -----------------------------------------------------
@@ -522,8 +647,6 @@ density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
 }
 
 
-
-
 .estimate_density_logspline <- function(x, x_range, precision, ...) {
   insight::check_if_installed("logspline")
   x_axis <- seq(x_range[1], x_range[2], length.out = precision)
@@ -545,8 +668,6 @@ density_at <- function(posterior, x, precision = 2^10, method = "kernel", ...) {
   data.frame(x = x_axis, y = y)
 }
 
-
-# helper ----------------------------------------------------------
 
 .set_density_df_class <- function(out) {
   setdiff(

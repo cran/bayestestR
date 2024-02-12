@@ -35,27 +35,27 @@
 #'   samples (use `centrality` for other centrality indices).
 #'
 #' @details `mediation()` returns a data frame with information on the
-#'       *direct effect* (mean value of posterior samples from `treatment`
-#'       of the outcome model), *mediator effect* (mean value of posterior
-#'       samples from `mediator` of the outcome model), *indirect effect*
-#'       (mean value of the multiplication of the posterior samples from
-#'       `mediator` of the outcome model and the posterior samples from
-#'       `treatment` of the mediation model) and the total effect (mean
-#'       value of sums of posterior samples used for the direct and indirect
-#'       effect). The *proportion mediated* is the indirect effect divided
-#'       by the total effect.
-#'       \cr \cr
-#'       For all values, the `89%` credible intervals are calculated by default.
-#'       Use `ci` to calculate a different interval.
-#'       \cr \cr
-#'       The arguments `treatment` and `mediator` do not necessarily
-#'       need to be specified. If missing, `mediation()` tries to find the
-#'       treatment and mediator variable automatically. If this does not work,
-#'       specify these variables.
-#'       \cr \cr
-#'       The direct effect is also called *average direct effect* (ADE),
-#'       the indirect effect is also called *average causal mediation effects*
-#'       (ACME). See also \cite{Tingley et al. 2014} and \cite{Imai et al. 2010}.
+#'  *direct effect* (mean value of posterior samples from `treatment`
+#'  of the outcome model), *mediator effect* (mean value of posterior
+#'  samples from `mediator` of the outcome model), *indirect effect*
+#'  (mean value of the multiplication of the posterior samples from
+#'  `mediator` of the outcome model and the posterior samples from
+#'  `treatment` of the mediation model) and the total effect (mean
+#'  value of sums of posterior samples used for the direct and indirect
+#'  effect). The *proportion mediated* is the indirect effect divided
+#'  by the total effect.
+#'
+#'  For all values, the `89%` credible intervals are calculated by default.
+#'  Use `ci` to calculate a different interval.
+#'
+#'  The arguments `treatment` and `mediator` do not necessarily
+#'  need to be specified. If missing, `mediation()` tries to find the
+#'  treatment and mediator variable automatically. If this does not work,
+#'  specify these variables.
+#'
+#'  The direct effect is also called *average direct effect* (ADE),
+#'  the indirect effect is also called *average causal mediation effects*
+#'  (ACME). See also _Tingley et al. 2014_ and _Imai et al. 2010_.
 #'
 #' @note There is an `as.data.frame()` method that returns the posterior
 #'   samples of the effects, which can be used for further processing in the
@@ -75,8 +75,8 @@
 #' @seealso The \pkg{mediation} package for a causal mediation analysis in
 #'   the frequentist framework.
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf require("mediation") && require("brms") && require("rstanarm")
+#' \donttest{
 #' library(mediation)
 #' library(brms)
 #' library(rstanarm)
@@ -94,18 +94,17 @@
 #' # Fit Bayesian mediation model in brms
 #' f1 <- bf(job_seek ~ treat + econ_hard + sex + age)
 #' f2 <- bf(depress2 ~ treat + job_seek + econ_hard + sex + age)
-#' m2 <- brm(f1 + f2 + set_rescor(FALSE), data = jobs, cores = 4, refresh = 0)
+#' m2 <- brm(f1 + f2 + set_rescor(FALSE), data = jobs, refresh = 0)
 #'
 #' # Fit Bayesian mediation model in rstanarm
-#' m3 <- stan_mvmer(
+#' m3 <- suppressWarnings(stan_mvmer(
 #'   list(
 #'     job_seek ~ treat + econ_hard + sex + age + (1 | occp),
 #'     depress2 ~ treat + job_seek + econ_hard + sex + age + (1 | occp)
 #'   ),
 #'   data = jobs,
-#'   cores = 4,
 #'   refresh = 0
-#' )
+#' ))
 #'
 #' summary(m1)
 #' mediation(m2, centrality = "mean", ci = 0.95)
@@ -179,7 +178,7 @@ mediation.stanmvreg <- function(model, treatment, mediator, response = NULL, cen
   # check for binary response. In this case, user should rescale variables
   modelinfo <- insight::model_info(model)
   if (any(sapply(modelinfo, function(i) i$is_binomial, simplify = TRUE))) {
-    message("One of moderator or outcome is binary, so direct and indirect effects may be on different scales. Consider rescaling model predictors, e.g. with `effectsize::standardize()`.")
+    insight::format_alert("One of moderator or outcome is binary, so direct and indirect effects may be on different scales. Consider rescaling model predictors, e.g. with `effectsize::standardize()`.")
   }
 
   # model responses
@@ -355,7 +354,7 @@ print.bayestestR_mediation <- function(x, digits = 3, ...) {
   )
 
   if (any(prop_mediated_ori$Estimate < 0)) {
-    message("\nDirect and indirect effects have opposite directions. The proportion mediated is not meaningful.")
+    insight::format_alert("\nDirect and indirect effects have opposite directions. The proportion mediated is not meaningful.")
   }
 }
 

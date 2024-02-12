@@ -6,6 +6,7 @@
 \alias{point_estimate.stanreg}
 \alias{point_estimate.brmsfit}
 \alias{point_estimate.BFBayesFactor}
+\alias{point_estimate.get_predicted}
 \title{Point-estimates of posterior distributions}
 \usage{
 point_estimate(x, ...)
@@ -34,6 +35,15 @@ point_estimate(x, ...)
 )
 
 \method{point_estimate}{BFBayesFactor}(x, centrality = "all", dispersion = FALSE, ...)
+
+\method{point_estimate}{get_predicted}(
+  x,
+  centrality = "all",
+  dispersion = FALSE,
+  use_iterations = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
@@ -44,11 +54,18 @@ resemble the arguments of the \code{.numeric} or \code{.data.frame}methods.}
 
 \item{...}{Additional arguments to be passed to or from methods.}
 
-\item{centrality}{The point-estimates (centrality indices) to compute.  Character (vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"} or \code{"all"}.}
+\item{centrality}{The point-estimates (centrality indices) to compute. Character
+(vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"}
+(see \code{\link[=map_estimate]{map_estimate()}}), \code{"trimmed"} (which is just \code{mean(x, trim = threshold)}),
+\code{"mode"} or \code{"all"}.}
 
-\item{dispersion}{Logical, if \code{TRUE}, computes indices of dispersion related to the estimate(s) (\code{SD} and \code{MAD} for \code{mean} and \code{median}, respectively).}
+\item{dispersion}{Logical, if \code{TRUE}, computes indices of dispersion related
+to the estimate(s) (\code{SD} and \code{MAD} for \code{mean} and \code{median}, respectively).
+Dispersion is not available for \code{"MAP"} or \code{"mode"} centrality indices.}
 
-\item{threshold}{For \code{centrality = "trimmed"} (i.e. trimmed mean), indicates the fraction (0 to 0.5) of observations to be trimmed from each end of the vector before the mean is computed.}
+\item{threshold}{For \code{centrality = "trimmed"} (i.e. trimmed mean), indicates
+the fraction (0 to 0.5) of observations to be trimmed from each end of the
+vector before the mean is computed.}
 
 \item{effects}{Should results for fixed effects, random effects or both be
 returned? Only applies to mixed models. May be abbreviated.}
@@ -62,6 +79,13 @@ that should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
+
+\item{use_iterations}{Logical, if \code{TRUE} and \code{x} is a \code{get_predicted} object,
+(returned by \code{\link[insight:get_predicted]{insight::get_predicted()}}), the function is applied to the
+iterations instead of the predictions. This only applies to models that return
+iterations for predicted values (e.g., \code{brmsfit} models).}
+
+\item{verbose}{Toggle off warnings.}
 }
 \description{
 Compute various point-estimates, such as the mean, the median or the MAP, to describe posterior distributions.
@@ -70,6 +94,7 @@ Compute various point-estimates, such as the mean, the median or the MAP, to des
 There is also a \href{https://easystats.github.io/see/articles/bayestestR.html}{\code{plot()}-method} implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 }
 \examples{
+\dontshow{if (require("rstanarm") && require("emmeans") && require("brms") && require("BayesFactor")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(bayestestR)
 
 point_estimate(rnorm(1000))
@@ -79,10 +104,9 @@ point_estimate(rnorm(1000), centrality = c("median", "MAP"))
 df <- data.frame(replicate(4, rnorm(100)))
 point_estimate(df, centrality = "all", dispersion = TRUE)
 point_estimate(df, centrality = c("median", "MAP"))
-\dontrun{
+\donttest{
 # rstanarm models
 # -----------------------------------------------
-library(rstanarm)
 model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 point_estimate(model, centrality = "all", dispersion = TRUE)
 point_estimate(model, centrality = c("median", "MAP"))
@@ -90,25 +114,27 @@ point_estimate(model, centrality = c("median", "MAP"))
 
 # emmeans estimates
 # -----------------------------------------------
-library(emmeans)
-point_estimate(emtrends(model, ~1, "wt"), centrality = c("median", "MAP"))
+point_estimate(
+  emmeans::emtrends(model, ~1, "wt", data = mtcars),
+  centrality = c("median", "MAP")
+)
 
 # brms models
 # -----------------------------------------------
-library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 point_estimate(model, centrality = "all", dispersion = TRUE)
 point_estimate(model, centrality = c("median", "MAP"))
 
 # BayesFactor objects
 # -----------------------------------------------
-library(BayesFactor)
-bf <- ttestBF(x = rnorm(100, 1, 1))
+bf <- BayesFactor::ttestBF(x = rnorm(100, 1, 1))
 point_estimate(bf, centrality = "all", dispersion = TRUE)
 point_estimate(bf, centrality = c("median", "MAP"))
 }
-
+\dontshow{\}) # examplesIf}
 }
 \references{
-Makowski, D., Ben-Shachar, M. S., Chen, S. H. A., and Lüdecke, D. (2019). \emph{Indices of Effect Existence and Significance in the Bayesian Framework}. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
+Makowski, D., Ben-Shachar, M. S., Chen, S. H. A., and Lüdecke, D.
+(2019). \emph{Indices of Effect Existence and Significance in the Bayesian Framework}.
+Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
 }

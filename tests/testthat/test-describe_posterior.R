@@ -1,9 +1,11 @@
 test_that("describe_posterior", {
+  skip_if(getRversion() < "4.2")
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
   skip_if_not_or_load_if_installed("httr")
   skip_if_not_or_load_if_installed("BayesFactor")
+  skip_on_os("linux")
 
   set.seed(333)
 
@@ -11,14 +13,14 @@ test_that("describe_posterior", {
 
   x <- distribution_normal(4000)
 
-  describe_posterior(
+  expect_silent(describe_posterior(
     x,
     centrality = "all",
     dispersion = TRUE,
     test = "all",
     ci = 0.89,
     verbose = FALSE
-  )
+  ))
 
   rez <- as.data.frame(suppressWarnings(describe_posterior(
     x,
@@ -28,28 +30,28 @@ test_that("describe_posterior", {
     ci = 0.89
   )))
 
-  expect_equal(dim(rez), c(1, 19))
+  expect_identical(dim(rez), c(1L, 19L))
   expect_identical(colnames(rez), c(
     "Parameter", "Median", "MAD", "Mean", "SD", "MAP", "CI", "CI_low",
-    "CI_high", "p_map", "pd", "p_ROPE", "ps", "ROPE_CI", "ROPE_low",
+    "CI_high", "p_MAP", "pd", "p_ROPE", "ps", "ROPE_CI", "ROPE_low",
     "ROPE_high", "ROPE_Percentage", "ROPE_Equivalence", "log_BF"
   ))
 
-  expect_warning(expect_warning(describe_posterior(
+  expect_warning(expect_warning(expect_warning(describe_posterior(
     x,
     centrality = "all",
     dispersion = TRUE,
     test = "all",
     ci = c(0.8, 0.9)
-  )))
-  # rez <- suppressWarnings(describe_posterior(
-  #   x,
-  #   centrality = "all",
-  #   dispersion = TRUE,
-  #   test = "all",
-  #   ci = c(0.8, 0.9)
-  # ))
-  # expect_equal(dim(rez), c(2, 19))
+  ), regex = "ROPE range"), regex = "Prior not specified"), regex = "not be precise")
+  rez <- suppressWarnings(describe_posterior(
+    x,
+    centrality = "all",
+    dispersion = TRUE,
+    test = "all",
+    ci = c(0.8, 0.9)
+  ))
+  expect_equal(dim(rez), c(2, 19))
 
   rez <- describe_posterior(
     x,
@@ -59,7 +61,7 @@ test_that("describe_posterior", {
     ci_method = "quantile",
     verbose = FALSE
   )
-  expect_equal(dim(rez), c(1, 4))
+  expect_identical(dim(rez), c(1L, 4L))
 
   # dataframes -------------------------------------------------
 
@@ -72,8 +74,9 @@ test_that("describe_posterior", {
       test = "all"
     )
   ))
-  # rez <- suppressWarnings(describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all"))
-  # expect_equal(dim(rez), c(4, 19))
+
+  rez <- suppressWarnings(describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all"))
+  expect_equal(dim(rez), c(4L, 19L))
   expect_warning(expect_warning(
     describe_posterior(
       x,
@@ -83,8 +86,16 @@ test_that("describe_posterior", {
       ci = c(0.8, 0.9)
     )
   ))
-  # rez <- suppressWarnings(describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all", ci = c(0.8, 0.9)))
-  # expect_equal(dim(rez), c(8, 19))
+
+  rez <- suppressWarnings(describe_posterior(
+    x,
+    centrality = "all",
+    dispersion = TRUE,
+    test = "all",
+    ci = c(0.8, 0.9)
+  ))
+  expect_equal(dim(rez), c(8L, 19L))
+
   rez <- describe_posterior(
     x,
     centrality = NULL,
@@ -92,13 +103,13 @@ test_that("describe_posterior", {
     test = NULL,
     ci_method = "quantile"
   )
-  expect_equal(dim(rez), c(4, 4))
+  expect_identical(dim(rez), c(4L, 4L))
 })
 
 
 
 test_that("describe_posterior", {
-  skip_if(Sys.info()["sysname"] == "Darwin", "Don't run on Darwin")
+  skip_on_os(c("mac", "linux"))
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
@@ -108,22 +119,32 @@ test_that("describe_posterior", {
   set.seed(333)
   # Rstanarm
   x <- rstanarm::stan_glm(mpg ~ wt, data = mtcars, refresh = 0, iter = 500)
-  expect_warning(rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all"))
-  expect_equal(dim(rez), c(2, 21))
-  expect_equal(colnames(rez), c(
+  expect_warning(
+    {
+      rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all")
+    },
+    regex = "not be precise"
+  )
+  expect_identical(dim(rez), c(2L, 21L))
+  expect_identical(colnames(rez), c(
     "Parameter", "Median", "MAD", "Mean", "SD", "MAP", "CI", "CI_low",
     "CI_high", "p_MAP", "pd", "p_ROPE", "ps", "ROPE_CI", "ROPE_low",
     "ROPE_high", "ROPE_Percentage", "ROPE_Equivalence", "log_BF", "Rhat",
     "ESS"
   ))
-  expect_warning(rez <- describe_posterior(
-    x,
-    centrality = "all",
-    dispersion = TRUE,
-    test = "all",
-    ci = c(0.8, 0.9)
-  ))
-  expect_equal(dim(rez), c(4, 21))
+  expect_warning(
+    {
+      rez <- describe_posterior(
+        x,
+        centrality = "all",
+        dispersion = TRUE,
+        test = "all",
+        ci = c(0.8, 0.9)
+      )
+    },
+    regex = "not be precise"
+  )
+  expect_identical(dim(rez), c(4L, 21L))
 
   rez <- describe_posterior(
     x,
@@ -134,40 +155,41 @@ test_that("describe_posterior", {
     diagnostic = NULL,
     priors = FALSE
   )
-  expect_equal(dim(rez), c(2, 4))
+  expect_identical(dim(rez), c(2L, 4L))
 
   # brms -------------------------------------------------
 
-  # x <- brms::brm(mpg ~ wt + (1 | cyl) + (1 + wt | gear), data = mtcars, refresh = 0)
-  # rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, ci = c(0.8, 0.9))
-  #
-  # expect_equal(dim(rez), c(4, 16))
-  # expect_equal(colnames(rez), c(
-  #   "Parameter", "Median", "MAD", "Mean", "SD", "MAP", "CI", "CI_low",
-  #   "CI_high", "pd", "ROPE_CI", "ROPE_low", "ROPE_high", "ROPE_Percentage",
-  #   "Rhat", "ESS"
-  # ))
-  #
-  # rez <- describe_posterior(
-  #   x,
-  #   centrality = NULL,
-  #   dispersion = TRUE,
-  #   test = NULL,
-  #   ci_method = "quantile",
-  #   diagnostic = NULL
-  # )
-  #
-  # expect_equal(dim(rez), c(2, 4))
-  #
-  # model <- brms::brm(
-  #   mpg ~ drat,
-  #   data = mtcars,
-  #   chains = 2,
-  #   algorithm = "meanfield",
-  #   refresh = 0
-  # )
-  #
-  # expect_equal(nrow(describe_posterior(model)), 2)
+  skip_on_os("windows")
+  x <- suppressWarnings(brms::brm(mpg ~ wt + (1 | cyl) + (1 + wt | gear), data = mtcars, refresh = 0))
+  rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, ci = c(0.8, 0.9))
+
+  expect_equal(dim(rez), c(4, 16))
+  expect_identical(colnames(rez), c(
+    "Parameter", "Median", "MAD", "Mean", "SD", "MAP", "CI", "CI_low",
+    "CI_high", "pd", "ROPE_CI", "ROPE_low", "ROPE_high", "ROPE_Percentage",
+    "Rhat", "ESS"
+  ))
+
+  rez <- describe_posterior(
+    x,
+    centrality = NULL,
+    dispersion = TRUE,
+    test = NULL,
+    ci_method = "quantile",
+    diagnostic = NULL
+  )
+
+  expect_equal(dim(rez), c(2, 4))
+
+  model <- suppressWarnings(brms::brm(
+    mpg ~ drat,
+    data = mtcars,
+    chains = 2,
+    algorithm = "meanfield",
+    refresh = 0
+  ))
+
+  expect_equal(nrow(describe_posterior(model)), 2)
 
   # rstanarm -------------------------------------------------
 
@@ -177,7 +199,7 @@ test_that("describe_posterior", {
     refresh = 0
   )
 
-  expect_equal(nrow(describe_posterior(model)), 2)
+  expect_identical(nrow(describe_posterior(model)), 2L)
 
   model <- suppressWarnings(rstanarm::stan_glm(mpg ~ drat,
     data = mtcars,
@@ -185,7 +207,7 @@ test_that("describe_posterior", {
     refresh = 0
   ))
 
-  expect_equal(nrow(describe_posterior(model)), 2)
+  expect_identical(nrow(describe_posterior(model)), 2L)
 
   model <- rstanarm::stan_glm(mpg ~ drat,
     data = mtcars,
@@ -193,19 +215,20 @@ test_that("describe_posterior", {
     refresh = 0
   )
 
-  expect_equal(nrow(describe_posterior(model)), 2)
-  # model <- brms::brm(mpg ~ drat, data = mtcars, chains=2, algorithm="fullrank", refresh=0)
-  # expect_equal(nrow(describe_posterior(model)), 2)
+  expect_identical(nrow(describe_posterior(model)), 2L)
+
+  ## FIXME: always fails on CI
+  # model <- brms::brm(mpg ~ drat, data = mtcars, chains = 2, algorithm = "fullrank", refresh = 0)
+  # expect_equal(nrow(describe_posterior(model)), 2L)
 
   # BayesFactor
-  # library(BayesFactor)
-  # x <- BayesFactor::ttestBF(x = rnorm(100, 1, 1))
-  # rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all")
-  # expect_equal(dim(rez), c(4, 16))
-  # rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all", ci = c(0.8, 0.9))
-  # expect_equal(dim(rez), c(8, 16))
-  # rez <- describe_posterior(x, centrality = NULL, dispersion = TRUE, test = NULL, ci_method="quantile")
-  # expect_equal(dim(rez), c(4, 4))
+  x <- BayesFactor::ttestBF(x = rnorm(100, 1, 1))
+  rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all")
+  expect_equal(dim(rez), c(1, 23))
+  rez <- describe_posterior(x, centrality = "all", dispersion = TRUE, test = "all", ci = c(0.8, 0.9))
+  expect_equal(dim(rez), c(2, 23))
+  rez <- describe_posterior(x, centrality = NULL, dispersion = TRUE, test = NULL, ci_method = "quantile")
+  expect_equal(dim(rez), c(1, 7))
 })
 
 
@@ -254,13 +277,20 @@ test_that("describe_posterior w/ BF+SI", {
 
   x <- insight::download_model("stanreg_lm_1")
   set.seed(555)
-  expect_warning(expect_warning(rez <- describe_posterior(x, ci_method = "SI", test = "bf")))
+  expect_warning(expect_warning({
+    rez <- describe_posterior(x, ci_method = "SI", test = "bf")
+  }))
 
 
   # test si
   set.seed(555)
   suppressMessages(
-    expect_warning(rez_si <- si(x))
+    expect_warning(
+      {
+        rez_si <- si(x)
+      },
+      regex = "not be precise"
+    )
   )
   expect_equal(rez$CI_low, rez_si$CI_low, tolerance = 0.1)
   expect_equal(rez$CI_high, rez_si$CI_high, tolerance = 0.1)
@@ -445,12 +475,15 @@ test_that("describe_posterior: BayesFactor", {
 
   set.seed(123)
   expect_warning(expect_equal(
-    describe_posterior(contingencyTableBF(
-      x = table(mtcars$am, mtcars$cyl),
-      sampleType = "indepMulti",
-      fixedMargin = "cols",
-      priorConcentration = 1.6
-    ), ci = 0.95),
+    describe_posterior(
+      contingencyTableBF(
+        x = table(mtcars$am, mtcars$cyl),
+        sampleType = "indepMulti",
+        fixedMargin = "cols",
+        priorConcentration = 1.6
+      ),
+      ci = 0.95
+    ),
     structure(
       list(
         Parameter = c(

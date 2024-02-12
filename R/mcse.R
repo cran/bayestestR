@@ -13,12 +13,13 @@
 #'
 #' @references Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press.
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf require("rstanarm")
+#' \donttest{
 #' library(bayestestR)
-#' library(rstanarm)
 #'
-#' model <- stan_glm(mpg ~ wt + am, data = mtcars, chains = 1, refresh = 0)
+#' model <- suppressWarnings(
+#'   rstanarm::stan_glm(mpg ~ wt + am, data = mtcars, chains = 1, refresh = 0)
+#' )
 #' mcse(model)
 #' }
 #' @export
@@ -28,26 +29,28 @@ mcse <- function(model, ...) {
 
 
 #' @export
-mcse.brmsfit <- function(model, effects = c("fixed", "random", "all"), component = c("conditional", "zi", "zero_inflated", "all"), parameters = NULL, ...) {
+mcse.brmsfit <- function(model,
+                         effects = c("fixed", "random", "all"),
+                         component = c("conditional", "zi", "zero_inflated", "all"),
+                         parameters = NULL,
+                         ...) {
   # check arguments
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  params <-
-    insight::get_parameters(
-      model,
-      effects = effects,
-      component = component,
-      parameters = parameters
-    )
+  params <- insight::get_parameters(
+    model,
+    effects = effects,
+    component = component,
+    parameters = parameters
+  )
 
-  ess <-
-    effective_sample(
-      model,
-      effects = effects,
-      component = component,
-      parameters = parameters
-    )
+  ess <- effective_sample(
+    model,
+    effects = effects,
+    component = component,
+    parameters = parameters
+  )
 
   .mcse(params, stats::setNames(ess$ESS, ess$Parameter))
 }
@@ -55,26 +58,28 @@ mcse.brmsfit <- function(model, effects = c("fixed", "random", "all"), component
 
 #' @rdname mcse
 #' @export
-mcse.stanreg <- function(model, effects = c("fixed", "random", "all"), component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"), parameters = NULL, ...) {
+mcse.stanreg <- function(model,
+                         effects = c("fixed", "random", "all"),
+                         component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
+                         parameters = NULL,
+                         ...) {
   # check arguments
   effects <- match.arg(effects)
   component <- match.arg(component)
 
-  params <-
-    insight::get_parameters(
-      model,
-      effects = effects,
-      component = component,
-      parameters = parameters
-    )
+  params <- insight::get_parameters(
+    model,
+    effects = effects,
+    component = component,
+    parameters = parameters
+  )
 
-  ess <-
-    effective_sample(
-      model,
-      effects = effects,
-      component = component,
-      parameters = parameters
-    )
+  ess <- effective_sample(
+    model,
+    effects = effects,
+    component = component,
+    parameters = parameters
+  )
 
   .mcse(params, stats::setNames(ess$ESS, ess$Parameter))
 }

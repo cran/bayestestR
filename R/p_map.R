@@ -6,36 +6,41 @@
 #' Testing* framework. It corresponds to the density value at the null (e.g., 0)
 #' divided by the density at the Maximum A Posteriori (MAP).
 #'
-#' @details Note that this method is sensitive to the density estimation `method` (see the section in the examples below).
-#' \subsection{Strengths and Limitations}{
-#' **Strengths:** Straightforward computation. Objective property of the posterior distribution.
-#' \cr \cr
-#' **Limitations:** Limited information favoring the null hypothesis. Relates on density approximation. Indirect relationship between mathematical definition and interpretation. Only suitable for weak / very diffused priors.
-#' }
+#' @details Note that this method is sensitive to the density estimation `method`
+#' (see the section in the examples below).
+#'
+#' ## Strengths and Limitations
+#'
+#' **Strengths:** Straightforward computation. Objective property of the posterior
+#' distribution.
+#'
+#' **Limitations:** Limited information favoring the null hypothesis. Relates
+#' on density approximation. Indirect relationship between mathematical
+#' definition and interpretation. Only suitable for weak / very diffused priors.
 #'
 #' @inheritParams hdi
 #' @inheritParams density_at
 #' @inheritParams pd
 #'
-#' @examples
+#' @examplesIf require("rstanarm") && require("emmeans") && require("brms") && require("BayesFactor")
 #' library(bayestestR)
 #'
 #' p_map(rnorm(1000, 0, 1))
 #' p_map(rnorm(1000, 10, 1))
-#' \dontrun{
-#' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+#' \donttest{
+#' model <- suppressWarnings(
+#'   rstanarm::stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+#' )
 #' p_map(model)
 #'
-#' library(emmeans)
-#' p_map(emtrends(model, ~1, "wt"))
+#' p_map(suppressWarnings(
+#'   emmeans::emtrends(model, ~1, "wt", data = mtcars)
+#' ))
 #'
-#' library(brms)
 #' model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 #' p_map(model)
 #'
-#' library(BayesFactor)
-#' bf <- ttestBF(x = rnorm(100, 1, 1))
+#' bf <- BayesFactor::ttestBF(x = rnorm(100, 1, 1))
 #' p_map(bf)
 #'
 #' # ---------------------------------------
@@ -45,9 +50,9 @@
 #' for (iteration in 1:250) {
 #'   x <- rnorm(1000, 1, 1)
 #'   result <- data.frame(
-#'     "Kernel" = p_map(x, method = "kernel"),
-#'     "KernSmooth" = p_map(x, method = "KernSmooth"),
-#'     "logspline" = p_map(x, method = "logspline")
+#'     Kernel = as.numeric(p_map(x, method = "kernel")),
+#'     KernSmooth = as.numeric(p_map(x, method = "KernSmooth")),
+#'     logspline = as.numeric(p_map(x, method = "logspline"))
 #'   )
 #'   data <- rbind(data, result)
 #' }
@@ -60,13 +65,12 @@
 #' }
 #' @seealso [Jeff Mill's talk](https://www.youtube.com/watch?v=Ip8Ci5KUVRc)
 #'
-#' @references \itemize{
-#'   \item Makowski D, Ben-Shachar MS, Chen SHA, Lüdecke D (2019) Indices of Effect Existence and Significance in the Bayesian Framework. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
-#'   \item Mills, J. A. (2018). Objective Bayesian Precise Hypothesis Testing. University of Cincinnati.
-#' }
+#' @references
+#' - Makowski D, Ben-Shachar MS, Chen SHA, Lüdecke D (2019) Indices of Effect Existence and Significance in the Bayesian Framework. Frontiers in Psychology 2019;10:2767. \doi{10.3389/fpsyg.2019.02767}
+#' - Mills, J. A. (2018). Objective Bayesian Precise Hypothesis Testing. University of Cincinnati.
 #'
 #' @export
-p_map <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
+p_map <- function(x, ...) {
   UseMethod("p_map")
 }
 
@@ -76,21 +80,47 @@ p_pointnull <- p_map
 
 
 
+#' @rdname p_map
 #' @export
 p_map.numeric <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
-  # Density at MAP
-  map <- attributes(map_estimate(x, precision = precision, method = method, ...))$MAP_density
-
-  # Density at 0
-  d_0 <- density_at(x, null, precision = precision, method = method, ...)
-  if (is.na(d_0)) d_0 <- 0
-
-  # Odds
-  p <- d_0 / map
-  class(p) <- c("p_map", class(p))
-  p
+  p_map(data.frame(Posterior = x), null = null, precision = precision, method = method, ...)
 }
 
+
+#' @rdname p_map
+#' @export
+p_map.get_predicted <- function(x,
+                                null = 0,
+                                precision = 2^10,
+                                method = "kernel",
+                                use_iterations = FALSE,
+                                verbose = TRUE,
+                                ...) {
+  if (isTRUE(use_iterations)) {
+    if ("iterations" %in% names(attributes(x))) {
+      out <- p_map(
+        as.data.frame(t(attributes(x)$iterations)),
+        null = null,
+        precision = precision,
+        method = method,
+        verbose = verbose,
+        ...
+      )
+    } else {
+      insight::format_error("No iterations present in the output.")
+    }
+    attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  } else {
+    out <- p_map(as.numeric(x),
+      null = null,
+      precision = precision,
+      method = method,
+      verbose = verbose,
+      ...
+    )
+  }
+  out
+}
 
 
 #' @export
@@ -98,14 +128,14 @@ p_map.data.frame <- function(x, null = 0, precision = 2^10, method = "kernel", .
   x <- .select_nums(x)
 
   if (ncol(x) == 1) {
-    p_MAP <- p_map(x[, 1], null = null, precision = precision, method = method, ...)
+    p_MAP <- .p_map(x[, 1], null = null, precision = precision, method = method, ...)
   } else {
-    p_MAP <- sapply(x, p_map, null = null, precision = precision, method = method, simplify = TRUE, ...)
+    p_MAP <- sapply(x, .p_map, null = null, precision = precision, method = method, simplify = TRUE, ...)
   }
 
   out <- data.frame(
-    "Parameter" = names(x),
-    "p_MAP" = p_MAP,
+    Parameter = names(x),
+    p_MAP = p_MAP,
     row.names = NULL,
     stringsAsFactors = FALSE
   )
@@ -360,7 +390,19 @@ p_map.bayesQR <- function(x, null = 0, precision = 2^10, method = "kernel", ...)
   out
 }
 
+#' @keywords internal
+.p_map <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
+  # Density at MAP
+  map <- attributes(map_estimate(x, precision = precision, method = method, ...))$MAP_density
 
+  # Density at 0
+  d_0 <- density_at(x, null, precision = precision, method = method, ...)
+  if (is.na(d_0)) d_0 <- 0
+
+  # Odds
+  p <- d_0 / map
+  p
+}
 
 
 #' @rdname as.numeric.p_direction

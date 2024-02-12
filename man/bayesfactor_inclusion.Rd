@@ -59,6 +59,7 @@ null-model) (\cite{Wetzels et al. 2011}).
 }
 
 \examples{
+\dontshow{if (require("BayesFactor")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(bayestestR)
 
 # Using bayesfactor_models:
@@ -73,19 +74,16 @@ BFmodels <- bayesfactor_models(mo1, mo2, mo3, denominator = mo0)
 
 as.numeric(bf_inc)
 
-\dontrun{
+\donttest{
 # BayesFactor
 # -------------------------------
-library(BayesFactor)
-
-BF <- generalTestBF(len ~ supp * dose, ToothGrowth, progress = FALSE)
-
+BF <- BayesFactor::generalTestBF(len ~ supp * dose, ToothGrowth, progress = FALSE)
 bayesfactor_inclusion(BF)
 
 # compare only matched models:
 bayesfactor_inclusion(BF, match_models = TRUE)
 }
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 \itemize{

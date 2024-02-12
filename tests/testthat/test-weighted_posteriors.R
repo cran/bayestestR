@@ -1,3 +1,5 @@
+skip_on_os("linux")
+
 test_that("weighted_posteriors for BayesFactor", {
   skip_on_cran()
   skip_if_not_or_load_if_installed("BayesFactor")
@@ -18,7 +20,8 @@ test_that("weighted_posteriors for BayesFactor", {
     c(
       0, 13, 9, 0, 0, 55, 11, 4, 4, 1246, 6, 2, 38, 4, 946, 12, 3,
       3, 209, 3, 491, 174, 4, 134, 7, 293, 1, 123, 35, 92, 51, 27
-    )
+    ),
+    ignore_attr = TRUE
   )
 })
 

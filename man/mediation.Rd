@@ -57,12 +57,16 @@ second response variable (for the treatment model, with the mediator as
 additional predictor), \code{y}, is not transformed. Then we could use
 \code{response} like this: \code{mediation(model, response = c(m = "m_center", y = "y"))}.}
 
-\item{centrality}{The point-estimates (centrality indices) to compute.  Character (vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"} or \code{"all"}.}
+\item{centrality}{The point-estimates (centrality indices) to compute. Character
+(vector) or list with one or more of these options: \code{"median"}, \code{"mean"}, \code{"MAP"}
+(see \code{\link[=map_estimate]{map_estimate()}}), \code{"trimmed"} (which is just \code{mean(x, trim = threshold)}),
+\code{"mode"} or \code{"all"}.}
 
 \item{ci}{Value or vector of probability of the CI (between 0 and 1)
-to be estimated. Default to \code{.95} (\verb{95\%}).}
+to be estimated. Default to \code{0.95} (\verb{95\%}).}
 
-\item{method}{Can be \link[=eti]{'ETI'} (default), \link[=hdi]{'HDI'}, \link[=bci]{'BCI'}, \link[=spi]{'SPI'} or \link[=si]{'SI'}.}
+\item{method}{Can be \link[=eti]{"ETI"} (default), \link[=hdi]{"HDI"}, \link[=bci]{"BCI"},
+\link[=spi]{"SPI"} or \link[=si]{"SI"}.}
 }
 \value{
 A data frame with direct, indirect, mediator and
@@ -86,18 +90,18 @@ samples from \code{mediator} of the outcome model), \emph{indirect effect}
 value of sums of posterior samples used for the direct and indirect
 effect). The \emph{proportion mediated} is the indirect effect divided
 by the total effect.
-\cr \cr
+
 For all values, the \verb{89\%} credible intervals are calculated by default.
 Use \code{ci} to calculate a different interval.
-\cr \cr
+
 The arguments \code{treatment} and \code{mediator} do not necessarily
 need to be specified. If missing, \code{mediation()} tries to find the
 treatment and mediator variable automatically. If this does not work,
 specify these variables.
-\cr \cr
+
 The direct effect is also called \emph{average direct effect} (ADE),
 the indirect effect is also called \emph{average causal mediation effects}
-(ACME). See also \cite{Tingley et al. 2014} and \cite{Imai et al. 2010}.
+(ACME). See also \emph{Tingley et al. 2014} and \emph{Imai et al. 2010}.
 }
 \note{
 There is an \code{as.data.frame()} method that returns the posterior
@@ -105,7 +109,8 @@ samples of the effects, which can be used for further processing in the
 different \pkg{bayestestR} package.
 }
 \examples{
-\dontrun{
+\dontshow{if (require("mediation") && require("brms") && require("rstanarm")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 library(mediation)
 library(brms)
 library(rstanarm)
@@ -123,23 +128,23 @@ m1 <- mediate(b1, b2, sims = 1000, treat = "treat", mediator = "job_seek")
 # Fit Bayesian mediation model in brms
 f1 <- bf(job_seek ~ treat + econ_hard + sex + age)
 f2 <- bf(depress2 ~ treat + job_seek + econ_hard + sex + age)
-m2 <- brm(f1 + f2 + set_rescor(FALSE), data = jobs, cores = 4, refresh = 0)
+m2 <- brm(f1 + f2 + set_rescor(FALSE), data = jobs, refresh = 0)
 
 # Fit Bayesian mediation model in rstanarm
-m3 <- stan_mvmer(
+m3 <- suppressWarnings(stan_mvmer(
   list(
     job_seek ~ treat + econ_hard + sex + age + (1 | occp),
     depress2 ~ treat + job_seek + econ_hard + sex + age + (1 | occp)
   ),
   data = jobs,
-  cores = 4,
   refresh = 0
-)
+))
 
 summary(m1)
 mediation(m2, centrality = "mean", ci = 0.95)
 mediation(m3, centrality = "mean", ci = 0.95)
 }
+\dontshow{\}) # examplesIf}
 }
 \references{
 \itemize{

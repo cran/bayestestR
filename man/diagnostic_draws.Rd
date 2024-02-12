@@ -4,10 +4,10 @@
 \alias{diagnostic_draws}
 \title{Diagnostic values for each iteration}
 \usage{
-diagnostic_draws(posteriors, ...)
+diagnostic_draws(posterior, ...)
 }
 \arguments{
-\item{posteriors}{A \code{stanreg}, \code{stanfit}, \code{brmsfit}, or \code{blavaan} object.}
+\item{posterior}{A \code{stanreg}, \code{stanfit}, \code{brmsfit}, or \code{blavaan} object.}
 
 \item{...}{Currently not used.}
 }
@@ -15,15 +15,15 @@ diagnostic_draws(posteriors, ...)
 Returns the accumulated log-posterior, the average Metropolis acceptance rate, divergent transitions, treedepth rather than terminated its evolution normally.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(333)
 
 if (require("brms", quietly = TRUE)) {
-  model <- brm(mpg ~ wt * cyl * vs,
+  model <- suppressWarnings(brm(mpg ~ wt * cyl * vs,
     data = mtcars,
     iter = 100, control = list(adapt_delta = 0.80),
     refresh = 0
-  )
+  ))
   diagnostic_draws(model)
 }
 }

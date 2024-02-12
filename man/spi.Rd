@@ -5,6 +5,7 @@
 \alias{spi.numeric}
 \alias{spi.stanreg}
 \alias{spi.brmsfit}
+\alias{spi.get_predicted}
 \title{Shortest Probability Interval (SPI)}
 \usage{
 spi(x, ...)
@@ -31,6 +32,8 @@ spi(x, ...)
   verbose = TRUE,
   ...
 )
+
+\method{spi}{get_predicted}(x, ci = 0.95, use_iterations = FALSE, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
@@ -58,11 +61,17 @@ that should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
+
+\item{use_iterations}{Logical, if \code{TRUE} and \code{x} is a \code{get_predicted} object,
+(returned by \code{\link[insight:get_predicted]{insight::get_predicted()}}), the function is applied to the
+iterations instead of the predictions. This only applies to models that return
+iterations for predicted values (e.g., \code{brmsfit} models).}
 }
 \value{
 A data frame with following columns:
 \itemize{
-\item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a vector, this column is missing.
+\item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a
+vector, this column is missing.
 \item \code{CI} The probability of the credible interval.
 \item \code{CI_low}, \code{CI_high} The lower and upper credible interval limits for the parameters.
 }
@@ -78,8 +87,7 @@ uncertainty of (posterior) distributions. The SPI is said to be more stable
 than the HDI, because, the \emph{"HDI can be noisy (that is, have a high Monte Carlo error)"}
 (Liu et al. 2015). Furthermore, the HDI is sensitive to additional assumptions,
 in particular assumptions related to the different estimation methods, which
-can make the HDI less accurate or reliable (see also discussion
-\href{https://twitter.com/betanalpha/status/1479107186030624771}{here}).
+can make the HDI less accurate or reliable.
 }
 \note{
 The code to compute the SPI was adapted from the \strong{SPIn} package,
@@ -87,7 +95,7 @@ and slightly modified to be more robust for Stan models. Thus, credits go
 to Ying Liu for the original SPI algorithm and R implementation.
 }
 \examples{
-\dontshow{if (requireNamespace("quadprog", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (require("quadprog") && require("rstanarm")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(bayestestR)
 
 posterior <- rnorm(1000)
@@ -97,9 +105,11 @@ spi(posterior, ci = c(0.80, 0.89, 0.95))
 df <- data.frame(replicate(4, rnorm(100)))
 spi(df)
 spi(df, ci = c(0.80, 0.89, 0.95))
-\dontrun{
+\donttest{
 library(rstanarm)
-model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+model <- suppressWarnings(
+  stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+)
 spi(model)
 }
 \dontshow{\}) # examplesIf}

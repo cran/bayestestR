@@ -2,7 +2,7 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.13.1
+Version: 0.13.2
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
@@ -65,28 +65,29 @@ Description: Provides utilities to describe posterior
     indices used for null-hypothesis testing (such as ROPE percentage, pd
     and Bayes factors). References: Makowski et al. (2021) <doi:10.21105/joss.01541>.
 Depends: R (>= 3.6)
-Imports: insight (>= 0.19.1), datawizard (>= 0.7.0), graphics, methods,
+Imports: insight (>= 0.19.8), datawizard (>= 0.9.1), graphics, methods,
         stats, utils
 Suggests: BayesFactor (>= 0.9.12-4.4), bayesQR, bayesplot, BH, blavaan,
         bridgesampling, brms, curl, effectsize, emmeans, gamm4, ggdist,
         ggplot2, glmmTMB, httr, KernSmooth, knitr, lavaan, lme4,
-        logspline, MASS, mclust, mediation, modelbased, parameters,
-        patchwork, performance, quadprog, posterior, RcppEigen,
-        rmarkdown, rstan, rstanarm, see (>= 0.7.5), testthat, tweedie
+        logspline (>= 2.1.21), MASS, mclust, mediation, modelbased,
+        parameters, patchwork, performance, quadprog, posterior,
+        RcppEigen, rmarkdown, rstan, rstanarm, see (>= 0.7.5),
+        testthat, tweedie
 License: GPL-3
 URL: https://easystats.github.io/bayestestR/
 BugReports: https://github.com/easystats/bayestestR/issues
 VignetteBuilder: knitr
 Encoding: UTF-8
 Language: en-US
-RoxygenNote: 7.2.3.9000
+RoxygenNote: 7.3.1
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/rcmdcheck/ignore-inconsequential-notes: true
 Config/Needs/website: rstudio/bslib, r-lib/pkgdown,
         easystats/easystatstemplate
 NeedsCompilation: no
-Packaged: 2023-04-06 11:19:35 UTC; domma
+Packaged: 2024-02-11 10:28:23 UTC; domma
 Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
     @Dom_Makowski),
   Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>,
@@ -104,4 +105,4 @@ Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2023-04-07 15:20:02 UTC
+Date/Publication: 2024-02-12 11:40:02 UTC

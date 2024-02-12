@@ -118,8 +118,6 @@ test_that("bayesfactor_models BRMS", {
   skip_on_cran()
   skip_on_ci()
 
-  skip_if_not_or_load_if_installed("lme4")
-  skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("bridgesampling")
   skip_if_not_or_load_if_installed("brms")
 
@@ -143,12 +141,12 @@ test_that("bayesfactor_models BRMS", {
   ))
 
   set.seed(444)
-  suppressMessages(
+  suppressWarnings(suppressMessages(
     expect_message(
       bfm <- bayesfactor_models(stan_brms_model_0, stan_brms_model_1),
       regexp = "marginal"
     )
-  )
+  ))
 
   set.seed(444)
   stan_brms_model_0wc <- brms::add_criterion(
@@ -165,7 +163,7 @@ test_that("bayesfactor_models BRMS", {
     silent = 2
   )
 
-  expect_message(bfmwc <- bayesfactor_models(stan_brms_model_0wc, stan_brms_model_1wc), regexp = NA)
+  suppressWarnings(expect_message(bfmwc <- bayesfactor_models(stan_brms_model_0wc, stan_brms_model_1wc), regexp = NA))
   expect_equal(bfmwc$log_BF, bfm$log_BF, tolerance = 0.01)
 })
 
@@ -197,7 +195,7 @@ test_that("bayesfactor_inclusion | LMM", {
   expect_equal(bfinc_all$p_posterior, c(1, 1, 0.12, 0.01, 0), tolerance = 0.1)
   expect_equal(bfinc_all$log_BF, c(NaN, 57.651, -2.352, -4.064, -4.788), tolerance = 0.1)
 
-  # + match_models
+  # plus match_models
   bfinc_matched <- bayesfactor_inclusion(BFM4, match_models = TRUE)
   expect_equal(bfinc_matched$p_prior, c(1, 0.2, 0.6, 0.2, 0.2), tolerance = 0.1)
   expect_equal(bfinc_matched$p_posterior, c(1, 0.875, 0.125, 0.009, 0.002), tolerance = 0.1)

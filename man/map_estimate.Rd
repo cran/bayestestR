@@ -6,9 +6,10 @@
 \alias{map_estimate.stanreg}
 \alias{map_estimate.brmsfit}
 \alias{map_estimate.data.frame}
+\alias{map_estimate.get_predicted}
 \title{Maximum A Posteriori probability estimate (MAP)}
 \usage{
-map_estimate(x, precision = 2^10, method = "kernel", ...)
+map_estimate(x, ...)
 
 \method{map_estimate}{numeric}(x, precision = 2^10, method = "kernel", ...)
 
@@ -34,6 +35,15 @@ map_estimate(x, precision = 2^10, method = "kernel", ...)
 )
 
 \method{map_estimate}{data.frame}(x, precision = 2^10, method = "kernel", ...)
+
+\method{map_estimate}{get_predicted}(
+  x,
+  precision = 2^10,
+  method = "kernel",
+  use_iterations = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{Vector representing a posterior distribution, or a data frame of such
@@ -42,11 +52,12 @@ of models (see, for example, \code{methods("hdi")}) and not all of those are
 documented in the 'Usage' section, because methods for other classes mostly
 resemble the arguments of the \code{.numeric} or \code{.data.frame}methods.}
 
+\item{...}{Currently not used.}
+
 \item{precision}{Number of points of density data. See the \code{n} parameter in \code{density}.}
 
-\item{method}{Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"} or \code{"KernSmooth"}.}
-
-\item{...}{Currently not used.}
+\item{method}{Density estimation method. Can be \code{"kernel"} (default), \code{"logspline"}
+or \code{"KernSmooth"}.}
 
 \item{effects}{Should results for fixed effects, random effects or both be
 returned? Only applies to mixed models. May be abbreviated.}
@@ -60,35 +71,48 @@ that should be returned. Meta-parameters (like \code{lp__} or \code{prior_}) are
 filtered by default, so only parameters that typically appear in the
 \code{summary()} are returned. Use \code{parameters} to select specific parameters
 for the output.}
+
+\item{use_iterations}{Logical, if \code{TRUE} and \code{x} is a \code{get_predicted} object,
+(returned by \code{\link[insight:get_predicted]{insight::get_predicted()}}), the function is applied to the
+iterations instead of the predictions. This only applies to models that return
+iterations for predicted values (e.g., \code{brmsfit} models).}
+
+\item{verbose}{Toggle off warnings.}
 }
 \value{
 A numeric value if \code{x} is a vector. If \code{x} is a model-object,
 returns a data frame with following columns:
 \itemize{
-\item \code{Parameter} The model parameter(s), if \code{x} is a model-object. If \code{x} is a vector, this column is missing.
-\item \code{MAP_Estimate} The MAP estimate for the posterior or each model parameter.
+\item \code{Parameter}: The model parameter(s), if \code{x} is a model-object. If \code{x} is a
+vector, this column is missing.
+\item \code{MAP_Estimate}: The MAP estimate for the posterior or each model parameter.
 }
 }
 \description{
-Find the \strong{Highest Maximum A Posteriori probability estimate (MAP)} of a posterior, i.e., the value associated with the highest probability density (the "peak" of the posterior distribution). In other words, it is an estimation of the \emph{mode} for continuous parameters. Note that this function relies on \link{estimate_density}, which by default uses a different smoothing bandwidth (\code{"SJ"}) compared to the legacy default implemented the base R \link{density} function (\code{"nrd0"}).
+Find the \strong{Highest Maximum A Posteriori probability estimate (MAP)} of a
+posterior, i.e., the value associated with the highest probability density
+(the "peak" of the posterior distribution). In other words, it is an estimation
+of the \emph{mode} for continuous parameters. Note that this function relies on
+\code{\link[=estimate_density]{estimate_density()}}, which by default uses a different smoothing bandwidth
+(\code{"SJ"}) compared to the legacy default implemented the base R \code{\link[=density]{density()}}
+function (\code{"nrd0"}).
 }
 \examples{
-\dontrun{
+\dontshow{if (require("rstanarm") && require("brms")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 library(bayestestR)
 
 posterior <- rnorm(10000)
 map_estimate(posterior)
 
 plot(density(posterior))
-abline(v = map_estimate(posterior), col = "red")
+abline(v = as.numeric(map_estimate(posterior)), col = "red")
 
-library(rstanarm)
 model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 map_estimate(model)
 
-library(brms)
 model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 map_estimate(model)
 }
-
+\dontshow{\}) # examplesIf}
 }

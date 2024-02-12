@@ -22,6 +22,10 @@
 #'   filtered by default, so only parameters that typically appear in the
 #'   `summary()` are returned. Use `parameters` to select specific parameters
 #'   for the output.
+#' @param use_iterations Logical, if `TRUE` and `x` is a `get_predicted` object,
+#' (returned by [`insight::get_predicted()`]), the function is applied to the
+#' iterations instead of the predictions. This only applies to models that return
+#' iterations for predicted values (e.g., `brmsfit` models).
 #' @param verbose Toggle off warnings.
 #' @param ... Currently not used.
 #'
@@ -31,22 +35,24 @@
 #' from each tail of the distribution and always include the median, the HDI is
 #' *not* equal-tailed and therefore always includes the mode(s) of posterior
 #' distributions. While this can be useful to better represent the credibility
-#' mass of a distribution, the HDI also has some limitations. See [spi()] for
+#' mass of a distribution, the HDI also has some limitations. See [`spi()`] for
 #' details.
-#' \cr \cr
+#'
 #' The [`95%` or `89%` Credible Intervals (CI)](https://easystats.github.io/bayestestR/articles/credible_interval.html)
-#' are two reasonable ranges to characterize the uncertainty related to the estimation (see [here](https://easystats.github.io/bayestestR/articles/credible_interval.html) for a discussion about the differences between these two values).
-#' \cr
+#' are two reasonable ranges to characterize the uncertainty related to the
+#' estimation (see [here](https://easystats.github.io/bayestestR/articles/credible_interval.html)
+#' for a discussion about the differences between these two values).
+#'
 #' The `89%` intervals (`ci = 0.89`) are deemed to be more stable than, for
-#' instance, `95%` intervals (\cite{Kruschke, 2014}). An effective sample size
+#' instance, `95%` intervals (_Kruschke, 2014_). An effective sample size
 #' of at least 10.000 is recommended if one wants to estimate `95%` intervals
-#' with high precision (\cite{Kruschke, 2014, p. 183ff}). Unfortunately, the
+#' with high precision (_Kruschke, 2014, p. 183ff_). Unfortunately, the
 #' default number of posterior samples for most Bayes packages (e.g., `rstanarm`
 #' or `brms`) is only 4.000 (thus, you might want to increase it when fitting
 #' your model). Moreover, 89 indicates the arbitrariness of interval limits -
 #' its only remarkable property is being the highest prime number that does not
-#' exceed the already unstable `95%` threshold (\cite{McElreath, 2015}).
-#' \cr
+#' exceed the already unstable `95%` threshold (_McElreath, 2015_).
+#'
 #' However, `95%` has some [advantages
 #' too](https://easystats.github.io/blog/posts/bayestestr_95/). For instance, it
 #' shares (in the case of a normal posterior distribution) an intuitive
@@ -55,17 +61,17 @@
 #' makes analyses more conservative (i.e., the probability of covering 0 is
 #' larger for the `95%` CI than for lower ranges such as `89%`), which is a good
 #' thing in the context of the reproducibility crisis.
-#' \cr \cr
+#'
 #' A `95%` equal-tailed interval (ETI) has `2.5%` of the distribution on either
 #' side of its limits. It indicates the 2.5th percentile and the 97.5h
 #' percentile. In symmetric distributions, the two methods of computing credible
 #' intervals, the ETI and the [HDI][hdi], return similar results.
-#' \cr \cr
+#'
 #' This is not the case for skewed distributions. Indeed, it is possible that
 #' parameter values in the ETI have lower credibility (are less probable) than
 #' parameter values outside the ETI. This property seems undesirable as a summary
 #' of the credible values in a distribution.
-#' \cr \cr
+#'
 #' On the other hand, the ETI range does change when transformations are applied
 #' to the distribution (for instance, for a log odds scale to probabilities):
 #' the lower and higher bounds of the transformed distribution will correspond
@@ -78,41 +84,39 @@
 #' @family ci
 #' @seealso Other interval functions, such as [hdi()], [eti()], [bci()], [spi()], [si()], [cwi()].
 #'
-#' @examples
+#' @examplesIf require("rstanarm") && require("brms") && require("emmeans") && require("BayesFactor")
 #' library(bayestestR)
 #'
 #' posterior <- rnorm(1000)
 #' hdi(posterior, ci = 0.89)
-#' hdi(posterior, ci = c(.80, .90, .95))
+#' hdi(posterior, ci = c(0.80, 0.90, 0.95))
 #'
-#' df <- data.frame(replicate(4, rnorm(100)))
-#' hdi(df)
-#' hdi(df, ci = c(.80, .90, .95))
-#' \dontrun{
-#' library(rstanarm)
-#' model <- stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
-#' hdi(model)
-#' hdi(model, ci = c(.80, .90, .95))
+#' bayestestR::hdi(iris[1:4])
+#' bayestestR::hdi(iris[1:4], ci = c(0.80, 0.90, 0.95))
+#' \donttest{
+#' model <- suppressWarnings(
+#'   rstanarm::stan_glm(mpg ~ wt + gear, data = mtcars, chains = 2, iter = 200, refresh = 0)
+#' )
+#' bayestestR::hdi(model)
+#' bayestestR::hdi(model, ci = c(0.80, 0.90, 0.95))
 #'
-#' library(emmeans)
-#' hdi(emtrends(model, ~1, "wt"))
+#' bayestestR::hdi(emmeans::emtrends(model, ~1, "wt", data = mtcars))
 #'
-#' library(brms)
 #' model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
-#' hdi(model)
-#' hdi(model, ci = c(.80, .90, .95))
+#' bayestestR::hdi(model)
+#' bayestestR::hdi(model, ci = c(0.80, 0.90, 0.95))
 #'
-#' library(BayesFactor)
-#' bf <- ttestBF(x = rnorm(100, 1, 1))
-#' hdi(bf)
-#' hdi(bf, ci = c(.80, .90, .95))
+#' bf <- BayesFactor::ttestBF(x = rnorm(100, 1, 1))
+#' bayestestR::hdi(bf)
+#' bayestestR::hdi(bf, ci = c(0.80, 0.90, 0.95))
 #' }
 #' @author Credits go to **ggdistribute** and [**HDInterval**](https://github.com/mikemeredith/HDInterval).
 #'
-#' @references \itemize{
-#'   \item Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS, and Stan. Academic Press.
-#'   \item McElreath, R. (2015). Statistical rethinking: A Bayesian course with examples in R and Stan. Chapman and Hall/CRC.
-#' }
+#' @references
+#' - Kruschke, J. (2014). Doing Bayesian data analysis: A tutorial with R, JAGS,
+#'   and Stan. Academic Press.
+#' - McElreath, R. (2015). Statistical rethinking: A Bayesian course with
+#'   examples in R and Stan. Chapman and Hall/CRC.
 #'
 #' @export
 hdi <- function(x, ...) {
@@ -353,14 +357,19 @@ hdi.BFBayesFactor <- function(x, ci = 0.95, verbose = TRUE, ...) {
 }
 
 
+#' @rdname hdi
 #' @export
-hdi.get_predicted <- function(x, ...) {
-  if ("iterations" %in% names(attributes(x))) {
-    out <- hdi(as.data.frame(t(attributes(x)$iterations)), ...)
+hdi.get_predicted <- function(x, ci = 0.95, use_iterations = FALSE, verbose = TRUE, ...) {
+  if (isTRUE(use_iterations)) {
+    if ("iterations" %in% names(attributes(x))) {
+      out <- hdi(as.data.frame(t(attributes(x)$iterations)), ci = ci, verbose = verbose, ...)
+    } else {
+      insight::format_error("No iterations present in the output.")
+    }
+    attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   } else {
-    insight::format_error("No iterations present in the output.")
+    out <- hdi(as.numeric(x), ci = ci, verbose = verbose, ...)
   }
-  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
@@ -383,12 +392,12 @@ hdi.get_predicted <- function(x, ...) {
 
   if (window_size < 2) {
     if (verbose) {
-      insight::format_warning("`ci` is too small or x does not contain enough data points, returning NAs.")
+      insight::format_alert("`ci` is too small or x does not contain enough data points, returning NAs.")
     }
     return(data.frame(
-      "CI" = ci,
-      "CI_low" = NA,
-      "CI_high" = NA
+      CI = ci,
+      CI_low = NA,
+      CI_high = NA
     ))
   }
 
@@ -396,12 +405,12 @@ hdi.get_predicted <- function(x, ...) {
 
   if (nCIs < 1) {
     if (verbose) {
-      insight::format_warning("`ci` is too large or x does not contain enough data points, returning NAs.")
+      insight::format_alert("`ci` is too large or x does not contain enough data points, returning NAs.")
     }
     return(data.frame(
-      "CI" = ci,
-      "CI_low" = NA,
-      "CI_high" = NA
+      CI = ci,
+      CI_low = NA,
+      CI_high = NA
     ))
   }
 
@@ -414,7 +423,7 @@ hdi.get_predicted <- function(x, ...) {
   if (n_candies > 1) {
     if (any(diff(sort(min_i)) != 1)) {
       if (verbose) {
-        insight::format_warning("Identical densities found along different segments of the distribution, choosing rightmost.")
+        insight::format_alert("Identical densities found along different segments of the distribution, choosing rightmost.")
       }
       min_i <- max(min_i)
     } else {
@@ -423,8 +432,8 @@ hdi.get_predicted <- function(x, ...) {
   }
 
   data.frame(
-    "CI" = ci,
-    "CI_low" = x_sorted[min_i],
-    "CI_high" = x_sorted[min_i + window_size]
+    CI = ci,
+    CI_low = x_sorted[min_i],
+    CI_high = x_sorted[min_i + window_size]
   )
 }

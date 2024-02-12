@@ -68,7 +68,7 @@
 #'   [`plot()`-method](https://easystats.github.io/see/articles/bayestestR.html)
 #'   to visualize the results from the equivalence-test (for models only).
 #'
-#' @examples
+#' @examplesIf require("rstanarm") && require("brms") && require("emmeans") && require("BayesFactor")
 #' library(bayestestR)
 #'
 #' equivalence_test(x = rnorm(1000, 0, 0.01), range = c(-0.1, 0.1))
@@ -79,8 +79,7 @@
 #' # print more digits
 #' test <- equivalence_test(x = rnorm(1000, 1, 1), ci = c(.50, .99))
 #' print(test, digits = 4)
-#' \dontrun{
-#' library(rstanarm)
+#' \donttest{
 #' model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 #' equivalence_test(model)
 #'
@@ -88,15 +87,12 @@
 #' test <- equivalence_test(model)
 #' plot(test)
 #'
-#' library(emmeans)
-#' equivalence_test(emtrends(model, ~1, "wt"))
+#' equivalence_test(emmeans::emtrends(model, ~1, "wt", data = mtcars))
 #'
-#' library(brms)
 #' model <- brms::brm(mpg ~ wt + cyl, data = mtcars)
 #' equivalence_test(model)
 #'
-#' library(BayesFactor)
-#' bf <- ttestBF(x = rnorm(100, 1, 1))
+#' bf <- BayesFactor::ttestBF(x = rnorm(100, 1, 1))
 #' # equivalence_test(bf)
 #' }
 #' @export
@@ -114,17 +110,21 @@ equivalence_test.default <- function(x, ...) {
 
 #' @export
 equivalence_test.numeric <- function(x, range = "default", ci = 0.95, verbose = TRUE, ...) {
-  rope_data <- rope(x, range = range, ci = ci)
+  rope_data <- rope(x, range = range, ci = ci, verbose = verbose)
   out <- as.data.frame(rope_data)
 
   if (all(ci < 1)) {
-    out$ROPE_Equivalence <- ifelse(out$ROPE_Percentage == 0, "Rejected",
-      ifelse(out$ROPE_Percentage == 1, "Accepted", "Undecided")
+    out$ROPE_Equivalence <- datawizard::recode_into(
+      out$ROPE_Percentage == 0 ~ "Rejected",
+      out$ROPE_Percentage == 1 ~ "Accepted",
+      default = "Undecided"
     )
   } else {
     # Related to guidelines for full rope (https://easystats.github.io/bayestestR/articles/4_Guidelines.html)
-    out$ROPE_Equivalence <- ifelse(out$ROPE_Percentage < 0.025, "Rejected",
-      ifelse(out$ROPE_Percentage > 0.975, "Accepted", "Undecided")
+    out$ROPE_Equivalence <- datawizard::recode_into(
+      out$ROPE_Percentage < 0.025 ~ "Rejected",
+      out$ROPE_Percentage > 0.975 ~ "Accepted",
+      default = "Undecided"
     )
   }
 
@@ -208,7 +208,7 @@ equivalence_test.BFBayesFactor <- function(x, range = "default", ci = 0.95, verb
                                      parameters = NULL,
                                      verbose = TRUE) {
   if (all(range == "default")) {
-    range <- rope_range(x)
+    range <- rope_range(x, verbose = verbose)
   } else if (!all(is.numeric(range)) || length(range) != 2L) {
     insight::format_error("`range` should be 'default' or a vector of 2 numeric values (e.g., c(-0.1, 0.1)).")
   }
@@ -249,7 +249,15 @@ equivalence_test.stanreg <- function(x,
                                      range = "default",
                                      ci = 0.95,
                                      effects = c("fixed", "random", "all"),
-                                     component = c("location", "all", "conditional", "smooth_terms", "sigma", "distributional", "auxiliary"),
+                                     component = c(
+                                       "location",
+                                       "all",
+                                       "conditional",
+                                       "smooth_terms",
+                                       "sigma",
+                                       "distributional",
+                                       "auxiliary"
+                                     ),
                                      parameters = NULL,
                                      verbose = TRUE,
                                      ...) {

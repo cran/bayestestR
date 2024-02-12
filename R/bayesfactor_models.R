@@ -9,13 +9,13 @@
 #' @param ... Fitted models (see details), all fit on the same data, or a single
 #'   `BFBayesFactor` object (see 'Details'). Ignored in `as.matrix()`,
 #'   `update()`. If the following named arguments are present, they are passed
-#'   to [insight::get_loglikelihood] (see details):
+#'   to [`insight::get_loglikelihood()`] (see details):
 #'   - `estimator` (defaults to `"ML"`)
 #'   - `check_response`  (defaults to `FALSE`)
 #' @param denominator Either an integer indicating which of the models to use as
 #'   the denominator, or a model to be used as a denominator. Ignored for
 #'   `BFBayesFactor`.
-#' @param object,x A [bayesfactor_models()] object.
+#' @param object,x A [`bayesfactor_models()`] object.
 #' @param subset Vector of model indices to keep or remove.
 #' @param reference Index of model to reference to, or `"top"` to
 #'   reference to the best model, or `"bottom"` to reference to the worst
@@ -26,9 +26,9 @@
 #' implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
 #' @details
-#' If the passed models are supported by \pkg{insight} the DV of all models will be tested for equality
-#' (else this is assumed to be true), and the models' terms will be extracted (allowing for follow-up
-#' analysis with `bayesfactor_inclusion`).
+#' If the passed models are supported by **insight** the DV of all models will
+#' be tested for equality (else this is assumed to be true), and the models'
+#' terms will be extracted (allowing for follow-up analysis with `bayesfactor_inclusion`).
 #'
 #' - For `brmsfit` or `stanreg` models, Bayes factors are computed using the \CRANpkg{bridgesampling} package.
 #'   - `brmsfit` models must have been fitted with `save_pars = save_pars(all = TRUE)`.
@@ -44,9 +44,9 @@
 #' testing is substantially larger than for estimation (the default of 4000
 #' samples may not be enough in many cases). A conservative rule of thumb is to
 #' obtain 10 times more samples than would be required for estimation
-#' (\cite{Gronau, Singmann, & Wagenmakers, 2017}). If less than 40,000 samples
+#' (_Gronau, Singmann, & Wagenmakers, 2017_). If less than 40,000 samples
 #' are detected, `bayesfactor_models()` gives a warning.
-#' \cr \cr
+#'
 #' See also [the Bayes factors vignette](https://easystats.github.io/bayestestR/articles/bayes_factors.html).
 #'
 #' @inheritSection bayesfactor_parameters Interpreting Bayes Factors
@@ -55,7 +55,7 @@
 #'   random effects) and their `log(BF)`s  (Use `as.numeric()` to extract the
 #'   non-log Bayes factors; see examples), that prints nicely.
 #'
-#' @examples
+#' @examplesIf require("lme4") && require("BayesFactor") && require("rstanarm") && require("brms")
 #' # With lm objects:
 #' # ----------------
 #' lm1 <- lm(mpg ~ 1, data = mtcars)
@@ -66,81 +66,72 @@
 #' # bayesfactor_models(lm2, lm3, lm4, denominator = lm1) # same result
 #' # bayesfactor_models(lm1, lm2, lm3, lm4, denominator = lm1) # same result
 #'
-#'
 #' update(BFM, reference = "bottom")
 #' as.matrix(BFM)
 #' as.numeric(BFM)
-#'
 #'
 #' lm2b <- lm(sqrt(mpg) ~ hp, data = mtcars)
 #' # Set check_response = TRUE for transformed responses
 #' bayesfactor_models(lm2b, denominator = lm2, check_response = TRUE)
 #'
-#' \dontrun{
+#' \donttest{
 #' # With lmerMod objects:
 #' # ---------------------
-#' if (require("lme4")) {
-#'   lmer1 <- lmer(Sepal.Length ~ Petal.Length + (1 | Species), data = iris)
-#'   lmer2 <- lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species), data = iris)
-#'   lmer3 <- lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species) + (1 | Petal.Width),
-#'     data = iris
-#'   )
-#'   bayesfactor_models(lmer1, lmer2, lmer3,
-#'     denominator = 1,
-#'     estimator = "REML"
-#'   )
-#' }
+#' lmer1 <- lme4::lmer(Sepal.Length ~ Petal.Length + (1 | Species), data = iris)
+#' lmer2 <- lme4::lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species), data = iris)
+#' lmer3 <- lme4::lmer(
+#'   Sepal.Length ~ Petal.Length + (Petal.Length | Species) + (1 | Petal.Width),
+#'   data = iris
+#' )
+#' bayesfactor_models(lmer1, lmer2, lmer3,
+#'   denominator = 1,
+#'   estimator = "REML"
+#' )
 #'
 #' # rstanarm models
 #' # ---------------------
 #' # (note that a unique diagnostic_file MUST be specified in order to work)
-#' if (require("rstanarm")) {
-#'   stan_m0 <- stan_glm(Sepal.Length ~ 1,
-#'     data = iris,
-#'     family = gaussian(),
-#'     diagnostic_file = file.path(tempdir(), "df0.csv")
-#'   )
-#'   stan_m1 <- stan_glm(Sepal.Length ~ Species,
-#'     data = iris,
-#'     family = gaussian(),
-#'     diagnostic_file = file.path(tempdir(), "df1.csv")
-#'   )
-#'   stan_m2 <- stan_glm(Sepal.Length ~ Species + Petal.Length,
-#'     data = iris,
-#'     family = gaussian(),
-#'     diagnostic_file = file.path(tempdir(), "df2.csv")
-#'   )
-#'   bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0, verbose = FALSE)
-#' }
+#' stan_m0 <- suppressWarnings(rstanarm::stan_glm(Sepal.Length ~ 1,
+#'   data = iris,
+#'   family = gaussian(),
+#'   diagnostic_file = file.path(tempdir(), "df0.csv")
+#' ))
+#' stan_m1 <- suppressWarnings(rstanarm::stan_glm(Sepal.Length ~ Species,
+#'   data = iris,
+#'   family = gaussian(),
+#'   diagnostic_file = file.path(tempdir(), "df1.csv")
+#' ))
+#' stan_m2 <- suppressWarnings(rstanarm::stan_glm(Sepal.Length ~ Species + Petal.Length,
+#'   data = iris,
+#'   family = gaussian(),
+#'   diagnostic_file = file.path(tempdir(), "df2.csv")
+#' ))
+#' bayesfactor_models(stan_m1, stan_m2, denominator = stan_m0, verbose = FALSE)
 #'
 #'
 #' # brms models
 #' # --------------------
 #' # (note the save_pars MUST be set to save_pars(all = TRUE) in order to work)
-#' if (require("brms")) {
-#'   brm1 <- brm(Sepal.Length ~ 1, data = iris, save_pars = save_pars(all = TRUE))
-#'   brm2 <- brm(Sepal.Length ~ Species, data = iris, save_pars = save_pars(all = TRUE))
-#'   brm3 <- brm(
-#'     Sepal.Length ~ Species + Petal.Length,
-#'     data = iris,
-#'     save_pars = save_pars(all = TRUE)
-#'   )
+#' brm1 <- brms::brm(Sepal.Length ~ 1, data = iris, save_pars = save_pars(all = TRUE))
+#' brm2 <- brms::brm(Sepal.Length ~ Species, data = iris, save_pars = save_pars(all = TRUE))
+#' brm3 <- brms::brm(
+#'   Sepal.Length ~ Species + Petal.Length,
+#'   data = iris,
+#'   save_pars = save_pars(all = TRUE)
+#' )
 #'
-#'   bayesfactor_models(brm1, brm2, brm3, denominator = 1, verbose = FALSE)
-#' }
+#' bayesfactor_models(brm1, brm2, brm3, denominator = 1, verbose = FALSE)
 #'
 #'
 #' # BayesFactor
 #' # ---------------------------
-#' if (require("BayesFactor")) {
-#'   data(puzzles)
-#'   BF <- anovaBF(RT ~ shape * color + ID,
-#'     data = puzzles,
-#'     whichRandom = "ID", progress = FALSE
-#'   )
-#'   BF
-#'   bayesfactor_models(BF) # basically the same
-#' }
+#' data(puzzles)
+#' BF <- BayesFactor::anovaBF(RT ~ shape * color + ID,
+#'   data = puzzles,
+#'   whichRandom = "ID", progress = FALSE
+#' )
+#' BF
+#' bayesfactor_models(BF) # basically the same
 #' }
 #'
 #' @references
@@ -168,6 +159,7 @@ bayesfactor_models <- function(..., denominator = 1, verbose = TRUE) {
 #' @rdname bayesfactor_models
 #' @export
 bf_models <- bayesfactor_models
+
 
 #' @export
 #' @rdname bayesfactor_models
@@ -204,9 +196,7 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
     supported_models[!has_terms] <- FALSE
   }
 
-  objects <- tryCatch(do.call(insight::ellipsis_info, c(mods, verbose = FALSE)),
-    error = function(...) NULL
-  )
+  objects <- .safe(do.call(insight::ellipsis_info, c(mods, verbose = FALSE)))
   if (!is.null(objects)) {
     were_checked <- inherits(objects, "ListModels")
 
@@ -222,11 +212,11 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
       any(vapply(mods, insight::is_mixed_model, TRUE)) &&
       !isTRUE(attr(objects, "same_fixef")) &&
       verbose) {
-      insight::format_warning(
+      insight::format_warning(paste(
         "Information criteria (like BIC) based on REML fits (i.e. `estimator=\"REML\"`)",
         "are not recommended for comparison between models with different fixed effects.",
         "Concider setting `estimator=\"ML\"`."
-      )
+      ))
     }
   } else if (verbose) {
     insight::format_alert("Unable to validate that all models were fit with the same data.")
@@ -291,6 +281,7 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
   )
 }
 
+
 #' @keywords internal
 .bayesfactor_models_stan_REG <- function(mods, denominator, verbose = TRUE) {
   insight::check_if_installed("bridgesampling")
@@ -342,10 +333,16 @@ bayesfactor_models.default <- function(..., denominator = 1, verbose = TRUE) {
 
 #' @export
 bayesfactor_models.stanreg <- function(..., denominator = 1, verbose = TRUE) {
-  insight::check_if_installed("rstanarm")
+  mods <- list(...)
+  if (inherits(mods[[1]], "stanreg")) {
+    insight::check_if_installed("rstanarm")
+  } else if (inherits(mods[[1]], "brmsfit")) {
+    insight::check_if_installed("brms")
+  } else if (inherits(mods[[1]], "blavaan")) {
+    insight::check_if_installed("blavaan")
+  }
 
   # Organize the models and their names
-  mods <- list(...)
   denominator <- list(denominator)
 
   cl <- match.call(expand.dots = FALSE)
@@ -357,42 +354,15 @@ bayesfactor_models.stanreg <- function(..., denominator = 1, verbose = TRUE) {
 
   .bayesfactor_models_stan(mods, denominator = denominator, verbose = verbose)
 }
+
 
 #' @export
-bayesfactor_models.brmsfit <- function(..., denominator = 1, verbose = TRUE) {
-  insight::check_if_installed("brms")
+bayesfactor_models.brmsfit <- bayesfactor_models.stanreg
 
-  # Organize the models and their names
-  mods <- list(...)
-  denominator <- list(denominator)
-
-  cl <- match.call(expand.dots = FALSE)
-  names(mods) <- sapply(cl$`...`, insight::safe_deparse)
-  names(denominator) <- insight::safe_deparse(cl$denominator)
-
-  mods <- .cleanup_BF_models(mods, denominator, cl)
-  denominator <- attr(mods, "denominator", exact = TRUE)
-
-  .bayesfactor_models_stan(mods, denominator = denominator, verbose = verbose)
-}
 
 #' @export
-bayesfactor_models.blavaan <- function(..., denominator = 1, verbose = TRUE) {
-  insight::check_if_installed("blavaan")
+bayesfactor_models.blavaan <- bayesfactor_models.stanreg
 
-  # Organize the models and their names
-  mods <- list(...)
-  denominator <- list(denominator)
-
-  cl <- match.call(expand.dots = FALSE)
-  names(mods) <- sapply(cl$`...`, insight::safe_deparse)
-  names(denominator) <- insight::safe_deparse(cl$denominator)
-
-  mods <- .cleanup_BF_models(mods, denominator, cl)
-  denominator <- attr(mods, "denominator", exact = TRUE)
-
-  .bayesfactor_models_stan(mods, denominator = denominator, verbose = verbose)
-}
 
 #' @export
 bayesfactor_models.BFBayesFactor <- function(..., verbose = TRUE) {
@@ -611,7 +581,7 @@ as.matrix.bayesfactor_models <- function(x, ...) {
 
   # Else... Get marginal likelihood
   if (verbose) {
-    message("Computation of Marginal Likelihood: estimating marginal likelihood, please wait...")
+    insight::format_alert("Computation of Marginal Likelihood: estimating marginal likelihood, please wait...")
   }
   # Should probably allow additional arguments such as reps or cores to for bridge_sampler
   bridgesampling::bridge_sampler(mod, silent = TRUE)

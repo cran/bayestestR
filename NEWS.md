@@ -1,3 +1,30 @@
+# bayestestR 0.13.2
+
+## Breaking Changes
+
+* `pd_to_p()` now returns 1 and a warning for values smaller than 0.5.
+
+* `map_estimate()`, `p_direction()`, `p_map()`, and `p_significance()` now 
+  return a data-frame when the input is a numeric vector. (making the output 
+  consistently a data frame for all inputs.)
+
+* Argument `posteriors` was renamed into `posterior`. Before, there were a mix
+  of both spellings, now it is consistently `posterior`.
+
+## Changes
+
+* Retrieving models from the environment was improved.
+
+## Bug fixes
+
+* Fixed issues in various `format()` methods, which did not work properly for
+  some few functions (like `p_direction()`).
+
+* Fixed issue in `estimate_density()` for double vectors that also had other
+  class attributes.
+
+* Fixed several minor issues and tests.
+
 # bayestestR 0.13.1
 
 ## Changes

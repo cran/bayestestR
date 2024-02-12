@@ -59,7 +59,8 @@ bf_restricted(posterior, hypothesis, prior = NULL, verbose = TRUE, ...)
 \method{as.logical}{bayesfactor_restricted}(x, which = c("posterior", "prior"), ...)
 }
 \arguments{
-\item{posterior}{A \code{stanreg} / \code{brmsfit} object, \code{emmGrid} or a data frame - representing a posterior distribution(s) from (see Details).}
+\item{posterior}{A \code{stanreg} / \code{brmsfit} object, \code{emmGrid} or a data frame - representing
+a posterior distribution(s) from (see Details).}
 
 \item{hypothesis}{A character vector specifying the restrictions as logical conditions (see examples below).}
 
@@ -93,7 +94,8 @@ with the fully unrestricted model. \emph{Note that this method should only be us
 \cr \cr
 The \verb{bf_*} function is an alias of the main function.
 \cr \cr
-\strong{For more info, in particular on specifying correct priors for factors with more than 2 levels, see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
+\strong{For more info, in particular on specifying correct priors for factors with more than 2 levels,
+see \href{https://easystats.github.io/bayestestR/articles/bayes_factors.html}{the Bayes factors vignette}.}
 }
 \details{
 This method is used to compute Bayes factors for order-restricted models vs un-restricted
@@ -123,13 +125,18 @@ It is important to provide the correct \code{prior} for meaningful results.
 \item When \code{posterior} is a \code{data.frame}, \code{prior} should also be a \code{data.frame}, with matching column order.
 \item When \code{posterior} is a \code{stanreg}, \code{brmsfit} or other supported Bayesian model: \itemize{
 \item \code{prior} can be set to \code{NULL}, in which case prior samples are drawn internally.
-\item \code{prior} can also be a model equivalent to \code{posterior} but with samples from the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be a model equivalent to \code{posterior} but with samples from
+the priors \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
 \item \strong{Note:} When \code{posterior} is a \code{brmsfit_multiple} model, \code{prior} \strong{must} be provided.
 }
 \item When \code{posterior} is an \code{emmGrid} / \code{emm_list} object: \itemize{
-\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
-\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model. (\emph{This cannot be done for \code{brmsfit} models.})
-\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.), or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
+\item \code{prior} should also be an \code{emmGrid} / \code{emm_list} object equivalent to \code{posterior} but
+created with a model of priors samples \emph{only}. See \code{\link[=unupdate]{unupdate()}}.
+\item \code{prior} can also be the original (posterior) \emph{model}. If so, the function will try to
+update the \code{emmGrid} / \code{emm_list} to use the \code{\link[=unupdate]{unupdate()}}d prior-model.
+(\emph{This cannot be done for \code{brmsfit} models.})
+\item \strong{Note}: When the \code{emmGrid} has undergone any transformations (\code{"log"}, \code{"response"}, etc.),
+or \code{regrid}ing, then \code{prior} must be an \code{emmGrid} object, as stated above.
 }
 }
 }
@@ -147,15 +154,15 @@ null-model) (\cite{Wetzels et al. 2011}).
 set.seed(444)
 library(bayestestR)
 prior <- data.frame(
-  A = rnorm(1000),
-  B = rnorm(1000),
-  C = rnorm(1000)
+  A = rnorm(500),
+  B = rnorm(500),
+  C = rnorm(500)
 )
 
 posterior <- data.frame(
-  A = rnorm(1000, .4, 0.7),
-  B = rnorm(1000, -.2, 0.4),
-  C = rnorm(1000, 0, 0.5)
+  A = rnorm(500, .4, 0.7),
+  B = rnorm(500, -.2, 0.4),
+  C = rnorm(500, 0, 0.5)
 )
 
 hyps <- c(
@@ -182,7 +189,7 @@ see::plots(
 )
 \dontshow{\}) # examplesIf}
 \dontshow{if (require("rstanarm")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-\dontrun{
+\donttest{
 # rstanarm models
 # ---------------
 data("mtcars")
@@ -200,7 +207,7 @@ bayesfactor_restricted(fit_stan, hypothesis = hyps)
 }
 \dontshow{\}) # examplesIf}
 \dontshow{if (require("rstanarm") && require("emmeans")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-\dontrun{
+\donttest{
 # emmGrid objects
 # ---------------
 # replicating http://bayesfactor.blogspot.com/2015/01/multiple-comparisons-with-bayesfactor-2.html
@@ -208,7 +215,7 @@ data("disgust")
 contrasts(disgust$condition) <- contr.equalprior_pairs # see vignette
 fit_model <- rstanarm::stan_glm(score ~ condition, data = disgust, family = gaussian())
 
-em_condition <- emmeans::emmeans(fit_model, ~condition)
+em_condition <- emmeans::emmeans(fit_model, ~condition, data = disgust)
 hyps <- c("lemon < control & control < sulfur")
 
 bayesfactor_restricted(em_condition, prior = fit_model, hypothesis = hyps)
@@ -223,8 +230,11 @@ bayesfactor_restricted(em_condition, prior = fit_model, hypothesis = hyps)
 }
 \references{
 \itemize{
-\item Morey, R. D., & Wagenmakers, E. J. (2014). Simple relation between Bayesian order-restricted and point-null hypothesis tests. Statistics & Probability Letters, 92, 121-124.
-\item Morey, R. D., & Rouder, J. N. (2011). Bayes factor approaches for testing interval null hypotheses. Psychological methods, 16(4), 406.
-\item Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions. Retrieved from https://richarddmorey.org/category/order-restrictions/.
+\item Morey, R. D., & Wagenmakers, E. J. (2014). Simple relation between Bayesian order-restricted and
+point-null hypothesis tests. Statistics & Probability Letters, 92, 121-124.
+\item Morey, R. D., & Rouder, J. N. (2011). Bayes factor approaches for testing interval null hypotheses.
+Psychological methods, 16(4), 406.
+\item Morey, R. D. (Jan, 2015). Multiple Comparisons with BayesFactor, Part 2 – order restrictions.
+Retrieved from https://richarddmorey.org/category/order-restrictions/.
 }
 }

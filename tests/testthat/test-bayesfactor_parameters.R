@@ -1,9 +1,5 @@
 test_that("bayesfactor_parameters data frame", {
-  skip_if_offline()
-  skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("BayesFactor")
-  skip_if_not_or_load_if_installed("httr")
-  skip_if_not_or_load_if_installed("brms")
+  skip_if_not_or_load_if_installed("logspline", "2.1.21")
 
   Xprior <- data.frame(
     x = distribution_normal(1e4),
@@ -59,10 +55,9 @@ test_that("bayesfactor_parameters data frame", {
 test_that("bayesfactor_parameters RSTANARM", {
   skip_on_cran()
   skip_if_offline()
+  skip_if_not_or_load_if_installed("logspline", "2.1.21")
   skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("BayesFactor")
   skip_if_not_or_load_if_installed("httr")
-  skip_if_not_or_load_if_installed("brms")
 
   fit <- suppressMessages(stan_glm(mpg ~ ., data = mtcars, refresh = 0))
 
@@ -72,8 +67,11 @@ test_that("bayesfactor_parameters RSTANARM", {
 
   set.seed(333)
   BF1 <- bayesfactor_parameters(fit, verbose = FALSE)
+  BF3 <- bayesfactor_parameters(insight::get_parameters(fit), insight::get_parameters(fit_p), verbose = FALSE)
 
   expect_equal(BF1, BF2)
+  expect_equal(BF1[["Parameter"]], BF3[["Parameter"]])
+  expect_equal(BF1[["log_BF"]], BF3[["log_BF"]])
 
   model_flat <- suppressMessages(
     stan_glm(extra ~ group, data = sleep, prior = NULL, refresh = 0)
@@ -91,26 +89,26 @@ test_that("bayesfactor_parameters RSTANARM", {
 
 
 # bayesfactor_parameters BRMS ---------------------------------------------
-#
-#   test_that("bayesfactor_parameters BRMS", {
-#     skip_if_offline()
-#     skip_if_not_or_load_if_installed("rstanarm")
-#     skip_if_not_or_load_if_installed("BayesFactor")
-#     skip_if_not_or_load_if_installed("httr")
-#     skip_if_not_or_load_if_installed("brms")
-#
-#     brms_mixed_6 <- insight::download_model("brms_mixed_6")
-#
-#     set.seed(222)
-#     brms_mixed_6_p <- unupdate(brms_mixed_6)
-#     bfsd1 <- bayesfactor_parameters(brms_mixed_6, brms_mixed_6_p, effects = "fixed")
-#
-#     set.seed(222)
-#     bfsd2 <- bayesfactor_parameters(brms_mixed_6, effects = "fixed")
-#
-#     expect_equal(log(bfsd1$BF), log(bfsd2$BF), tolerance = .11)
-#
-#
-#     brms_mixed_1 <- insight::download_model("brms_mixed_1")
-#     expect_error(bayesfactor_parameters(brms_mixed_1))
-#   })
+
+test_that("bayesfactor_parameters BRMS", {
+  skip_if_offline()
+  skip_if_not_or_load_if_installed("logspline", "2.1.21")
+  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("brms")
+  skip_if_not_or_load_if_installed("cmdstanr")
+
+  brms_mixed_6 <- insight::download_model("brms_mixed_6")
+
+  set.seed(222)
+  brms_mixed_6_p <- unupdate(brms_mixed_6)
+  bfsd1 <- suppressWarnings(bayesfactor_parameters(brms_mixed_6, brms_mixed_6_p, effects = "fixed"))
+
+  set.seed(222)
+  bfsd2 <- suppressWarnings(bayesfactor_parameters(brms_mixed_6, effects = "fixed"))
+
+  expect_equal(bfsd1$log_BF, bfsd2$log_BF, tolerance = 0.11)
+
+
+  brms_mixed_1 <- insight::download_model("brms_mixed_1")
+  expect_error(bayesfactor_parameters(brms_mixed_1))
+})
