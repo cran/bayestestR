@@ -44,28 +44,59 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
   }
 
   info <- insight::model_info(model, verbose = FALSE)
-  formula <- insight::find_formula(model)
-  family <- insight::get_family(model)
-  if (inherits(family, "brmsfamily")) {
-    family <- get(family$family)(link = family$link)
+  model_formula <- insight::find_formula(model)
+  model_family <- insight::get_family(model)
+
+  # fix exception: The 0 + Intercept syntax in brms can be used to facilitate
+  # prior specification for the intercept, but but it leads to issues where it
+  # wrongly can be believed that Intercept is a variable and not a special term.
+  f_string <- insight::safe_deparse(model_formula$conditional)
+  if (grepl("0 + Intercept", f_string, fixed = TRUE)) {
+    model_formula$conditional <- stats::as.formula(gsub("0 + Intercept", "1", f_string, fixed = TRUE))
   }
 
+  if (inherits(model_family, "brmsfamily")) {
+    insight::check_if_installed("glmmTMB")
+    # exception: ordbetareg()
+    if ("custom" %in% model_family$family && all(model_family$name == "ord_beta_reg")) {
+      model_family <- glmmTMB::ordbeta()
+    } else {
+      # not all families return proper objects from "get", so we capture
+      # some families via switch here...
+      model_family <- .safe(switch(model_family$family,
+        beta = glmmTMB::beta_family(link = model_family$link),
+        beta_binomial = glmmTMB::betabinomial(link = model_family$link),
+        negbinomial = glmmTMB::nbinom1(link = model_family$link),
+        lognormal = glmmTMB::lognormal(link = model_family$link),
+        student = glmmTMB::t_family(link = model_family$link),
+        get(model_family$family)(link = model_family$link)
+      ))
+    }
+  }
+
+  # if family could not be identified, stop here
+  if (is.null(model_family)) {
+    insight::format_error("Model could not be automatically converted to frequentist model.")
+  }
+
+  # first attempt
   freq <- tryCatch(.convert_bayesian_as_frequentist(
-    info = info, formula = formula, data = data, family = family, REML = REML
+    info = info, formula = model_formula, data = data, family = model_family, REML = REML
   ), error = function(e) e)
 
   if (inherits(freq, "error")) {
-    family <- get(family$family)(link = family$link)
+    # try again to extract family, using generic approach
+    model_family <- get(model_family$family)(link = model_family$link)
     freq <- .convert_bayesian_as_frequentist(
-      info = info, formula = formula, data = data, family = family, REML = REML
+      info = info, formula = model_formula, data = data, family = model_family, REML = REML
     )
   }
 
   if (inherits(freq, "error")) {
     insight::format_error("Model could not be automatically converted to frequentist model.")
-  } else {
-    return(freq)
   }
+
+  freq
 }
 
 # internal
@@ -79,7 +110,7 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
   # subset,
   # knots,
   # meta-analysis
-  if (info$is_dispersion || info$is_zero_inflated || info$is_zeroinf || info$is_hurdle) {
+  if (info$is_dispersion || info$is_orderedbeta || info$is_beta || info$is_betabinomial || info$is_zero_inflated || info$is_zeroinf || info$is_hurdle || info$is_negbin) { # nolint
     insight::check_if_installed("glmmTMB")
 
     cond_formula <- .rebuild_cond_formula(formula)
@@ -148,40 +179,35 @@ convert_bayesian_as_frequentist <- function(model, data = NULL, REML = TRUE) {
         )
       }
     }
+  } else if (info$is_linear) {
+    freq <- stats::lm(formula$conditional, data = data)
   } else {
-    if (info$is_linear) {
-      freq <- stats::lm(formula$conditional, data = data)
-    } else {
-      freq <- stats::glm(formula$conditional, data = data, family = family)
-    }
+    freq <- stats::glm(formula$conditional, data = data, family = family)
   }
 
-  return(freq)
+  freq
 }
 
 .rebuild_cond_formula <- function(formula) {
   if (is.null(formula$random)) {
     return(formula$conditional)
-  } else {
-    if (is.list(formula$random)) {
-      random_formula <- paste(
-        lapply(
-          formula$random, function(x) {
-            paste0("(", as.character(x)[-1], ")")
-          }
-        ),
-        collapse = " + "
-      )
-    } else {
-      random_formula <- paste0("(", as.character(formula$random)[-1], ")")
-    }
-    fixed_formula <- paste(as.character(formula$conditional)[c(2, 1, 3)], collapse = " ")
-    cond_formula <- stats::as.formula(paste(
-      fixed_formula, random_formula,
-      sep = " + "
-    ))
-    return(cond_formula)
   }
+
+  if (is.list(formula$random)) {
+    random_formula <- paste(
+      lapply(
+        formula$random, function(x) {
+          paste0("(", as.character(x)[-1], ")")
+        }
+      ),
+      collapse = " + "
+    )
+  } else {
+    random_formula <- paste0("(", as.character(formula$random)[-1], ")")
+  }
+
+  fixed_formula <- paste(as.character(formula$conditional)[c(2, 1, 3)], collapse = " ")
+  stats::as.formula(paste(fixed_formula, random_formula, sep = " + "))
 }
 
 #' @rdname convert_bayesian_as_frequentist

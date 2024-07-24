@@ -1,11 +1,34 @@
+# bayestestR 0.14.0
+
+## Breaking Changes
+
+* Arguments named `group`, `at`, `group_by` and `split_by` will be deprecated
+  in future releases of _easystats_ packages. Please use `by` instead. This
+  affects following functions in *bayestestR*:
+
+  * `estimate_density()`
+
+## Changes
+
+* `bayesian_as_frequentist()` now supports more model families from Bayesian
+  models that can be successfully converted to their frequentists counterparts.
+
+* `bayesfactor_models()` now throws an informative error when Bayes factors for
+  comparisons could not be calculated.
+
+## Bug fixes
+
+* Fixed issue in `bayesian_as_frequentist()` for *brms* models with `0 + Intercept`
+  specification in the model formula.
+
 # bayestestR 0.13.2
 
 ## Breaking Changes
 
 * `pd_to_p()` now returns 1 and a warning for values smaller than 0.5.
 
-* `map_estimate()`, `p_direction()`, `p_map()`, and `p_significance()` now 
-  return a data-frame when the input is a numeric vector. (making the output 
+* `map_estimate()`, `p_direction()`, `p_map()`, and `p_significance()` now
+  return a data-frame when the input is a numeric vector. (making the output
   consistently a data frame for all inputs.)
 
 * Argument `posteriors` was renamed into `posterior`. Before, there were a mix
@@ -33,7 +56,7 @@
 
 * Improved speed performance to `bayesfactor_models()` for `brmsfit` objects
   that already included a `marglik` element in the model object.
-  
+
 ## New functionality
 
 * `as.logical()` for `bayesfactor_restricted()` results, extracts the boolean
