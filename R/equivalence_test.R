@@ -31,8 +31,8 @@
 #'   to zero the better).
 #'   \cr \cr
 #'   Some attention is required for finding suitable values for the ROPE limits
-#'   (argument `range`). See 'Details' in [`rope_range()`][rope_range]
-#'   for further information.
+#'   (argument `range`). See 'Details' in [`rope_range()`] for further
+#'   information.
 #'   \cr \cr
 #'   **Multicollinearity: Non-independent covariates**
 #'   \cr \cr
@@ -85,6 +85,10 @@
 #' \donttest{
 #' model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 #' equivalence_test(model)
+#' # multiple ROPE ranges - asymmetric, symmetric, default
+#' equivalence_test(model, range = list(c(10, 40), c(-5, -4), "default"))
+#' # named ROPE ranges
+#' equivalence_test(model, range = list(wt = c(-5, -4), `(Intercept)` = c(10, 40)))
 #'
 #' # plot result
 #' test <- equivalence_test(model)
@@ -145,15 +149,51 @@ equivalence_test.numeric <- function(x, range = "default", ci = 0.95, verbose = 
 
 
 #' @rdname equivalence_test
+#' @inheritParams p_direction
 #' @export
-equivalence_test.data.frame <- function(x, range = "default", ci = 0.95, verbose = TRUE, ...) {
-  l <- insight::compact_list(lapply(
-    x,
-    equivalence_test,
-    range = range,
-    ci = ci,
-    verbose = verbose
-  ))
+equivalence_test.data.frame <- function(x, range = "default", ci = 0.95, rvar_col = NULL, verbose = TRUE, ...) {
+  obj_name <- insight::safe_deparse_symbol(substitute(x))
+
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::equivalence_test
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, x))
+  }
+
+  # multiple ranges for the parameters - iterate over parameters and range
+  if (is.list(range)) {
+    # check if list of values contains only valid values
+    range <- .check_list_range(range, x)
+    # apply thresholds to each column
+    l <- insight::compact_list(mapply(
+      function(p, r) {
+        equivalence_test(
+          p,
+          range = r,
+          ci = ci,
+          verbose = verbose
+        )
+      },
+      x,
+      range,
+      SIMPLIFY = FALSE
+    ))
+  } else {
+    l <- insight::compact_list(lapply(
+      x,
+      equivalence_test,
+      range = range,
+      ci = ci,
+      verbose = verbose
+    ))
+  }
 
   dat <- do.call(rbind, l)
   out <- data.frame(
@@ -163,7 +203,7 @@ equivalence_test.data.frame <- function(x, range = "default", ci = 0.95, verbose
   )
   row.names(out) <- NULL
 
-  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  attr(out, "object_name") <- obj_name
   class(out) <- unique(c("equivalence_test", "see_equivalence_test_df", class(out)))
 
   out
@@ -182,14 +222,30 @@ equivalence_test.rvar <- equivalence_test.draws
 #' @export
 equivalence_test.emmGrid <- function(x, range = "default", ci = 0.95, verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
-
   out <- equivalence_test(xdf, range = range, ci = ci, verbose = verbose, ...)
+  out <- .append_datagrid(out, x)
   attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
 #' @export
 equivalence_test.emm_list <- equivalence_test.emmGrid
+
+
+#' @export
+equivalence_test.slopes <- function(x, range = "default", ci = 0.95, verbose = TRUE, ...) {
+  xrvar <- .get_marginaleffects_draws(x)
+  out <- equivalence_test(xrvar, range = range, ci = ci, verbose = verbose, ...)
+  out <- .append_datagrid(out, x)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out
+}
+
+#' @export
+equivalence_test.comparisons <- equivalence_test.slopes
+
+#' @export
+equivalence_test.predictions <- equivalence_test.slopes
 
 
 #' @export
@@ -212,7 +268,7 @@ equivalence_test.BFBayesFactor <- function(x, range = "default", ci = 0.95, verb
                                      verbose = TRUE) {
   if (all(range == "default")) {
     range <- rope_range(x, verbose = verbose)
-  } else if (!all(is.numeric(range)) || length(range) != 2L) {
+  } else if (!is.list(range) && (!all(is.numeric(range)) || length(range) != 2L)) {
     insight::format_error("`range` should be 'default' or a vector of 2 numeric values (e.g., c(-0.1, 0.1)).")
   }
 
@@ -225,24 +281,7 @@ equivalence_test.BFBayesFactor <- function(x, range = "default", ci = 0.95, verb
     verbose = verbose
   )
 
-  l <- sapply(
-    params,
-    equivalence_test,
-    range = range,
-    ci = ci,
-    verbose = verbose,
-    simplify = FALSE
-  )
-
-  dat <- do.call(rbind, l)
-  out <- data.frame(
-    Parameter = rep(names(l), each = nrow(dat) / length(l)),
-    dat,
-    stringsAsFactors = FALSE
-  )
-
-  class(out) <- unique(c("equivalence_test", "see_equivalence_test", class(out)))
-  out
+  equivalence_test(params, range = range, ci = ci, verbose = verbose)
 }
 
 

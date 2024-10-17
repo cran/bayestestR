@@ -22,14 +22,14 @@
 #' @note There is also a [`plot()`-method](https://easystats.github.io/see/articles/bayestestR.html) implemented in the \href{https://easystats.github.io/see/}{\pkg{see}-package}.
 #'
 #' @examplesIf require("rstanarm") && require("logspline")
+#' \dontrun{
 #' library(bayestestR)
 #'
 #' prior <- distribution_normal(1000, mean = 0, sd = 1)
-#' posterior <- distribution_normal(1000, mean = .5, sd = .3)
+#' posterior <- distribution_normal(1000, mean = 0.5, sd = 0.3)
 #'
 #' bayesfactor(posterior, prior = prior, verbose = FALSE)
 #'
-#' \donttest{
 #' # rstanarm models
 #' # ---------------
 #' model <- suppressWarnings(rstanarm::stan_lmer(extra ~ group + (1 | ID), data = sleep))

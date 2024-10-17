@@ -9,6 +9,7 @@
 \alias{bci.sim.merMod}
 \alias{bci.sim}
 \alias{bci.emmGrid}
+\alias{bci.slopes}
 \alias{bci.stanreg}
 \alias{bci.brmsfit}
 \alias{bci.BFBayesFactor}
@@ -21,7 +22,7 @@ bcai(x, ...)
 
 \method{bci}{numeric}(x, ci = 0.95, verbose = TRUE, ...)
 
-\method{bci}{data.frame}(x, ci = 0.95, verbose = TRUE, ...)
+\method{bci}{data.frame}(x, ci = 0.95, rvar_col = NULL, verbose = TRUE, ...)
 
 \method{bci}{MCMCglmm}(x, ci = 0.95, verbose = TRUE, ...)
 
@@ -37,6 +38,8 @@ bcai(x, ...)
 \method{bci}{sim}(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...)
 
 \method{bci}{emmGrid}(x, ci = 0.95, verbose = TRUE, ...)
+
+\method{bci}{slopes}(x, ci = 0.95, verbose = TRUE, ...)
 
 \method{bci}{stanreg}(
   x,
@@ -76,6 +79,9 @@ resemble the arguments of the \code{.numeric} or \code{.data.frame}methods.}
 (between 0 and 1) to be estimated. Default to \code{.95} (\verb{95\%}).}
 
 \item{verbose}{Toggle off warnings.}
+
+\item{rvar_col}{A single character - the name of an \code{rvar} column in the data
+frame to be processed. See example in \code{\link[=p_direction]{p_direction()}}.}
 
 \item{effects}{Should results for fixed effects, random effects or both be
 returned? Only applies to mixed models. May be abbreviated.}
@@ -168,7 +174,6 @@ Statistical Science. 11(3): 189–212. 10.1214/ss/1032280214
 \seealso{
 Other ci: 
 \code{\link{ci}()},
-\code{\link{cwi}()},
 \code{\link{eti}()},
 \code{\link{hdi}()},
 \code{\link{si}()},

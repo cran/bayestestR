@@ -66,11 +66,38 @@ spi.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
 
 
 #' @export
-spi.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
+#' @rdname spi
+#' @inheritParams p_direction
+spi.data.frame <- function(x, ci = 0.95, rvar_col = NULL, verbose = TRUE, ...) {
+  obj_name <- insight::safe_deparse_symbol(substitute(x))
+
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::spi
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, x, long = length(ci) > 1L))
+  }
+
   dat <- .compute_interval_dataframe(x = x, ci = ci, verbose = verbose, fun = "spi")
+  attr(dat, "object_name") <- obj_name
+  dat
+}
+
+#' @export
+spi.draws <- function(x, ci = 0.95, verbose = TRUE, ...) {
+  dat <- .compute_interval_dataframe(x = .posterior_draws_to_df(x), ci = ci, verbose = verbose, fun = "spi")
   attr(dat, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   dat
 }
+
+#' @export
+spi.rvar <- spi.draws
 
 
 #' @export
@@ -130,6 +157,7 @@ spi.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
 spi.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
   out <- spi(xdf, ci = ci, verbose = verbose, ...)
+  out <- .append_datagrid(out, x, long = length(ci) > 1L)
   attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
@@ -137,6 +165,20 @@ spi.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
 #' @export
 spi.emm_list <- spi.emmGrid
 
+#' @export
+spi.slopes <- function(x, ci = 0.95, verbose = TRUE, ...) {
+  xrvar <- .get_marginaleffects_draws(x)
+  out <- spi(xrvar, ci = ci, verbose = verbose, ...)
+  out <- .append_datagrid(out, x, long = length(ci) > 1L)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out
+}
+
+#' @export
+spi.comparisons <- spi.slopes
+
+#' @export
+spi.predictions <- spi.slopes
 
 #' @rdname spi
 #' @export
@@ -310,11 +352,7 @@ spi.get_predicted <- function(x, ci = 0.95, use_iterations = FALSE, verbose = TR
   }
 
   # output
-  data.frame(
-    "CI" = ci,
-    "CI_low" = x.l,
-    "CI_high" = x.u
-  )
+  data.frame(CI = ci, CI_low = x.l, CI_high = x.u)
 }
 
 .spi_lower <- function(bw, n.sims, k, l, dens, x) {
@@ -391,7 +429,7 @@ spi.get_predicted <- function(x, ci = 0.95, use_iterations = FALSE, verbose = TR
   w.l <- quadprog::solve.QP(D.l, d.l, A.l, c(1, rep(0, range_ll_lu + 2)), range_ll_lu)
   x.l <- w.l$solution %*% x[l.l:l.u]
 
-  return(x.l)
+  x.l
 }
 
 .spi_upper <- function(bw, n.sims, ui, u, dens, x) {

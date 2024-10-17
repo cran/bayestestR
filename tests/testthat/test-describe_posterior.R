@@ -3,7 +3,7 @@ test_that("describe_posterior", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
   skip_if_not_or_load_if_installed("BayesFactor")
   skip_on_os("linux")
 
@@ -113,7 +113,7 @@ test_that("describe_posterior", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
   skip_if_not_or_load_if_installed("BayesFactor")
 
   set.seed(333)
@@ -145,6 +145,20 @@ test_that("describe_posterior", {
     regex = "not be precise"
   )
   expect_identical(dim(rez), c(4L, 21L))
+
+  # allow multiple ropes
+  rez <- describe_posterior(x, rope_range = list(c(-1, 1), "default"))
+  expect_identical(rez$ROPE_low, c(-1, -0.1), tolerance = 1e-3)
+  expect_identical(rez$ROPE_high, c(1, 0.1), tolerance = 1e-3)
+
+  expect_error(
+    describe_posterior(x, rope_range = list(1, "default")),
+    regex = "should be 'default'"
+  )
+  expect_error(
+    describe_posterior(x, rope_range = list(c(1, 1), c(2, 2), c(2, 3))),
+    regex = "Length of"
+  )
 
   rez <- describe_posterior(
     x,
@@ -236,7 +250,7 @@ test_that("describe_posterior", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
   skip_if_not_or_load_if_installed("BayesFactor")
 
   m <- insight::download_model("stanreg_merMod_5")
@@ -253,7 +267,7 @@ test_that("describe_posterior", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
   skip_if_not_or_load_if_installed("BayesFactor")
 
   m <- insight::download_model("brms_zi_3")
@@ -272,7 +286,7 @@ test_that("describe_posterior w/ BF+SI", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
   skip_if_not_or_load_if_installed("BayesFactor")
 
   x <- insight::download_model("stanreg_lm_1")
@@ -308,7 +322,7 @@ test_that("describe_posterior: BayesFactor", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
   skip_if_not_or_load_if_installed("brms")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
   skip_if_not_or_load_if_installed("BayesFactor")
 
   set.seed(123)

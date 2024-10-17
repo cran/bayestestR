@@ -15,6 +15,47 @@
   x[unlist(lapply(x, is.numeric))]
 }
 
+#' @keywords internal
+.retrieve_model <- function(x) {
+  # retrieve model
+  obj_name <- attr(x, "object_name", exact = TRUE)
+  model <- NULL
+
+  if (!is.null(obj_name)) {
+    # first try, parent frame
+    model <- .safe(get(obj_name, envir = parent.frame()))
+
+    if (is.null(model)) {
+      # second try, global env
+      model <- .safe(get(obj_name, envir = globalenv()))
+    }
+
+    if (is.null(model)) {
+      # last try
+      model <- .dynGet(obj_name, ifnotfound = NULL)
+    }
+  }
+  model
+}
+
+#' @keywords internal
+.dynGet <- function(x,
+                    ifnotfound = stop(gettextf("%s not found", sQuote(x)), domain = NA, call. = FALSE),
+                    minframe = 1L,
+                    inherits = FALSE) {
+  x <- insight::safe_deparse(x)
+  n <- sys.nframe()
+  myObj <- structure(list(.b = as.raw(7)), foo = 47L)
+  while (n > minframe) {
+    n <- n - 1L
+    env <- sys.frame(n)
+    r <- get0(x, envir = env, inherits = inherits, ifnotfound = myObj)
+    if (!identical(r, myObj)) {
+      return(r)
+    }
+  }
+  ifnotfound
+}
 
 #' @keywords internal
 .get_direction <- function(direction) {
@@ -132,7 +173,12 @@
 }
 
 #' @keywords internal
-.is_baysian_emmeans <- function(x) {
+.is_baysian_grid <- function(x) {
+  UseMethod(".is_baysian_grid")
+}
+
+#' @keywords internal
+.is_baysian_grid.emmGrid <- function(x) {
   if (inherits(x, "emm_list")) {
     x <- x[[1]]
   }
@@ -140,6 +186,19 @@
   !(all(dim(post.beta) == 1) && is.na(post.beta))
 }
 
+#' @keywords internal
+.is_baysian_grid.emm_list <- .is_baysian_grid.emmGrid
+
+#' @keywords internal
+.is_baysian_grid.slopes <- function(x) {
+  !is.null(attr(x, "posterior_draws"))
+}
+
+#' @keywords internal
+.is_baysian_grid.predictions <- .is_baysian_grid.slopes
+
+#' @keywords internal
+.is_baysian_grid.comparisons <- .is_baysian_grid.slopes
 
 # safe add cleaned parameter names to a model object
 .add_clean_parameters_attribute <- function(params, model) {
@@ -153,4 +212,103 @@
   )
   attr(params, "clean_parameters") <- cp
   params
+}
+
+#' @keywords internal
+.append_datagrid <- function(results, object, long = FALSE) {
+  UseMethod(".append_datagrid", object = object)
+}
+
+#' @keywords internal
+.append_datagrid.emmGrid <- function(results, object, long = FALSE) {
+  # results is assumed to be a data frame with "Parameter" column
+  # object is an emmeans / marginalefeects that results is based on
+
+  all_attrs <- attributes(results) # save attributes for later
+  all_class <- class(results)
+
+  datagrid <- insight::get_datagrid(object)
+  grid_names <- colnames(datagrid)
+
+  if (long) {
+    datagrid$Parameter <- unique(results$Parameter)
+    results <- datawizard::data_merge(datagrid, results, by = "Parameter")
+    results$Parameter <- NULL
+    class(results) <- all_class
+  } else {
+    results[colnames(datagrid)] <- datagrid
+    results$Parameter <- NULL
+    results <- results[, c(grid_names, setdiff(colnames(results), grid_names)), drop = FALSE]
+
+    # add back attributes
+    most_attrs <- all_attrs[setdiff(names(all_attrs), names(attributes(datagrid)))]
+    attributes(results)[names(most_attrs)] <- most_attrs
+  }
+
+
+
+  attr(results, "idvars") <- grid_names
+  results
+}
+
+.append_datagrid.emm_list <- .append_datagrid.emmGrid
+
+.append_datagrid.slopes <- .append_datagrid.emmGrid
+
+.append_datagrid.predictions <- .append_datagrid.emmGrid
+
+.append_datagrid.comparisons <- .append_datagrid.emmGrid
+
+.append_datagrid.data.frame <- function(results, object, long = FALSE) {
+  # results is assumed to be a data frame with "Parameter" column
+  # object is a data frame with an rvar column that results is based on
+
+  all_attrs <- attributes(results) # save attributes for later
+  all_class <- class(results)
+
+  is_rvar <- vapply(object, inherits, FUN.VALUE = logical(1), "rvar")
+  grid_names <- colnames(object)[!is_rvar]
+  datagrid <- data.frame(object[, grid_names, drop = FALSE])
+
+  if (long) {
+    datagrid$Parameter <- unique(results$Parameter)
+    results <- datawizard::data_merge(datagrid, results, by = "Parameter")
+    results$Parameter <- NULL
+    class(results) <- all_class
+  } else {
+    results[grid_names] <- object[grid_names]
+    results$Parameter <- NULL
+    results <- results[, c(grid_names, setdiff(colnames(results), grid_names)), drop = FALSE]
+
+    # add back attributes
+    most_attrs <- all_attrs[setdiff(names(all_attrs), names(attributes(object)))]
+    attributes(results)[names(most_attrs)] <- most_attrs
+  }
+
+  attr(results, "idvars") <- grid_names
+  results
+}
+
+
+#' @keywords internal
+.get_marginaleffects_draws <- function(object) {
+  # errors and checks are handled by marginaleffects
+  insight::check_if_installed("marginaleffects")
+  data.frame(marginaleffects::posterior_draws(object, shape = "DxP"))
+}
+
+#' @keywords internal
+.possibly_extract_rvar_col <- function(df, rvar_col) {
+  if (missing(rvar_col) || is.null(rvar_col)) {
+    return(NULL)
+  }
+
+  if (is.character(rvar_col) &&
+    length(rvar_col) == 1L &&
+    rvar_col %in% colnames(df) &&
+    inherits(df[[rvar_col]], "rvar")) {
+    return(df[[rvar_col]])
+  }
+
+  insight::format_error("The `rvar_col` argument must be a single, valid column name.")
 }

@@ -157,8 +157,25 @@ ci.numeric <- function(x, ci = 0.95, method = "ETI", verbose = TRUE, BF = 1, ...
 
 
 #' @rdname ci
+#' @inheritParams p_direction
 #' @export
-ci.data.frame <- ci.numeric
+ci.data.frame <- function(x, ci = 0.95, method = "ETI", BF = 1, rvar_col = NULL, verbose = TRUE, ...) {
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::ci
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    obj_name <- insight::safe_deparse_symbol(substitute(x))
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, x, long = length(ci) > 1L))
+  }
+
+  .ci_bayesian(x, ci = ci, method = method, verbose = verbose, BF = BF, ...)
+}
 
 
 #' @export
@@ -172,20 +189,43 @@ ci.rvar <- ci.draws
 
 #' @export
 ci.emmGrid <- function(x, ci = NULL, ...) {
-  if (!.is_baysian_emmeans(x)) {
+  if (!.is_baysian_grid(x)) {
     insight::check_if_installed("parameters")
     if (is.null(ci)) ci <- 0.95
     return(parameters::ci(model = x, ci = ci, ...))
   }
 
   if (is.null(ci)) ci <- 0.95
-  x <- insight::get_parameters(x)
-  ci(x, ci = ci, ...)
+  xdf <- insight::get_parameters(x)
+  out <- ci(xdf, ci = ci, ...)
+  out <- .append_datagrid(out, x, long = length(ci) > 1L)
+  out
 }
 
 
 #' @export
 ci.emm_list <- ci.emmGrid
+
+#' @export
+ci.slopes <- function(x, ci = NULL, ...) {
+  if (!.is_baysian_grid(x)) {
+    insight::check_if_installed("parameters")
+    if (is.null(ci)) ci <- 0.95
+    return(parameters::ci(model = x, ci = ci, ...))
+  }
+
+  if (is.null(ci)) ci <- 0.95
+  xrvar <- .get_marginaleffects_draws(x)
+  out <- ci(xrvar, ci = ci, ...)
+  out <- .append_datagrid(out, x, long = length(ci) > 1L)
+  out
+}
+
+#' @export
+ci.comparisons <- ci.slopes
+
+#' @export
+ci.predictions <- ci.slopes
 
 
 #' @rdname ci

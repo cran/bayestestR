@@ -4,6 +4,7 @@
 \alias{p_significance}
 \alias{p_significance.numeric}
 \alias{p_significance.get_predicted}
+\alias{p_significance.data.frame}
 \alias{p_significance.stanreg}
 \alias{p_significance.brmsfit}
 \title{Practical Significance (ps)}
@@ -19,6 +20,8 @@ p_significance(x, ...)
   verbose = TRUE,
   ...
 )
+
+\method{p_significance}{data.frame}(x, threshold = "default", rvar_col = NULL, ...)
 
 \method{p_significance}{stanreg}(
   x,
@@ -47,7 +50,21 @@ p_significance(x, ...)
 
 \item{...}{Currently not used.}
 
-\item{threshold}{The threshold value that separates significant from negligible effect. If \code{"default"}, the range is set to \code{0.1} if input is a vector, and based on \code{\link[=rope_range]{rope_range()}} if a Bayesian model is provided.}
+\item{threshold}{The threshold value that separates significant from
+negligible effect, which can have following possible values:
+\itemize{
+\item \code{"default"}, in which case the range is set to \code{0.1} if input is a vector,
+and based on \code{\link[=rope_range]{rope_range()}} if a (Bayesian) model is provided.
+\item a single numeric value (e.g., 0.1), which is used as range around zero
+(i.e. the threshold range is set to -0.1 and 0.1, i.e. reflects a symmetric
+interval)
+\item a numeric vector of length two (e.g., \code{c(-0.2, 0.1)}), useful for
+asymmetric intervals
+\item a list of numeric vectors, where each vector corresponds to a parameter
+\item a list of \emph{named} numeric vectors, where names correspond to parameter
+names. In this case, all parameters that have no matching name in \code{threshold}
+will be set to \code{"default"}.
+}}
 
 \item{use_iterations}{Logical, if \code{TRUE} and \code{x} is a \code{get_predicted} object,
 (returned by \code{\link[insight:get_predicted]{insight::get_predicted()}}), the function is applied to the
@@ -55,6 +72,9 @@ iterations instead of the predictions. This only applies to models that return
 iterations for predicted values (e.g., \code{brmsfit} models).}
 
 \item{verbose}{Toggle off warnings.}
+
+\item{rvar_col}{A single character - the name of an \code{rvar} column in the data
+frame to be processed. See example in \code{\link[=p_direction]{p_direction()}}.}
 
 \item{effects}{Should results for fixed effects, random effects or both be
 returned? Only applies to mixed models. May be abbreviated.}
@@ -73,7 +93,12 @@ for the output.}
 Values between 0 and 1 corresponding to the probability of practical significance (ps).
 }
 \description{
-Compute the probability of \strong{Practical Significance} (\emph{\strong{ps}}), which can be conceptualized as a unidirectional equivalence test. It returns the probability that effect is above a given threshold corresponding to a negligible effect in the median's direction. Mathematically, it is defined as the proportion of the posterior distribution of the median sign above the threshold.
+Compute the probability of \strong{Practical Significance} (\emph{\strong{ps}}), which can
+be conceptualized as a unidirectional equivalence test. It returns the
+probability that effect is above a given threshold corresponding to a
+negligible effect in the median's direction. Mathematically, it is defined as
+the proportion of the posterior distribution of the median sign above the
+threshold.
 }
 \details{
 \code{p_significance()} returns the proportion of a probability
@@ -110,6 +135,10 @@ model <- rstanarm::stan_glm(mpg ~ wt + cyl,
   chains = 2, refresh = 0
 )
 p_significance(model)
+# multiple thresholds - asymmetric, symmetric, default
+p_significance(model, threshold = list(c(-10, 5), 0.2, "default"))
+# named thresholds
+p_significance(model, threshold = list(wt = 0.2, `(Intercept)` = c(-10, 5)))
 }
 \dontshow{\}) # examplesIf}
 }

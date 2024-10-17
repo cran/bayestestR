@@ -20,7 +20,7 @@
 #' means that the x axis will be extended by `1/10` of the range of the data.
 #' @param select Character vector of column names. If `NULL` (the default), all
 #' numeric variables will be selected. Other arguments from
-#' [`datawizard::extract_column_names()`] (such as `exclude`) can also be used.
+#' `datawizard::extract_column_names()` (such as `exclude`) can also be used.
 #' @param by Optional character vector. If not `NULL` and input is a data frame,
 #' density estimation is performed for each group (subsets) indicated by `by`.
 #' See examples.
@@ -221,6 +221,7 @@ estimate_density.numeric <- function(x,
 
 
 #' @rdname estimate_density
+#' @inheritParams p_direction
 #' @export
 estimate_density.data.frame <- function(x,
                                         method = "kernel",
@@ -232,7 +233,25 @@ estimate_density.data.frame <- function(x,
                                         select = NULL,
                                         by = NULL,
                                         at = NULL,
+                                        rvar_col = NULL,
                                         ...) {
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::estimate_density
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    obj_name <- insight::safe_deparse_symbol(substitute(x))
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    out <- .append_datagrid(out, x, long = TRUE)
+    class(out) <- .set_density_class(out)
+    return(out)
+  }
+
+
   # Sanity
   if (!is.null(at)) {
     insight::format_warning(paste0(
@@ -367,19 +386,48 @@ estimate_density.emmGrid <- function(x,
                                      extend_scale = 0.1,
                                      bw = "SJ",
                                      ...) {
-  x <- insight::get_parameters(x)
+  xdf <- insight::get_parameters(x)
 
-  out <- estimate_density(x,
+  out <- estimate_density(xdf,
     method = method, precision = precision,
     extend = extend, extend_scale = extend_scale,
     bw = bw, ...
   )
+
+  out <- .append_datagrid(out, x, long = TRUE)
   class(out) <- .set_density_class(out)
   out
 }
 
 #' @export
 estimate_density.emm_list <- estimate_density.emmGrid
+
+#' @export
+estimate_density.slopes <- function(x,
+                                    method = "kernel",
+                                    precision = 2^10,
+                                    extend = FALSE,
+                                    extend_scale = 0.1,
+                                    bw = "SJ",
+                                    ...) {
+  xdf <- .get_marginaleffects_draws(x)
+
+  out <- estimate_density(xdf,
+    method = method, precision = precision,
+    extend = extend, extend_scale = extend_scale,
+    bw = bw, ...
+  )
+
+  out <- .append_datagrid(out, x, long = TRUE)
+  class(out) <- .set_density_class(out)
+  out
+}
+
+#' @export
+estimate_density.predictions <- estimate_density.slopes
+
+#' @export
+estimate_density.comparisons <- estimate_density.slopes
 
 
 #' @export

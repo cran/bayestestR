@@ -2,7 +2,7 @@ test_that("rstanarm", {
   skip_on_cran()
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
 
   set.seed(333)
   model <- insight::download_model("stanreg_lm_1")
@@ -38,7 +38,7 @@ test_that("rstanarm", {
   expect_s3_class(hdi(model), "data.frame")
   expect_s3_class(ci(model), "data.frame")
   expect_s3_class(rope(model, verbose = FALSE), "data.frame")
-  expect_true("equivalence_test" %in% class(equivalence_test(model)))
+  expect_true(inherits(equivalence_test(model), "equivalence_test"))
   expect_s3_class(map_estimate(model), "data.frame")
   expect_s3_class(p_map(model), "data.frame")
   expect_s3_class(p_direction(model), "data.frame")
@@ -50,7 +50,7 @@ test_that("rstanarm", {
   skip_on_cran()
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
 
   set.seed(333)
   model <- insight::download_model("stanreg_glm_3")
@@ -69,7 +69,7 @@ test_that("rstanarm", {
   skip_on_cran()
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
 
   set.seed(333)
   model <- insight::download_model("stanreg_merMod_3")
@@ -89,7 +89,7 @@ test_that("rstanarm", {
   skip_on_cran()
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
 
   set.seed(333)
   model <- insight::download_model("stanmvreg_1")
@@ -109,7 +109,7 @@ test_that("rstanarm", {
   skip_on_cran()
   skip_if_offline()
   skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
 
   set.seed(333)
   model <- insight::download_model("stanmvreg_1")

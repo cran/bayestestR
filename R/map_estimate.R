@@ -148,8 +148,23 @@ map_estimate.brmsfit <- function(x, precision = 2^10, method = "kernel", effects
 
 
 #' @rdname map_estimate
+#' @inheritParams p_direction
 #' @export
-map_estimate.data.frame <- function(x, precision = 2^10, method = "kernel", ...) {
+map_estimate.data.frame <- function(x, precision = 2^10, method = "kernel", rvar_col = NULL, ...) {
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::map_estimate
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    obj_name <- insight::safe_deparse_symbol(substitute(x))
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, x))
+  }
+
   .map_estimate_models(x, precision = precision, method = method)
 }
 
@@ -165,12 +180,26 @@ map_estimate.rvar <- map_estimate.draws
 
 #' @export
 map_estimate.emmGrid <- function(x, precision = 2^10, method = "kernel", ...) {
-  x <- insight::get_parameters(x)
-  .map_estimate_models(x, precision = precision, method = method)
+  xdf <- insight::get_parameters(x)
+  out <- .map_estimate_models(xdf, precision = precision, method = method)
+  .append_datagrid(out, x)
 }
 
 #' @export
 map_estimate.emm_list <- map_estimate.emmGrid
+
+#' @export
+map_estimate.slopes <- function(x, precision = 2^10, method = "kernel", ...) {
+  xrvar <- .get_marginaleffects_draws(x)
+  out <- map_estimate(xrvar, precision = precision, method = method, ...)
+  .append_datagrid(out, x)
+}
+
+#' @export
+map_estimate.comparisons <- map_estimate.slopes
+
+#' @export
+map_estimate.predictions <- map_estimate.slopes
 
 
 #' @rdname map_estimate

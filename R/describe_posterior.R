@@ -6,27 +6,26 @@
 #'   **bayestestR** supports a wide range of models (see `methods("describe_posterior")`)
 #'   and not all of those are documented in the 'Usage' section, because methods
 #'   for other classes mostly resemble the arguments of the `.numeric` method.
-#' @param ci_method The type of index used for Credible Interval. Can be
-#'   `"ETI"` (default, see [bayestestR::eti()]), `"HDI"`
-#'   (see [bayestestR::hdi()]), `"BCI"` (see
-#'   [bayestestR::bci()]), `"SPI"` (see [bayestestR::spi()]), or
-#'   `"SI"` (see [bayestestR::si()]).
+#' @param ci_method The type of index used for Credible Interval. Can be `"ETI"`
+#'   (default, see [`eti()`]), `"HDI"` (see [`hdi()`]), `"BCI"` (see [`bci()`]),
+#'   `"SPI"` (see [`spi()`]), or `"SI"` (see [`si()`]).
 #' @param test The indices of effect existence to compute. Character (vector) or
 #'   list with one or more of these options: `"p_direction"` (or `"pd"`),
 #'   `"rope"`, `"p_map"`, `"equivalence_test"` (or `"equitest"`),
-#'   `"bayesfactor"` (or `"bf"`) or `"all"` to compute all tests.
-#'   For each "test", the corresponding \pkg{bayestestR} function is called
-#'   (e.g. [bayestestR::rope()] or [bayestestR::p_direction()]) and its results
-#'   included in the summary output.
-#' @param rope_range ROPE's lower and higher bounds. Should be a list of two
-#'   values (e.g., `c(-0.1, 0.1)`) or `"default"`. If `"default"`,
-#'   the bounds are set to `x +- 0.1*SD(response)`.
+#'   `"bayesfactor"` (or `"bf"`) or `"all"` to compute all tests. For each
+#'   "test", the corresponding \pkg{bayestestR} function is called (e.g.
+#'   [`rope()`] or [`p_direction()`]) and its results included in the summary
+#'   output.
+#' @param rope_range ROPE's lower and higher bounds. Should be a vector of two
+#'   values (e.g., `c(-0.1, 0.1)`), `"default"` or a list of numeric vectors of
+#'   the same length as numbers of parameters. If `"default"`, the bounds are
+#'   set to `x +- 0.1*SD(response)`.
 #' @param rope_ci The Credible Interval (CI) probability, corresponding to the
 #'   proportion of HDI, to use for the percentage in ROPE.
 #' @param keep_iterations If `TRUE`, will keep all iterations (draws) of
 #'   bootstrapped or Bayesian models. They will be added as additional columns
 #'   named `iter_1, iter_2, ...`. You can reshape them to a long format by
-#'   running [bayestestR::reshape_iterations()].
+#'   running [`reshape_iterations()`].
 #' @param bf_prior Distribution representing a prior for the computation of
 #'   Bayes factors / SI. Used if the input is a posterior, otherwise (in the
 #'   case of models) ignored.
@@ -90,6 +89,7 @@
 #'   describe_posterior(model)
 #'   describe_posterior(model, centrality = "all", dispersion = TRUE, test = "all")
 #'   describe_posterior(model, ci = c(0.80, 0.90))
+#'   describe_posterior(model, rope_range = list(c(-10, 5), c(-0.2, 0.2), "default"))
 #'
 #'   # emmeans estimates
 #'   # -----------------------------------------------
@@ -383,10 +383,16 @@ describe_posterior.default <- function(posterior, ...) {
       dot_args <- list(...)
       dot_args$verbose <- !"rope" %in% test
       test_equi <- .prepare_output(
-        equivalence_test(x_df,
-          range = rope_range,
-          ci = rope_ci,
-          dot_args
+        do.call(
+          equivalence_test,
+          c(
+            dot_args,
+            list(
+              x = x_df,
+              range = rope_range,
+              ci = rope_ci
+            )
+          )
         ),
         cleaned_parameters,
         is_stanmvreg
@@ -459,7 +465,7 @@ describe_posterior.default <- function(posterior, ...) {
     test_psig$.rowid <- seq_len(nrow(test_psig))
   } else if (!all(is.na(test_rope$Parameter))) {
     test_rope$.rowid <- seq_len(nrow(test_rope))
-  } else if (!all(is.na(test_bf$Parameter))) {
+  } else if (!all(is.na(test_bf$Parameter))) { # nolint
     test_bf$.rowid <- seq_len(nrow(test_bf))
   } else {
     estimates$.rowid <- seq_len(nrow(estimates))
@@ -489,9 +495,9 @@ describe_posterior.default <- function(posterior, ...) {
   # column consist only of missing values, we remove those columns as well
 
   remove_columns <- ".rowid"
-  if (insight::n_unique(out$Effects, na.rm = TRUE) < 2) remove_columns <- c(remove_columns, "Effects")
-  if (insight::n_unique(out$Component, na.rm = TRUE) < 2) remove_columns <- c(remove_columns, "Component")
-  if (insight::n_unique(out$Response, na.rm = TRUE) < 2) remove_columns <- c(remove_columns, "Response")
+  if (insight::n_unique(out$Effects, remove_na = TRUE) < 2) remove_columns <- c(remove_columns, "Effects")
+  if (insight::n_unique(out$Component, remove_na = TRUE) < 2) remove_columns <- c(remove_columns, "Component")
+  if (insight::n_unique(out$Response, remove_na = TRUE) < 2) remove_columns <- c(remove_columns, "Response")
 
   # Restore columns order
   out <- datawizard::data_remove(out[order(out$.rowid), ], remove_columns, verbose = FALSE)
@@ -568,7 +574,60 @@ describe_posterior.double <- describe_posterior.numeric
 
 
 #' @export
-describe_posterior.data.frame <- describe_posterior.numeric
+#' @rdname describe_posterior
+#' @inheritParams p_direction
+describe_posterior.data.frame <- function(posterior,
+                                          centrality = "median",
+                                          dispersion = FALSE,
+                                          ci = 0.95,
+                                          ci_method = "eti",
+                                          test = c("p_direction", "rope"),
+                                          rope_range = "default",
+                                          rope_ci = 0.95,
+                                          keep_iterations = FALSE,
+                                          bf_prior = NULL,
+                                          BF = 1,
+                                          rvar_col = NULL,
+                                          verbose = TRUE,
+                                          ...) {
+  x_rvar <- .possibly_extract_rvar_col(posterior, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::describe_posterior
+    cl$posterior <- x_rvar
+    cl$rvar_col <- NULL
+    prior_rvar <- .possibly_extract_rvar_col(posterior, bf_prior)
+    if (length(prior_rvar) > 0L) {
+      cl$bf_prior <- prior_rvar
+    }
+    out <- eval.parent(cl)
+
+    obj_name <- insight::safe_deparse_symbol(substitute(posterior))
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, posterior))
+  }
+
+
+  out <- .describe_posterior(
+    posterior,
+    centrality = centrality,
+    dispersion = dispersion,
+    ci = ci,
+    ci_method = ci_method,
+    test = test,
+    rope_range = rope_range,
+    rope_ci = rope_ci,
+    keep_iterations = keep_iterations,
+    bf_prior = bf_prior,
+    BF = BF,
+    verbose = verbose,
+    ...
+  )
+
+  class(out) <- unique(c("describe_posterior", "see_describe_posterior", class(out)))
+  out
+}
 
 
 #' @export
@@ -655,7 +714,7 @@ describe_posterior.draws <- function(posterior,
     rope_range = rope_range,
     rope_ci = rope_ci,
     keep_iterations = keep_iterations,
-    bf_prior = bf_prior,
+    bf_prior = if (!is.null(bf_prior)) .posterior_draws_to_df(bf_prior),
     BF = BF,
     verbose = verbose,
     ...
@@ -794,7 +853,6 @@ describe_posterior.emmGrid <- function(posterior,
     posterior_samples <- insight::get_parameters(posterior)
   }
 
-
   out <- .describe_posterior(
     posterior_samples,
     centrality = centrality,
@@ -812,11 +870,10 @@ describe_posterior.emmGrid <- function(posterior,
   )
 
   row.names(out) <- NULL # Reset row names
-
+  out <- .append_datagrid(out, posterior)
   class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
   attr(out, "ci_method") <- ci_method
   attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(posterior))
-
   out
 }
 
@@ -824,7 +881,58 @@ describe_posterior.emmGrid <- function(posterior,
 #' @export
 describe_posterior.emm_list <- describe_posterior.emmGrid
 
+#' @export
+describe_posterior.slopes <- function(posterior,
+                                      centrality = "median",
+                                      dispersion = FALSE,
+                                      ci = 0.95,
+                                      ci_method = "eti",
+                                      test = c("p_direction", "rope"),
+                                      rope_range = "default",
+                                      rope_ci = 0.95,
+                                      keep_iterations = FALSE,
+                                      bf_prior = NULL,
+                                      BF = 1,
+                                      verbose = TRUE,
+                                      ...) {
+  if (any(c("all", "bf", "bayesfactor", "bayes_factor") %in% tolower(test)) ||
+    "si" %in% tolower(ci_method)) {
+    samps <- .clean_priors_and_posteriors(posterior, bf_prior, verbose = verbose)
+    bf_prior <- samps$prior
+    posterior_samples <- samps$posterior
+  } else {
+    posterior_samples <- .get_marginaleffects_draws(posterior)
+  }
 
+  out <- describe_posterior(
+    posterior_samples,
+    centrality = centrality,
+    dispersion = dispersion,
+    ci = ci,
+    ci_method = ci_method,
+    test = test,
+    rope_range = rope_range,
+    rope_ci = rope_ci,
+    keep_iterations = keep_iterations,
+    bf_prior = bf_prior,
+    BF = BF,
+    verbose = verbose,
+    ...
+  )
+
+  row.names(out) <- NULL # Reset row names
+  out <- .append_datagrid(out, posterior)
+  class(out) <- c("describe_posterior", "see_describe_posterior", class(out))
+  attr(out, "ci_method") <- ci_method
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(posterior))
+  out
+}
+
+#' @export
+describe_posterior.comparisons <- describe_posterior.slopes
+
+#' @export
+describe_posterior.predictions <- describe_posterior.slopes
 
 
 # Stan ------------------------------

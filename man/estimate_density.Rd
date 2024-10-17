@@ -18,6 +18,7 @@ estimate_density(x, ...)
   select = NULL,
   by = NULL,
   at = NULL,
+  rvar_col = NULL,
   ...
 )
 }
@@ -48,13 +49,16 @@ This feature is experimental, use with caution.}
 
 \item{select}{Character vector of column names. If \code{NULL} (the default), all
 numeric variables will be selected. Other arguments from
-\code{\link[datawizard:extract_column_names]{datawizard::extract_column_names()}} (such as \code{exclude}) can also be used.}
+\code{datawizard::extract_column_names()} (such as \code{exclude}) can also be used.}
 
 \item{by}{Optional character vector. If not \code{NULL} and input is a data frame,
 density estimation is performed for each group (subsets) indicated by \code{by}.
 See examples.}
 
 \item{at}{Deprecated in favour of \code{by}.}
+
+\item{rvar_col}{A single character - the name of an \code{rvar} column in the data
+frame to be processed. See example in \code{\link[=p_direction]{p_direction()}}.}
 }
 \description{
 This function is a wrapper over different methods of density estimation. By

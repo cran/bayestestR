@@ -32,22 +32,22 @@ test_that("bayesfactor_parameters data frame", {
 
   # interval
   expect_warning(
-    bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-.1, .1), direction = 0),
+    bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-0.1, 0.1), direction = 0),
     regexp = NA
   )
   expect_equal(bfsd$log_BF, c(0.13, 0.13), tolerance = 0.1)
 
-  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-.1, .1), direction = 1)
+  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-0.1, 0.1), direction = 1)
   expect_equal(bfsd$log_BF, c(0.47, -0.39), tolerance = 0.1)
 
-  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-.1, .1), direction = -1)
+  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-0.1, 0.1), direction = -1)
   expect_equal(bfsd$log_BF, c(-0.39, 0.47), tolerance = 0.1)
 
   # interval with inf
-  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-.1, Inf))
+  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-0.1, Inf))
   expect_equal(bfsd$log_BF, c(-0.81, 0.80), tolerance = 0.1)
 
-  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-Inf, .1))
+  bfsd <- bayesfactor_parameters(Xposterior, prior = Xprior, null = c(-Inf, 0.1))
   expect_equal(bfsd$log_BF, c(0.80, -0.81), tolerance = 0.1)
 })
 
@@ -57,7 +57,7 @@ test_that("bayesfactor_parameters RSTANARM", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("logspline", "2.1.21")
   skip_if_not_or_load_if_installed("rstanarm")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
 
   fit <- suppressMessages(stan_glm(mpg ~ ., data = mtcars, refresh = 0))
 
@@ -93,9 +93,10 @@ test_that("bayesfactor_parameters RSTANARM", {
 test_that("bayesfactor_parameters BRMS", {
   skip_if_offline()
   skip_if_not_or_load_if_installed("logspline", "2.1.21")
-  skip_if_not_or_load_if_installed("httr")
+  skip_if_not_or_load_if_installed("httr2")
   skip_if_not_or_load_if_installed("brms")
   skip_if_not_or_load_if_installed("cmdstanr")
+  skip_if_not(dir.exists(cmdstanr::cmdstan_default_install_path()))
 
   brms_mixed_6 <- insight::download_model("brms_mixed_6")
 

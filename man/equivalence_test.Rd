@@ -12,7 +12,14 @@ equivalence_test(x, ...)
 
 \method{equivalence_test}{default}(x, ...)
 
-\method{equivalence_test}{data.frame}(x, range = "default", ci = 0.95, verbose = TRUE, ...)
+\method{equivalence_test}{data.frame}(
+  x,
+  range = "default",
+  ci = 0.95,
+  rvar_col = NULL,
+  verbose = TRUE,
+  ...
+)
 
 \method{equivalence_test}{stanreg}(
   x,
@@ -44,16 +51,28 @@ equivalence_test(x, ...)
 \item{...}{Currently not used.}
 
 \item{range}{ROPE's lower and higher bounds. Should be \code{"default"} or
-depending on the number of outcome variables a vector or a list. In
-models with one response, \code{range} should be a vector of length two (e.g.,
-\code{c(-0.1, 0.1)}). In multivariate models, \code{range} should be a list with a
-numeric vectors for each response variable. Vector names should correspond
-to the name of the response variables. If \code{"default"} and input is a vector,
-the range is set to \code{c(-0.1, 0.1)}. If \code{"default"} and input is a Bayesian
-model, \code{\link[=rope_range]{rope_range()}} is used.}
+depending on the number of outcome variables a vector or a list. For models
+with one response, \code{range} can be:
+\itemize{
+\item a vector of length two (e.g., \code{c(-0.1, 0.1)}),
+\item a list of numeric vector of the same length as numbers of parameters (see
+'Examples').
+\item a list of \emph{named} numeric vectors, where names correspond to parameter
+names. In this case, all parameters that have no matching name in \code{range}
+will be set to \code{"default"}.
+}
+
+In multivariate models, \code{range} should be a list with a numeric vectors for
+each response variable. Vector names should correspond to the name of the
+response variables. If \code{"default"} and input is a vector, the range is set to
+\code{c(-0.1, 0.1)}. If \code{"default"} and input is a Bayesian model,
+\code{\link[=rope_range]{rope_range()}} is used.}
 
 \item{ci}{The Credible Interval (CI) probability, corresponding to the
 proportion of HDI, to use for the percentage in ROPE.}
+
+\item{rvar_col}{A single character - the name of an \code{rvar} column in the data
+frame to be processed. See example in \code{\link[=p_direction]{p_direction()}}.}
 
 \item{verbose}{Toggle off warnings.}
 
@@ -113,8 +132,8 @@ of the posterior within the ROPE is smaller than to \verb{2.5\%} or greater than
 to zero the better).
 \cr \cr
 Some attention is required for finding suitable values for the ROPE limits
-(argument \code{range}). See 'Details' in \code{\link[=rope_range]{rope_range()}}
-for further information.
+(argument \code{range}). See 'Details' in \code{\link[=rope_range]{rope_range()}} for further
+information.
 \cr \cr
 \strong{Multicollinearity: Non-independent covariates}
 \cr \cr
@@ -154,6 +173,10 @@ print(test, digits = 4)
 \donttest{
 model <- rstanarm::stan_glm(mpg ~ wt + cyl, data = mtcars)
 equivalence_test(model)
+# multiple ROPE ranges - asymmetric, symmetric, default
+equivalence_test(model, range = list(c(10, 40), c(-5, -4), "default"))
+# named ROPE ranges
+equivalence_test(model, range = list(wt = c(-5, -4), `(Intercept)` = c(10, 40)))
 
 # plot result
 test <- equivalence_test(model)

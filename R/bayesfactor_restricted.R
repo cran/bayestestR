@@ -117,7 +117,7 @@
 #' Retrieved from https://richarddmorey.org/category/order-restrictions/.
 #'
 #' @export
-bayesfactor_restricted <- function(posterior, hypothesis, prior = NULL, verbose = TRUE, ...) {
+bayesfactor_restricted <- function(posterior, ...) {
   UseMethod("bayesfactor_restricted")
 }
 
@@ -186,7 +186,32 @@ bayesfactor_restricted.emmGrid <- function(posterior, hypothesis, prior = NULL,
 bayesfactor_restricted.emm_list <- bayesfactor_restricted.emmGrid
 
 #' @export
-bayesfactor_restricted.data.frame <- function(posterior, hypothesis, prior = NULL, ...) {
+bayesfactor_restricted.slopes <- bayesfactor_restricted.emmGrid
+
+#' @export
+bayesfactor_restricted.predictions <- bayesfactor_restricted.emmGrid
+
+#' @export
+bayesfactor_restricted.comparisons <- bayesfactor_restricted.emmGrid
+
+#' @export
+#' @rdname bayesfactor_restricted
+#' @inheritParams p_direction
+bayesfactor_restricted.data.frame <- function(posterior, hypothesis, prior = NULL, rvar_col = NULL, ...) {
+  x_rvar <- .possibly_extract_rvar_col(posterior, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::bayesfactor_restricted
+    cl$posterior <- x_rvar
+    cl$rvar_col <- NULL
+    prior_rvar <- .possibly_extract_rvar_col(posterior, prior)
+    if (length(prior_rvar) > 0L) {
+      cl$prior <- prior_rvar
+    }
+    return(eval.parent(cl))
+  }
+
+
   p_hypothesis <- parse(text = hypothesis)
 
   if (is.null(prior)) {
@@ -242,7 +267,11 @@ bayesfactor_restricted.data.frame <- function(posterior, hypothesis, prior = NUL
 
 #' @export
 bayesfactor_restricted.draws <- function(posterior, hypothesis, prior = NULL, ...) {
-  bayesfactor_restricted(.posterior_draws_to_df(posterior), hypothesis = hypothesis, prior = prior, ...)
+  bayesfactor_restricted(.posterior_draws_to_df(posterior),
+    hypothesis = hypothesis,
+    prior = if (!is.null(prior)) .posterior_draws_to_df(prior),
+    ...
+  )
 }
 
 #' @export

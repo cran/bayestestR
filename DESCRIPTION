@@ -2,38 +2,38 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.14.0
+Version: 0.15.0
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
              role = c("aut", "cre"),
              email = "dom.makowski@gmail.com",
-             comment = c(ORCID = "0000-0001-5375-9967", Twitter = "@Dom_Makowski")),
+             comment = c(ORCID = "0000-0001-5375-9967")),
       person(given = "Daniel",
              family = "Lüdecke",
              role = "aut",
              email = "d.luedecke@uke.de",
-             comment = c(ORCID = "0000-0002-8895-3206", Twitter = "@strengejacke")),
+             comment = c(ORCID = "0000-0002-8895-3206")),
       person(given = "Mattan S.",
              family = "Ben-Shachar",
              role = "aut",
              email = "matanshm@post.bgu.ac.il",
-             comment = c(ORCID = "0000-0002-4287-4801", Twitter = "@mattansb")),
+             comment = c(ORCID = "0000-0002-4287-4801")),
       person(given = "Indrajeet",
              family = "Patil",
              role = "aut",
              email = "patilindrajeet.science@gmail.com",
-             comment = c(ORCID = "0000-0003-1995-6531", Twitter = "@patilindrajeets")),
-      person(given = "Michael D.",
+             comment = c(ORCID = "0000-0003-1995-6531")),
+      person(given = "Micah K.",
              family = "Wilson",
              role = "aut",
-             email = "michael.d.wilson@curtin.edu.au",
+             email = "micah.k.wilson@curtin.edu.au",
              comment = c(ORCID = "0000-0003-4143-7308")),
       person(given = "Brenton M.",
              family = "Wiernik",
              role = "aut",
              email = "brenton@wiernik.org",
-             comment = c(ORCID = "0000-0001-9560-6336", Twitter = "@bmwiernik")),
+             comment = c(ORCID = "0000-0001-9560-6336")),
       person(given = "Paul-Christian",
              family = "Bürkner",
              role = "rev",
@@ -65,15 +65,16 @@ Description: Provides utilities to describe posterior
     indices used for null-hypothesis testing (such as ROPE percentage, pd
     and Bayes factors). References: Makowski et al. (2021) <doi:10.21105/joss.01541>.
 Depends: R (>= 3.6)
-Imports: insight (>= 0.20.1), datawizard (>= 0.10.0), graphics,
+Imports: insight (>= 0.20.5), datawizard (>= 0.13.0), graphics,
         methods, stats, utils
 Suggests: BayesFactor (>= 0.9.12-4.4), bayesQR, bayesplot, betareg, BH,
-        blavaan, bridgesampling, brms, curl, effectsize, emmeans,
-        gamm4, ggdist, ggplot2, glmmTMB, httr, httr2, KernSmooth,
-        knitr, lavaan, lme4, logspline (>= 2.1.21), MASS, mclust,
-        mediation, modelbased, ordbetareg, parameters, patchwork,
-        performance, quadprog, posterior, RcppEigen, rmarkdown, rstan,
-        rstanarm, see (>= 0.8.5), testthat, tweedie
+        blavaan, bridgesampling, brms, collapse, curl, effectsize,
+        emmeans, gamm4, ggdist, ggplot2, glmmTMB, httr2, KernSmooth,
+        knitr, lavaan, lme4, logspline (>= 2.1.21), marginaleffects (>=
+        0.21.0), MASS, mclust, mediation, modelbased, ordbetareg,
+        parameters, patchwork, performance, quadprog, posterior,
+        RcppEigen, rmarkdown, rstan, rstanarm, see (>= 0.8.5),
+        testthat, tweedie, withr
 License: GPL-3
 URL: https://easystats.github.io/bayestestR/
 BugReports: https://github.com/easystats/bayestestR/issues
@@ -87,22 +88,17 @@ Config/rcmdcheck/ignore-inconsequential-notes: true
 Config/Needs/website: easystats/easystatstemplate
 Config/Needs/check: stan-dev/cmdstanr
 NeedsCompilation: no
-Packaged: 2024-07-24 13:24:58 UTC; domma
-Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>,
-    @Dom_Makowski),
-  Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>,
-    @strengejacke),
-  Mattan S. Ben-Shachar [aut] (<https://orcid.org/0000-0002-4287-4801>,
-    @mattansb),
-  Indrajeet Patil [aut] (<https://orcid.org/0000-0003-1995-6531>,
-    @patilindrajeets),
-  Michael D. Wilson [aut] (<https://orcid.org/0000-0003-4143-7308>),
-  Brenton M. Wiernik [aut] (<https://orcid.org/0000-0001-9560-6336>,
-    @bmwiernik),
+Packaged: 2024-10-15 12:44:05 UTC; mail
+Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>),
+  Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>),
+  Mattan S. Ben-Shachar [aut] (<https://orcid.org/0000-0002-4287-4801>),
+  Indrajeet Patil [aut] (<https://orcid.org/0000-0003-1995-6531>),
+  Micah K. Wilson [aut] (<https://orcid.org/0000-0003-4143-7308>),
+  Brenton M. Wiernik [aut] (<https://orcid.org/0000-0001-9560-6336>),
   Paul-Christian Bürkner [rev],
   Tristan Mahr [rev] (<https://orcid.org/0000-0002-8890-5116>),
   Henrik Singmann [ctb] (<https://orcid.org/0000-0002-4842-3657>),
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2024-07-24 14:10:02 UTC
+Date/Publication: 2024-10-17 11:40:02 UTC

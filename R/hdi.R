@@ -82,7 +82,8 @@
 #' @inherit ci return
 #'
 #' @family ci
-#' @seealso Other interval functions, such as [hdi()], [eti()], [bci()], [spi()], [si()], [cwi()].
+#' @seealso Other interval functions, such as [`hdi()`], [`eti()`], [`bci()`],
+#' [`spi()`], [`si()`].
 #'
 #' @examplesIf require("rstanarm") && require("brms") && require("emmeans") && require("BayesFactor")
 #' library(bayestestR)
@@ -143,10 +144,26 @@ hdi.numeric <- function(x, ci = 0.95, verbose = TRUE, ...) {
 
 
 #' @rdname hdi
+#' @inheritParams p_direction
 #' @export
-hdi.data.frame <- function(x, ci = 0.95, verbose = TRUE, ...) {
+hdi.data.frame <- function(x, ci = 0.95, rvar_col = NULL, verbose = TRUE, ...) {
+  obj_name <- insight::safe_deparse_symbol(substitute(x))
+
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::hdi
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, x, long = length(ci) > 1L))
+  }
+
   dat <- .compute_interval_dataframe(x = x, ci = ci, verbose = verbose, fun = "hdi")
-  attr(dat, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  attr(dat, "object_name") <- obj_name
   dat
 }
 
@@ -264,12 +281,28 @@ hdi.sim <- function(x, ci = 0.95, parameters = NULL, verbose = TRUE, ...) {
 hdi.emmGrid <- function(x, ci = 0.95, verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
   out <- hdi(xdf, ci = ci, verbose = verbose, ...)
+  out <- .append_datagrid(out, x, long = length(ci) > 1L)
   attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
 #' @export
 hdi.emm_list <- hdi.emmGrid
+
+#' @export
+hdi.slopes <- function(x, ci = 0.95, verbose = TRUE, ...) {
+  xrvar <- .get_marginaleffects_draws(x)
+  out <- hdi(xrvar, ci = ci, verbose = verbose, ...)
+  out <- .append_datagrid(out, x, long = length(ci) > 1L)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out
+}
+
+#' @export
+hdi.comparisons <- hdi.slopes
+
+#' @export
+hdi.predictions <- hdi.slopes
 
 
 #' @rdname hdi

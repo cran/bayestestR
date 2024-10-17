@@ -32,7 +32,8 @@
 #' - For all other models, `-0.1, 0.1` is used to determine the ROPE limits,
 #'   but it is strongly advised to specify it manually.
 #'
-#' @param x A `stanreg`, `brmsfit` or `BFBayesFactor` object.
+#' @param x A `stanreg`, `brmsfit` or `BFBayesFactor` object, or a frequentist
+#' regression model.
 #' @param verbose Toggle warnings.
 #' @inheritParams rope
 #'
@@ -75,6 +76,11 @@ rope_range <- function(x, ...) {
 #' @rdname rope_range
 #' @export
 rope_range.default <- function(x, verbose = TRUE, ...) {
+  # sanity check - if no model found, return default
+  if (is.null(x)) {
+    return(c(-0.1, 0.1))
+  }
+
   response <- insight::get_response(x, source = "mf")
   response_transform <- insight::find_transformation(x)
   information <- insight::model_info(x, verbose = FALSE)
@@ -87,6 +93,13 @@ rope_range.default <- function(x, verbose = TRUE, ...) {
     ret <- .rope_range(x, information, response, response_transform, verbose)
   }
   ret
+}
+
+
+#' @export
+rope_range.parameters_model <- function(x, verbose = TRUE, ...) {
+  model <- .retrieve_model(x)
+  rope_range.default(x = model, verbose = verbose, ...)
 }
 
 

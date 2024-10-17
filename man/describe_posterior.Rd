@@ -3,6 +3,7 @@
 \name{describe_posterior}
 \alias{describe_posterior}
 \alias{describe_posterior.numeric}
+\alias{describe_posterior.data.frame}
 \alias{describe_posterior.stanreg}
 \alias{describe_posterior.brmsfit}
 \title{Describe Posterior Distributions}
@@ -21,6 +22,23 @@ describe_posterior(posterior, ...)
   keep_iterations = FALSE,
   bf_prior = NULL,
   BF = 1,
+  verbose = TRUE,
+  ...
+)
+
+\method{describe_posterior}{data.frame}(
+  posterior,
+  centrality = "median",
+  dispersion = FALSE,
+  ci = 0.95,
+  ci_method = "eti",
+  test = c("p_direction", "rope"),
+  rope_range = "default",
+  rope_ci = 0.95,
+  keep_iterations = FALSE,
+  bf_prior = NULL,
+  BF = 1,
+  rvar_col = NULL,
   verbose = TRUE,
   ...
 )
@@ -89,23 +107,22 @@ Dispersion is not available for \code{"MAP"} or \code{"mode"} centrality indices
 \item{ci}{Value or vector of probability of the CI (between 0 and 1)
 to be estimated. Default to \code{0.95} (\verb{95\%}).}
 
-\item{ci_method}{The type of index used for Credible Interval. Can be
-\code{"ETI"} (default, see \code{\link[=eti]{eti()}}), \code{"HDI"}
-(see \code{\link[=hdi]{hdi()}}), \code{"BCI"} (see
-\code{\link[=bci]{bci()}}), \code{"SPI"} (see \code{\link[=spi]{spi()}}), or
-\code{"SI"} (see \code{\link[=si]{si()}}).}
+\item{ci_method}{The type of index used for Credible Interval. Can be \code{"ETI"}
+(default, see \code{\link[=eti]{eti()}}), \code{"HDI"} (see \code{\link[=hdi]{hdi()}}), \code{"BCI"} (see \code{\link[=bci]{bci()}}),
+\code{"SPI"} (see \code{\link[=spi]{spi()}}), or \code{"SI"} (see \code{\link[=si]{si()}}).}
 
 \item{test}{The indices of effect existence to compute. Character (vector) or
 list with one or more of these options: \code{"p_direction"} (or \code{"pd"}),
 \code{"rope"}, \code{"p_map"}, \code{"equivalence_test"} (or \code{"equitest"}),
-\code{"bayesfactor"} (or \code{"bf"}) or \code{"all"} to compute all tests.
-For each "test", the corresponding \pkg{bayestestR} function is called
-(e.g. \code{\link[=rope]{rope()}} or \code{\link[=p_direction]{p_direction()}}) and its results
-included in the summary output.}
+\code{"bayesfactor"} (or \code{"bf"}) or \code{"all"} to compute all tests. For each
+"test", the corresponding \pkg{bayestestR} function is called (e.g.
+\code{\link[=rope]{rope()}} or \code{\link[=p_direction]{p_direction()}}) and its results included in the summary
+output.}
 
-\item{rope_range}{ROPE's lower and higher bounds. Should be a list of two
-values (e.g., \code{c(-0.1, 0.1)}) or \code{"default"}. If \code{"default"},
-the bounds are set to \code{x +- 0.1*SD(response)}.}
+\item{rope_range}{ROPE's lower and higher bounds. Should be a vector of two
+values (e.g., \code{c(-0.1, 0.1)}), \code{"default"} or a list of numeric vectors of
+the same length as numbers of parameters. If \code{"default"}, the bounds are
+set to \code{x +- 0.1*SD(response)}.}
 
 \item{rope_ci}{The Credible Interval (CI) probability, corresponding to the
 proportion of HDI, to use for the percentage in ROPE.}
@@ -122,6 +139,9 @@ case of models) ignored.}
 \item{BF}{The amount of support required to be included in the support interval.}
 
 \item{verbose}{Toggle off warnings.}
+
+\item{rvar_col}{A single character - the name of an \code{rvar} column in the data
+frame to be processed. See example in \code{\link[=p_direction]{p_direction()}}.}
 
 \item{diagnostic}{Diagnostic metrics to compute.  Character (vector) or list
 with one or more of these options: \code{"ESS"}, \code{"Rhat"}, \code{"MCSE"} or \code{"all"}.}
@@ -189,6 +209,7 @@ if (require("rstanarm") && require("emmeans")) {
   describe_posterior(model)
   describe_posterior(model, centrality = "all", dispersion = TRUE, test = "all")
   describe_posterior(model, ci = c(0.80, 0.90))
+  describe_posterior(model, rope_range = list(c(-10, 5), c(-0.2, 0.2), "default"))
 
   # emmeans estimates
   # -----------------------------------------------

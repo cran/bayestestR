@@ -124,7 +124,23 @@ p_map.get_predicted <- function(x,
 
 
 #' @export
-p_map.data.frame <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
+#' @rdname p_map
+#' @inheritParams p_direction
+p_map.data.frame <- function(x, null = 0, precision = 2^10, method = "kernel", rvar_col = NULL, ...) {
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::p_map
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    obj_name <- insight::safe_deparse_symbol(substitute(x))
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, x))
+  }
+
   x <- .select_nums(x)
 
   if (ncol(x) == 1) {
@@ -158,8 +174,8 @@ p_map.rvar <- p_map.draws
 #' @export
 p_map.emmGrid <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
   xdf <- insight::get_parameters(x)
-
   out <- p_map(xdf, null = null, precision = precision, method = method, ...)
+  out <- .append_datagrid(out, x)
   attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
@@ -167,7 +183,20 @@ p_map.emmGrid <- function(x, null = 0, precision = 2^10, method = "kernel", ...)
 #' @export
 p_map.emm_list <- p_map.emmGrid
 
+#' @export
+p_map.slopes <- function(x, null = 0, precision = 2^10, method = "kernel", ...) {
+  xrvar <- .get_marginaleffects_draws(x)
+  out <- p_map(xrvar, null = null, precision = precision, method = method, ...)
+  out <- .append_datagrid(out, x)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out
+}
 
+#' @export
+p_map.comparisons <- p_map.slopes
+
+#' @export
+p_map.predictions <- p_map.slopes
 
 
 #' @keywords internal

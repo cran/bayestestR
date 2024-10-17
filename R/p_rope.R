@@ -38,7 +38,27 @@ p_rope.numeric <- function(x, range = "default", verbose = TRUE, ...) {
 
 
 #' @export
-p_rope.data.frame <- p_rope.numeric
+#' @rdname p_rope
+#' @inheritParams p_direction
+p_rope.data.frame <- function(x, range = "default", rvar_col = NULL, verbose = TRUE, ...) {
+  x_rvar <- .possibly_extract_rvar_col(x, rvar_col)
+  if (length(x_rvar) > 0L) {
+    cl <- match.call()
+    cl[[1]] <- bayestestR::p_rope
+    cl$x <- x_rvar
+    cl$rvar_col <- NULL
+    out <- eval.parent(cl)
+
+    obj_name <- insight::safe_deparse_symbol(substitute(x))
+    attr(out, "object_name") <- sprintf('%s[["%s"]]', obj_name, rvar_col)
+
+    return(.append_datagrid(out, x))
+  }
+
+  out <- .p_rope(rope(x, range = range, ci = 1, verbose = verbose, ...))
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out
+}
 
 
 #' @export
@@ -53,14 +73,29 @@ p_rope.rvar <- p_rope.draws
 #' @export
 p_rope.emmGrid <- function(x, range = "default", verbose = TRUE, ...) {
   xdf <- insight::get_parameters(x)
-
   out <- p_rope(xdf, range = range, verbose = verbose)
+  out <- .append_datagrid(out, x)
   attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
   out
 }
 
 #' @export
 p_rope.emm_list <- p_rope.emmGrid
+
+#' @export
+p_rope.slopes <- function(x, range = "default", verbose = TRUE, ...) {
+  xrvar <- .get_marginaleffects_draws(x)
+  out <- p_rope(xrvar, range = range, verbose = verbose)
+  out <- .append_datagrid(out, x)
+  attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
+  out
+}
+
+#' @export
+p_rope.comparisons <- p_rope.slopes
+
+#' @export
+p_rope.predictions <- p_rope.slopes
 
 #' @export
 p_rope.BFBayesFactor <- p_rope.numeric
@@ -84,7 +119,7 @@ p_rope.stanreg <- function(x,
                              "auxiliary"
                            ),
                            parameters = NULL,
-                           verbose = verbose,
+                           verbose = TRUE,
                            ...) {
   out <- .p_rope(rope(
     x,
@@ -115,7 +150,7 @@ p_rope.brmsfit <- function(x,
                            effects = c("fixed", "random", "all"),
                            component = c("conditional", "zi", "zero_inflated", "all"),
                            parameters = NULL,
-                           verbose = verbose,
+                           verbose = TRUE,
                            ...) {
   out <- .p_rope(rope(
     x,
@@ -194,7 +229,7 @@ p_rope.mcmc.list <- p_rope.mcmc
 #' @keywords internal
 .p_rope <- function(rope_rez) {
   cols <- c("Parameter", "ROPE_low", "ROPE_high", "ROPE_Percentage", "Effects", "Component")
-  out <- as.data.frame(rope_rez[cols[cols %in% names(rope_rez)]])
+  out <- as.data.frame(rope_rez)[cols[cols %in% names(rope_rez)]]
   names(out)[names(out) == "ROPE_Percentage"] <- "p_ROPE"
 
   class(out) <- c("p_rope", "see_p_rope", "data.frame")
