@@ -2,7 +2,7 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.15.0
+Version: 0.15.1
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
@@ -65,13 +65,13 @@ Description: Provides utilities to describe posterior
     indices used for null-hypothesis testing (such as ROPE percentage, pd
     and Bayes factors). References: Makowski et al. (2021) <doi:10.21105/joss.01541>.
 Depends: R (>= 3.6)
-Imports: insight (>= 0.20.5), datawizard (>= 0.13.0), graphics,
-        methods, stats, utils
+Imports: insight (>= 1.0.0), datawizard (>= 1.0.0), graphics, methods,
+        stats, utils
 Suggests: BayesFactor (>= 0.9.12-4.4), bayesQR, bayesplot, betareg, BH,
         blavaan, bridgesampling, brms, collapse, curl, effectsize,
         emmeans, gamm4, ggdist, ggplot2, glmmTMB, httr2, KernSmooth,
         knitr, lavaan, lme4, logspline (>= 2.1.21), marginaleffects (>=
-        0.21.0), MASS, mclust, mediation, modelbased, ordbetareg,
+        0.24.0), MASS, mclust, mediation, modelbased, ordbetareg,
         parameters, patchwork, performance, quadprog, posterior,
         RcppEigen, rmarkdown, rstan, rstanarm, see (>= 0.8.5),
         testthat, tweedie, withr
@@ -88,7 +88,7 @@ Config/rcmdcheck/ignore-inconsequential-notes: true
 Config/Needs/website: easystats/easystatstemplate
 Config/Needs/check: stan-dev/cmdstanr
 NeedsCompilation: no
-Packaged: 2024-10-15 12:44:05 UTC; mail
+Packaged: 2025-01-17 12:48:00 UTC; domma
 Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>),
   Daniel Lüdecke [aut] (<https://orcid.org/0000-0002-8895-3206>),
   Mattan S. Ben-Shachar [aut] (<https://orcid.org/0000-0002-4287-4801>),
@@ -101,4 +101,4 @@ Author: Dominique Makowski [aut, cre] (<https://orcid.org/0000-0001-5375-9967>),
   Quentin F. Gronau [ctb] (<https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (<https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2024-10-17 11:40:02 UTC
+Date/Publication: 2025-01-17 15:50:02 UTC
