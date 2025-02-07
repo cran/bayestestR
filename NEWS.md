@@ -1,3 +1,17 @@
+# bayestestR 0.15.2
+
+## Changes
+
+* `describe_posterior()` no longer re-samples a model when computing
+  indices.
+
+* `describe_posterior()` calls tests only when needed. Before, there was a
+  minimal overhead by calling tests that were not requested.
+
+## Bug fixes
+
+* Fixed failing test for Mac OS.
+
 # bayestestR 0.15.1
 
 ## Changes
