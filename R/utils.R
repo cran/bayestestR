@@ -222,10 +222,19 @@
 #' @keywords internal
 .append_datagrid.emmGrid <- function(results, object, long = FALSE) {
   # results is assumed to be a data frame with "Parameter" column
-  # object is an emmeans / marginalefeects that results is based on
+  # object is an emmeans / marginaleffects that results is based on
 
   all_attrs <- attributes(results) # save attributes for later
   all_class <- class(results)
+
+  # extract model info. if we have categorical, add "group" variable
+  model <- attributes(object)$model
+  if (!long && !is.null(model)) {
+    m_info <- insight::model_info(model, response = 1, verbose = FALSE)
+    if (!is.null(m_info) && (m_info$is_categorical || m_info$is_ordinal || m_info$is_cumulative || isTRUE(insight::is_multivariate(model))) && "group" %in% colnames(object)) { # nolint
+      results <- .safe(cbind(data.frame(group = object$group), results), results)
+    }
+  }
 
   datagrid <- insight::get_datagrid(object)
   grid_names <- colnames(datagrid)
@@ -244,7 +253,6 @@
     most_attrs <- all_attrs[setdiff(names(all_attrs), names(attributes(datagrid)))]
     attributes(results)[names(most_attrs)] <- most_attrs
   }
-
 
   attr(results, "idvars") <- grid_names
   results

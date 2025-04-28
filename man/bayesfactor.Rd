@@ -10,7 +10,7 @@ bayesfactor(
   direction = "two-sided",
   null = 0,
   hypothesis = NULL,
-  effects = c("fixed", "random", "all"),
+  effects = "fixed",
   verbose = TRUE,
   denominator = 1,
   match_models = FALSE,
@@ -32,8 +32,9 @@ tailed) or \code{1}, \code{"right"} (right tailed).}
 
 \item{hypothesis}{A character vector specifying the restrictions as logical conditions (see examples below).}
 
-\item{effects}{Should results for fixed effects, random effects or both be
-returned? Only applies to mixed models. May be abbreviated.}
+\item{effects}{Should results for fixed effects (\code{"fixed"}, the default),
+random effects (\code{"random"}) or both ("\verb{all"}) be returned? Only applies to
+mixed models. May be abbreviated.}
 
 \item{verbose}{Toggle off warnings.}
 

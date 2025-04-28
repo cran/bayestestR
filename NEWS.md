@@ -1,3 +1,22 @@
+# bayestestR 0.15.3
+
+## Changes
+
+* `effective_sample()`, and functions that call `effective_sample()` (like
+  `describe_posterior()` with the respective `test` option) now also return
+  the tail ESS.
+
+## Bug fixes
+
+* `describe_posterior()` now returns a columns with response levels for
+  *marginaleffects* objects applied to categorical or multinomial Stan models.
+
+* `describe_posterior()` now returns a columns with response variables for
+  *marginaleffects* objects applied to multivariate response Stan models.
+
+* Fixed issue in `map_estimate()` and `point_estimate(centrality = "MAP")` for
+  vectors with only one unique value.
+
 # bayestestR 0.15.2
 
 ## Changes
