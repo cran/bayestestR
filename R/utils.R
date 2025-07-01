@@ -3,17 +3,20 @@
   tryCatch(code, error = function(e) on_error)
 }
 
+
 # select rows where values in "variable" match "value"
 #' @keywords internal
 .select_rows <- function(data, variable, value) {
   data[which(data[[variable]] == value), ]
 }
 
+
 #' select numerics columns
 #' @keywords internal
 .select_nums <- function(x) {
   x[unlist(lapply(x, is.numeric))]
 }
+
 
 #' @keywords internal
 .retrieve_model <- function(x) {
@@ -38,6 +41,7 @@
   model
 }
 
+
 #' @keywords internal
 .dynGet <- function(x,
                     ifnotfound = stop(gettextf("%s not found", sQuote(x)), domain = NA, call. = FALSE),
@@ -56,6 +60,7 @@
   }
   ifnotfound
 }
+
 
 #' @keywords internal
 .get_direction <- function(direction) {
@@ -172,10 +177,12 @@
   }
 }
 
+
 #' @keywords internal
 .is_baysian_grid <- function(x) {
   UseMethod(".is_baysian_grid")
 }
+
 
 #' @keywords internal
 .is_baysian_grid.emmGrid <- function(x) {
@@ -186,25 +193,30 @@
   !(all(dim(post.beta) == 1) && is.na(post.beta))
 }
 
+
 #' @keywords internal
 .is_baysian_grid.emm_list <- .is_baysian_grid.emmGrid
+
 
 #' @keywords internal
 .is_baysian_grid.slopes <- function(x) {
   !is.null(attr(x, "posterior_draws"))
 }
 
+
 #' @keywords internal
 .is_baysian_grid.predictions <- .is_baysian_grid.slopes
+
 
 #' @keywords internal
 .is_baysian_grid.comparisons <- .is_baysian_grid.slopes
 
+
 # safe add cleaned parameter names to a model object
-.add_clean_parameters_attribute <- function(params, model) {
+.add_clean_parameters_attribute <- function(params, model, ...) {
   cp <- tryCatch(
     {
-      insight::clean_parameters(model)
+      .get_cleaned_parameters(model, ...)
     },
     error = function(e) {
       NULL
@@ -214,10 +226,12 @@
   params
 }
 
+
 #' @keywords internal
 .append_datagrid <- function(results, object, long = FALSE) {
   UseMethod(".append_datagrid", object = object)
 }
+
 
 #' @keywords internal
 .append_datagrid.emmGrid <- function(results, object, long = FALSE) {
@@ -231,8 +245,24 @@
   model <- attributes(object)$model
   if (!long && !is.null(model)) {
     m_info <- insight::model_info(model, response = 1, verbose = FALSE)
-    if (!is.null(m_info) && (m_info$is_categorical || m_info$is_ordinal || m_info$is_cumulative || isTRUE(insight::is_multivariate(model))) && "group" %in% colnames(object)) { # nolint
-      results <- .safe(cbind(data.frame(group = object$group), results), results)
+    # check if we have ordinal and alike
+    if (!is.null(m_info)) {
+      has_response_levels <- isTRUE(
+        m_info$is_categorical |
+          m_info$is_mixture |
+          m_info$is_ordinal |
+          m_info$is_multinomial |
+          m_info$is_cumulative
+      )
+    } else {
+      has_response_levels <- FALSE
+    }
+
+    if ((has_response_levels || isTRUE(insight::is_multivariate(model))) && "group" %in% colnames(object)) {
+      results <- .safe(
+        cbind(data.frame(group = object$group), results),
+        results
+      )
     }
   }
 
@@ -303,6 +333,7 @@
   insight::check_if_installed("marginaleffects", minimum_version = "0.24.0")
   data.frame(marginaleffects::get_draws(object, shape = "DxP"))
 }
+
 
 #' @keywords internal
 .possibly_extract_rvar_col <- function(df, rvar_col) {

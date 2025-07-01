@@ -1,3 +1,13 @@
+# bayestestR 0.16.1
+
+## Changes
+
+* Improved efficiency for `describe_posterior()`.
+
+* Minor improvements for models with multinomial response variables.
+
+* Minor improvements for mixture models from package *brms*.
+
 # bayestestR 0.16.0
 
 ## Changes
