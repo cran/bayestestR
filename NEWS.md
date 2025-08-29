@@ -1,3 +1,21 @@
+# bayestestR 0.17.0
+
+## Changes
+
+* `rope()` (and by extension `p_rope()`) gain a new `complement` argument such
+  that `rope(x, complement = TRUE)` returns the ROPE posterior probability
+  together with the posterior probabilities above/below the ROPE (the
+  _complementary_ probabilities).
+
+* Added `display()` methods for *bayestestR* objects. The `display()` methods
+  also get a new `format` option, `format = "tt"`, to produce tables with the
+  `tinytable` package.
+
+* The long deprecated `rnorm_perfect()` function has been removed. Use
+  `distribution_normal()` instead.
+
+* Prepare for upcoming changes in *marginaleffects* (0.29.0).
+
 # bayestestR 0.16.1
 
 ## Changes
