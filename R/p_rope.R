@@ -75,7 +75,7 @@ p_rope.rvar <- p_rope.draws
 
 #' @export
 p_rope.emmGrid <- function(x, range = "default", verbose = TRUE, ...) {
-  xdf <- insight::get_parameters(x)
+  xdf <- insight::get_parameters(x, verbose = verbose)
   out <- p_rope(xdf, range = range, verbose = verbose)
   out <- .append_datagrid(out, x)
   attr(out, "object_name") <- insight::safe_deparse_symbol(substitute(x))
@@ -132,6 +132,9 @@ p_rope.stanreg <- function(x,
 
 #' @export
 p_rope.stanfit <- p_rope.stanreg
+
+#' @export
+p_rope.CmdStanFit <- p_rope.stanreg
 
 #' @export
 p_rope.blavaan <- p_rope.stanreg

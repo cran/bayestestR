@@ -6,9 +6,18 @@ test_that("bayesfactor_models BIC", {
     mo1 <- lme4::lmer(Sepal.Length ~ (1 | Species), data = iris)
     mo2 <- lme4::lmer(Sepal.Length ~ Petal.Length + (1 | Species), data = iris)
     mo3 <- lme4::lmer(Sepal.Length ~ Petal.Length + (Petal.Length | Species), data = iris)
-    mo4 <- lme4::lmer(Sepal.Length ~ Petal.Length + Petal.Width + (Petal.Length | Species), data = iris)
-    mo5 <- lme4::lmer(Sepal.Length ~ Petal.Length * Petal.Width + (Petal.Length | Species), data = iris)
-    mo4_e <- lme4::lmer(Sepal.Length ~ Petal.Length + Petal.Width + (Petal.Length | Species), data = iris[-1, ])
+    mo4 <- lme4::lmer(
+      Sepal.Length ~ Petal.Length + Petal.Width + (Petal.Length | Species),
+      data = iris
+    )
+    mo5 <- lme4::lmer(
+      Sepal.Length ~ Petal.Length * Petal.Width + (Petal.Length | Species),
+      data = iris
+    )
+    mo4_e <- lme4::lmer(
+      Sepal.Length ~ Petal.Length + Petal.Width + (Petal.Length | Species),
+      data = iris[-1, ]
+    )
   }))
 
   # both uses of denominator
@@ -22,7 +31,8 @@ test_that("bayesfactor_models BIC", {
   expect_equal(
     BFM1,
     bayesfactor_models(list(mo2 = mo2, mo3 = mo3, mo4 = mo4, mo1 = mo1), denominator = 4),
-    tolerance = 1e-4, ignore_attr = TRUE
+    tolerance = 1e-4,
+    ignore_attr = TRUE
   )
 
   # only on same data!
@@ -32,7 +42,8 @@ test_that("bayesfactor_models BIC", {
   expect_equal(update(BFM2, subset = c(1, 2))$log_BF, c(1, 57.3, 54.52), tolerance = 0.1)
 
   # update reference
-  expect_equal(update(BFM2, reference = 1)$log_BF,
+  expect_equal(
+    update(BFM2, reference = 1)$log_BF,
     c(0, -2.8, -6.2, -57.4),
     tolerance = 0.1
   )
@@ -73,6 +84,24 @@ test_that("bayesfactor_models BIC (unsupported / diff nobs)", {
   suppressWarnings(expect_message(bayesfactor_models(fit1, fit2b), "Unable"))
 })
 
+test_that("bayesfactor_models | bayesfactor_matrix", {
+  data("mtcars")
+  lm1 <- lm(mpg ~ 1, data = mtcars)
+  lm2 <- lm(mpg ~ hp, data = mtcars)
+  lm3 <- lm(mpg ~ hp + drat, data = mtcars)
+  lm4 <- lm(mpg ~ hp * drat, data = mtcars)
+  BFM1 <- bayesfactor_models(lm1, lm2, lm3, lm4, denominator = 1)
+  BFM2 <- update(BFM1, reference = 2)
+
+  bfmat <- as.matrix(BFM1)
+  expect_identical(as.matrix(BFM2), bfmat)
+
+  expect_identical(unname(diag(bfmat)), rep(0, 4))
+  expect_identical(-t(bfmat)[upper.tri(bfmat)], bfmat[upper.tri(bfmat)])
+
+  expect_output(print(bfmat), regexp = "Denominator\\\\Numerator")
+})
+
 
 # bayesfactor_models STAN ---------------------------------------------
 
@@ -98,7 +127,6 @@ test_that("bayesfactor_models STAN", {
     iter = 500,
     diagnostic_file = file.path(tempdir(), "df1.csv")
   ))
-
 
   set.seed(333) # compare against bridgesampling
   bridge_BF <- bridgesampling::bayes_factor(
@@ -191,7 +219,8 @@ test_that("bayesfactor_inclusion | BayesFactor", {
   expect_equal(
     bayesfactor_inclusion(BF_ToothGrowth),
     bayesfactor_inclusion(bayesfactor_models(BF_ToothGrowth)),
-    tolerance = 1e-4, ignore_attr = TRUE
+    tolerance = 1e-4,
+    ignore_attr = TRUE
   )
 })
 
@@ -210,6 +239,14 @@ test_that("bayesfactor_inclusion | LMM", {
   # plus match_models
   bfinc_matched <- bayesfactor_inclusion(BFM4, match_models = TRUE)
   expect_equal(bfinc_matched$p_prior, c(1, 0.2, 0.6, 0.2, 0.2), tolerance = 0.1)
-  expect_equal(bfinc_matched$p_posterior, c(1, 0.875, 0.125, 0.009, 0.002), tolerance = 0.1)
-  expect_equal(bfinc_matched$log_BF, c(NaN, 58.904, -3.045, -3.573, -1.493), tolerance = 0.1)
+  expect_equal(
+    bfinc_matched$p_posterior,
+    c(1, 0.875, 0.125, 0.009, 0.002),
+    tolerance = 0.1
+  )
+  expect_equal(
+    bfinc_matched$log_BF,
+    c(NaN, 58.904, -3.045, -3.573, -1.493),
+    tolerance = 0.1
+  )
 })
