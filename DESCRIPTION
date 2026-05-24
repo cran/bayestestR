@@ -2,7 +2,7 @@ Type: Package
 Package: bayestestR
 Title: Understand and Describe Bayesian Models and Posterior
         Distributions
-Version: 0.18.0
+Version: 0.18.1
 Authors@R: 
     c(person(given = "Dominique",
              family = "Makowski",
@@ -88,7 +88,7 @@ Config/rcmdcheck/ignore-inconsequential-notes: true
 Config/Needs/website: easystats/easystatstemplate
 Config/Needs/check: stan-dev/cmdstanr
 NeedsCompilation: no
-Packaged: 2026-05-21 15:02:25 UTC; mail
+Packaged: 2026-05-24 09:47:55 UTC; DL
 Author: Dominique Makowski [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-5375-9967>),
   Daniel Lüdecke [aut] (ORCID: <https://orcid.org/0000-0002-8895-3206>),
@@ -105,4 +105,4 @@ Author: Dominique Makowski [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-5510-6943>),
   Sam Crawley [ctb] (ORCID: <https://orcid.org/0000-0002-7847-0411>)
 Repository: CRAN
-Date/Publication: 2026-05-21 17:20:28 UTC
+Date/Publication: 2026-05-24 14:50:02 UTC

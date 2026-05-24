@@ -1,6 +1,6 @@
-de2bf3900f57322af374adc46b402a45 *DESCRIPTION
+041a1731457e85757dff0bcbb4006508 *DESCRIPTION
 6663a6c3ce19bfea152a82c1144916c1 *NAMESPACE
-8aa1a8ab1af2f64d850e6028dff820f5 *NEWS.md
+751e66776265bd388ba9c216ebfec6ca *NEWS.md
 abba91dd712374c43b79205e4948a8b1 *R/append_datagrid.R
 0604665d2ad6f0c6a2f0307b6993f2c6 *R/area_under_curve.R
 a990bddd4c54e18ca2bb3b5cf954cbee *R/as.list.R
@@ -19,10 +19,10 @@ bbb2088ef0c7c5672462636f122d4e11 *R/bic_to_bf.R
 8fd49be9f215e98477326851e5d404e8 *R/convert_bayesian_to_frequentist.R
 65cc8eb91d4971fec04f7b762bbb9d42 *R/convert_pd_to_p.R
 e87daed2f8a248c6d092f14fc1b1ce6e *R/datasets.R
-047e6d8b53077f6295caad2e0e08c42f *R/describe_posterior.R
+ed11a650c1cd945b3b7d6444719ce53a *R/describe_posterior.R
 326d0d000f4eacfcffc5e599c248cb42 *R/describe_prior.R
 09c09d21dea86f52bb652d54a47e19f9 *R/diagnostic_draws.R
-7569e286d43f581caa2e7563b8ae6c38 *R/diagnostic_posterior.R
+16ab82852163b4be6b813b40a6536637 *R/diagnostic_posterior.R
 bfbff3b692b2ecf166ad10e43984a31f *R/display.R
 77185016c05cc7a27dcca577c0e94fa1 *R/distribution.R
 d16bf36d01be7a3ce71229f3ac7e98f6 *R/effective_sample.R
@@ -33,7 +33,7 @@ b93b680a4920673ebc5b37716864c9a1 *R/equivalence_test.R
 94bbe41efe6e740d9775fdd7a150ec8e *R/hdi.R
 142973cf322b691ca66ae2e6e73a461c *R/is_baysian_grid.R
 f3a3dad38a5fa7a5a110939334b7c111 *R/map_estimate.R
-17b607ac982f1422af695b1b78b96037 *R/mcse.R
+04b6c745d706b4bc653d650bda1ed7a8 *R/mcse.R
 7a574d64cd9bab41987126f575e1155e *R/mediation.R
 6b0cf45761ef3da66bb673fc19088a9e *R/model_to_priors.R
 6f32de81368af70989efd003036bb653 *R/overlap.R
@@ -94,13 +94,13 @@ bbb6923c0b28545f55c657445d302e65 *man/bayesfactor_models.Rd
 0be80726d814018e2b8a86480ff4c64f *man/bic_to_bf.Rd
 a55184c4dfbf6aa611357a0533cb12cc *man/check_prior.Rd
 350ac381a3e33b34fbb3e81b37053df4 *man/ci.Rd
-ade20e470426dcac15633c0337c8aea4 *man/contr.equalprior.Rd
+6d9a9b22a1cb63e55eca9c5ebf5484a3 *man/contr.equalprior.Rd
 79d931300c25fcd0158316f15127049c *man/convert_bayesian_as_frequentist.Rd
 3b8a829f3b094fa97dccb2f654445209 *man/density_at.Rd
 53faaf592b13d03130a80c442a960773 *man/describe_posterior.Rd
 ad60537015e5f50ccfdf9327e73939ad *man/describe_prior.Rd
 078a26d5074e8319deb81d871738b45e *man/diagnostic_draws.Rd
-ad3a860aed9c6b170b2cb6f50046da5a *man/diagnostic_posterior.Rd
+119e366839affef4e8b814955bb7d175 *man/diagnostic_posterior.Rd
 933a334f0afcb213569e4ad5d3446e6e *man/disgust.Rd
 fb0dedb2d4574ae1de4d4727084cffd9 *man/display.describe_posterior.Rd
 cdcb6fb83ce251c84c2bf9a578665f95 *man/distribution.Rd
@@ -120,7 +120,7 @@ c97f66c4a122fca73bf305f2fe39bdb6 *man/estimate_density.Rd
 5a6870fa2832c5e9fa6851edd34acf1a *man/figures/unnamed-chunk-8-1.png
 f76fc8808f88380f6f74ae6c77c946ea *man/hdi.Rd
 95c3c4ecdbbf79a4dddda68ca5358a8c *man/map_estimate.Rd
-f9ad8021182140cdfdd5cc62b585930d *man/mcse.Rd
+977401bdb31a182b36626217db46a1f6 *man/mcse.Rd
 c37fbf6356631d6accae6ab4aa9acee4 *man/mediation.Rd
 04325eac6de74b6fd291888e66cdfddd *man/model_to_priors.Rd
 24a2f8e0c2e682c815c1884908edf1b4 *man/overlap.Rd
@@ -162,7 +162,7 @@ e7ce4a136ba3a5e3e19802ad5fefed00 *tests/testthat/test-ci.R
 8cfbb3b3a84cc76ad6fac4e191b705a7 *tests/testthat/test-density_at.R
 f3c3b2af5e9e8305c54a7d69b4c05bb6 *tests/testthat/test-describe_posterior.R
 9bc4de70fb0a2519092112cfabb87bb4 *tests/testthat/test-describe_prior.R
-1a515251816ee785946e3106a0b99fa3 *tests/testthat/test-diagnostic_posterior.R
+9bdf03fff4471656bfd557b7771f9e8e *tests/testthat/test-diagnostic_posterior.R
 db725a1034057c4cc62159b861fd88a1 *tests/testthat/test-different_models.R
 ed8c019fa0e88ef258102036899bf543 *tests/testthat/test-distributions.R
 970659f4f08135ae9a0715000b383684 *tests/testthat/test-effective_sample.R
